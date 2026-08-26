@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, DoorId, GameState, RoomId } from './types';
-import { AUTH_CODE, BREAKER_SEQUENCE, DOORS_REQUIRED, INITIAL_ALLOCATION } from './content';
+import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import { AUTH_CODE, BREAKER_SEQUENCE, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN } from './content';
 
 export function initialState(): GameState {
   return {
@@ -81,4 +81,36 @@ export function enterRoom(room: RoomId): ActionResult {
   const act = room === 'bridge' ? 3 : room === 'engineering' ? Math.max(s.act, 2) as 2 | 3 : s.act;
   gameStore.setState({ room, act });
   return { ok: true, message: `Entered ${room}.` };
+}
+
+export function routePower(from: SubsystemId, to: SubsystemId, amount: number): ActionResult {
+  const s = gameStore.getState();
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return { ok: false, message: 'Power moves in whole positive units. This reactor is old, not imaginative.' };
+  }
+  if (from === to) return { ok: false, message: 'Source and destination are the same subsystem.' };
+  const alloc = { ...s.powerAllocation };
+  if (alloc[from] < amount) {
+    return { ok: false, message: `${from} only holds ${alloc[from]}u.` };
+  }
+  alloc[from] -= amount;
+  alloc[to] += amount;
+  if (alloc.life_support < LIFE_SUPPORT_MIN) {
+    return { ok: false, message: `Request denied: life support hard minimum is ${LIFE_SUPPORT_MIN}u. The relay does not negotiate.` };
+  }
+  gameStore.setState({ powerAllocation: alloc });
+  return { ok: true, message: `Routed ${amount}u from ${from} to ${to}.` };
+}
+
+export function installFuse(rating: FuseRating): void {
+  gameStore.setState({ fuseInstalled: rating });
+}
+
+export function setValve(index: 0 | 1 | 2, value: number): void {
+  const v = Math.max(0, Math.min(9, Math.round(value)));
+  gameStore.setState((s) => {
+    const valveSettings = [...s.valveSettings] as [number, number, number];
+    valveSettings[index] = v;
+    return { valveSettings };
+  });
 }
