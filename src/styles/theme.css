@@ -1,0 +1,70 @@
+:root {
+  --hull: #0a0e0c;
+  --panel: #10161233;
+  --panel-solid: #131a16;
+  --line: #2a3a30;
+  --amber: #ffb454;
+  --green: #7ddb8a;
+  --red: #ff5c57;
+  --dim: #6f8578;
+  --text: #cfe3d4;
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--hull);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.panel {
+  background: var(--panel-solid);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+button {
+  font: inherit;
+  background: transparent;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: 4px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+button:hover { background: #ffb45422; }
+button:disabled { color: var(--dim); border-color: var(--dim); cursor: not-allowed; }
+
+.status-ok { color: var(--green); }
+.status-bad { color: var(--red); }
+.status-dim { color: var(--dim); }
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  align-items: baseline;
+}
+
+.ailink { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.ailink .tool { white-space: nowrap; }
+
+.scene { max-width: 960px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+
+@keyframes blink { 50% { opacity: 0.35; } }
+.blink { animation: blink 1.2s step-end infinite; }

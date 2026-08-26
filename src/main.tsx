@@ -1,8 +1,5 @@
-import { runSpike } from './spike';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './styles/theme.css';
 
-const root = document.getElementById('root')!;
-const pre = document.createElement('pre');
-root.appendChild(pre);
-runSpike((line) => {
-  pre.textContent += line + '\n';
-});
+createRoot(document.getElementById('root')!).render(<App />);
