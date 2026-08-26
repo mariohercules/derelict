@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HUD } from './ui/HUD';
 import { FallbackBanner } from './ui/FallbackBanner';
 import { useGame } from './ui/useGame';
@@ -21,7 +21,25 @@ export default function App() {
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
   const t = useStrings();
-  const mc = useMemo(() => detectModelContext(), []);
+  const [mc, setMc] = useState(() => detectModelContext());
+
+  // Some hosts (extension bridges, agents attaching after page load) inject
+  // modelContext only after React mounts — poll briefly instead of deciding
+  // the link is severed forever at first render.
+  useEffect(() => {
+    if (mc) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      const found = detectModelContext();
+      if (found) {
+        setMc(found);
+        clearInterval(timer);
+      } else if (++tries >= 20) {
+        clearInterval(timer);
+      }
+    }, 500);
+    return () => clearInterval(timer);
+  }, [mc]);
 
   useEffect(() => {
     if (!mc) return;
@@ -75,7 +93,7 @@ export default function App() {
 
   return (
     <>
-      <HUD />
+      <HUD linked={mc !== null} />
       {!mc && <FallbackBanner />}
       {won ? (
         <Epilogue />

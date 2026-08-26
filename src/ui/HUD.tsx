@@ -4,7 +4,7 @@ import { enginesOnline } from '../game/derived';
 import { useStrings } from './useLocale';
 import { LocaleToggle } from './LocaleToggle';
 
-export function HUD() {
+export function HUD({ linked }: { linked: boolean }) {
   const state = useGame((s) => s);
   const t = useStrings();
   const tools = toolAvailability(state);
@@ -21,13 +21,19 @@ export function HUD() {
           {t.hud.engines} {enginesOnline(state) ? 'ONLINE' : 'OFFLINE'}
         </span>
       </div>
-      <div className="ailink" title={t.hud.ailinkTitle}>
-        <span className="status-dim">AI LINK {onlineCount}/{tools.length} · status:</span>
-        {tools.map((tool) => (
-          <span key={tool.name} className={`tool ${tool.online ? 'status-ok' : 'status-dim'}`}>
-            {tool.online ? '●' : '○'} {tool.name}
-          </span>
-        ))}
+      <div className="ailink" title={linked ? t.hud.ailinkTitle : undefined}>
+        {linked ? (
+          <>
+            <span className="status-dim">AI LINK {onlineCount}/{tools.length} · status:</span>
+            {tools.map((tool) => (
+              <span key={tool.name} className={`tool ${tool.online ? 'status-ok' : 'status-dim'}`}>
+                {tool.online ? '●' : '○'} {tool.name}
+              </span>
+            ))}
+          </>
+        ) : (
+          <span className="status-bad">AI LINK · {t.hud.severed}</span>
+        )}
       </div>
       <LocaleToggle />
     </header>

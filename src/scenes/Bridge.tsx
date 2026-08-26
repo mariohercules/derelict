@@ -24,7 +24,7 @@ function Viewport() {
           <circle key={i} cx={x} cy={(i * 53) % 150 + 5} r="1.5" fill="#3d4f45" />
         ))}
         {STAR_FIX.map((glyph, i) => {
-          const x = 120 + i * 80 + (50 - alignment) * 2;
+          const x = 155 + i * 45 + (50 - alignment) * 2;
           return (
             <g key={glyph}>
               <circle cx={x} cy={70} r="4" fill="var(--amber)" />
@@ -56,6 +56,7 @@ function LaunchConsole() {
 
   useEffect(() => {
     if (launch.phase !== 'countdown') return;
+    setNowTick(Date.now()); // reset immediately: a stale mount-time tick would flash an inflated T-minus
     const timer = setInterval(() => setNowTick(Date.now()), 250);
     return () => clearInterval(timer);
   }, [launch.phase]);
@@ -81,6 +82,17 @@ function LaunchConsole() {
         onPointerDown={() => holdHandle(true)}
         onPointerUp={() => holdHandle(false)}
         onPointerLeave={() => holdHandle(false)}
+        onPointerCancel={() => holdHandle(false)}
+        onKeyDown={(e) => {
+          if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+            e.preventDefault();
+            holdHandle(true);
+          }
+        }}
+        onKeyUp={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') holdHandle(false);
+        }}
+        onBlur={() => holdHandle(false)}
         disabled={launch.phase !== 'countdown'}
         style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2 }}
       >

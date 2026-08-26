@@ -126,6 +126,9 @@ export function holdHandle(held: boolean): void {
 export function computeTrajectory(symbols: string[]): ActionResult {
   const s = gameStore.getState();
   if (s.room !== 'bridge') return { ok: false, message: 'Navigation console is on the bridge.' };
+  if (!s.starFixTaken) {
+    return { ok: false, message: 'No optical fix logged. The viewport reticle must be aligned by hand first — that is crew work, not yours.' };
+  }
   const given = symbols.map((x) => String(x).trim().toUpperCase()).join('-');
   if (given !== STAR_FIX.join('-')) {
     return { ok: false, message: 'Star fix does not resolve. Those symbols point us into a gas giant. Re-check the viewport.' };
@@ -136,11 +139,21 @@ export function computeTrajectory(symbols: string[]): ActionResult {
 
 export function initiateLaunch(auth: string, now: number = Date.now()): ActionResult {
   const s = gameStore.getState();
+  if (s.room !== 'bridge') {
+    return { ok: false, message: 'Two-operator rule: the crew member must be on the bridge, hand within reach of the confirm handle. They are below decks. Initiation refused.' };
+  }
   if (!s.trajectorySet) return { ok: false, message: 'No trajectory locked. Launching blind is technically possible and universally fatal.' };
   if (String(auth).trim().toUpperCase() !== LAUNCH_AUTH) {
     return { ok: false, message: 'Launch authorization rejected.' };
   }
-  if (s.launch.phase !== 'idle') return { ok: false, message: 'Launch sequence already in progress.' };
+  const expired =
+    s.launch.phase === 'countdown' && s.launch.countdownEndsAt !== null && now > s.launch.countdownEndsAt;
+  if (s.launch.phase !== 'idle' && !expired) {
+    return {
+      ok: false,
+      message: s.launch.phase === 'launched' ? 'Pod two is already away.' : 'Launch sequence already in progress.',
+    };
+  }
   gameStore.setState({ launch: { ...s.launch, phase: 'countdown', countdownEndsAt: now + LAUNCH_WINDOW_MS } });
   return { ok: true, message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${LAUNCH_WINDOW_MS / 1000}s.` };
 }

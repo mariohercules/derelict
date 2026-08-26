@@ -44,6 +44,27 @@ describe('persistence', () => {
     expect(loaded?.launch).toEqual({ phase: 'idle', countdownEndsAt: null, handleHeld: false });
   });
 
+  it('rejects a save with a malformed launch object', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(), launch: null }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a save with an incomplete power allocation', () => {
+    const saved = { ...initialState(), powerAllocation: { life_support: 25 } };
+    storage.set(SAVE_KEY, JSON.stringify(saved));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a save with malformed valve settings', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(), valveSettings: [] }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a save pointing at a room that does not exist', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(), room: 'holodeck' }));
+    expect(loadSavedState()).toBeNull();
+  });
+
   it('keeps a launched save as launched, but still clears handleHeld', () => {
     const saved = {
       ...initialState(),

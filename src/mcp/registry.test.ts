@@ -51,12 +51,16 @@ describe('createToolRegistry', () => {
     expect(reg.activeToolNames()).toEqual(['always']);
   });
 
-  it('registers a tool when its condition becomes true, revokes when false', () => {
+  it('registers a tool when its condition becomes true, revokes when false', async () => {
     const { mc, registered } = fakeMc();
     createToolRegistry(mc, [tool('gated', (s) => s.auxPower)], store);
     store.setState({ auxPower: true });
     expect(registered.has('gated')).toBe(true);
     store.setState({ auxPower: false });
+    // Revocation is deferred one macrotask so a tool that revokes itself
+    // mid-execute (confirm_launch) still delivers its result to the host.
+    expect(registered.has('gated')).toBe(true);
+    await new Promise((r) => setTimeout(r, 0));
     expect(registered.has('gated')).toBe(false);
   });
 

@@ -111,7 +111,7 @@ describe('tool handlers', () => {
     await call('route_power', { from: 'comms', to: 'doors', amount: 5 });
     gameStore.setState({ fuseInstalled: '10A', valveSettings: [6, 3, 7] });
     await call('unlock_door', { door: 'engineering_exit' });
-    gameStore.setState({ act: 3, room: 'bridge' });
+    gameStore.setState({ act: 3, room: 'bridge', starFixTaken: true });
     await call('compute_escape_trajectory', { symbols: [...STAR_FIX] });
     const init = await call('initiate_launch_sequence', { authorization: LAUNCH_AUTH });
     expect(init.ok).toBe(true);

@@ -46,8 +46,12 @@ export function createToolRegistry(
           console.error(`registerTool(${t.name}) failed`, e);
         }
       } else if (!shouldBeOn && isOn) {
-        active.get(t.name)!.abort();
+        const controller = active.get(t.name)!;
         active.delete(t.name);
+        // Deferred one macrotask: a tool whose own execute() flips its
+        // availability (confirm_launch ends the countdown it is gated on)
+        // must deliver its result to the host before the revocation lands.
+        setTimeout(() => controller.abort(), 0);
       }
     }
   }

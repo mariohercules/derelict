@@ -11,6 +11,7 @@ export interface UIStrings {
   hud: {
     engines: string;
     ailinkTitle: string;
+    severed: string;
     rooms: Record<RoomId, string>;
   };
   cryo: {
@@ -98,6 +99,7 @@ const en: UIStrings = {
   hud: {
     engines: 'ENGINES',
     ailinkTitle: 'Ship systems currently exposed to your AI via WebMCP',
+    severed: 'severed',
     rooms: { cryo_bay: 'cryo bay', engineering: 'engineering', bridge: 'bridge' },
   },
   cryo: {
@@ -201,6 +203,7 @@ const ptBR: UIStrings = {
   hud: {
     engines: 'MOTORES',
     ailinkTitle: 'Sistemas da nave atualmente expostos à sua IA via WebMCP',
+    severed: 'rompido',
     rooms: { cryo_bay: 'baia criogênica', engineering: 'engenharia', bridge: 'ponte' },
   },
   cryo: {
