@@ -46,7 +46,7 @@ describe('agent steering (anti-deflection)', () => {
 
   it('initiate_launch_sequence description demands a self-call for the authorization', () => {
     const desc = buildTools().find((t) => t.name === 'initiate_launch_sequence')!.definition.description;
-    expect(desc).toMatch(/call this tool/i);
+    expect(desc).toMatch(/call(ing)? this tool/i);
   });
 
   it('get_ship_status note states the interaction contract', () => {
