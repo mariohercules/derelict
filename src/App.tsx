@@ -7,6 +7,7 @@ import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
 import { gameStore } from './game/store';
 import { CryoBay } from './scenes/CryoBay';
+import { Engineering } from './scenes/Engineering';
 
 function ScenePlaceholder({ name }: { name: string }) {
   return (
@@ -56,7 +57,7 @@ export default function App() {
       ) : room === 'cryo_bay' ? (
         <CryoBay />
       ) : room === 'engineering' ? (
-        <ScenePlaceholder name="Engineering" />
+        <Engineering />
       ) : (
         <ScenePlaceholder name="Bridge" />
       )}
