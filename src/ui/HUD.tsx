@@ -22,7 +22,7 @@ export function HUD() {
         </span>
       </div>
       <div className="ailink" title={t.hud.ailinkTitle}>
-        <span className="status-dim">AI LINK {onlineCount}/{tools.length}:</span>
+        <span className="status-dim">AI LINK {onlineCount}/{tools.length} · status:</span>
         {tools.map((tool) => (
           <span key={tool.name} className={`tool ${tool.online ? 'status-ok' : 'status-dim'}`}>
             {tool.online ? '●' : '○'} {tool.name}

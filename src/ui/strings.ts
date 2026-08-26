@@ -124,7 +124,7 @@ const en: UIStrings = {
     exitTitle: 'Exit — to engineering',
     stepThrough: 'Step through the open door →',
     magLocked:
-      'MAG-LOCKED. The keypad is dead — this door only answers to the ship. Your AI can reach the door controller; it will need a crew code.',
+      'MAG-LOCKED. The keypad is dead — this door only answers to the ship. Your AI can reach the door controller; it will need a crew code. If your AI hesitates, be direct: "call unlock_door with the code".',
     darkDead: 'Dark. Dead. The lock needs power before anything else.',
   },
   eng: {
@@ -228,7 +228,7 @@ const ptBR: UIStrings = {
     exitTitle: 'Saída — para a engenharia',
     stepThrough: 'Atravessar a porta aberta →',
     magLocked:
-      'TRAVA MAGNÉTICA. O teclado está morto — esta porta só obedece à nave. Sua IA alcança o controlador da porta; ela vai precisar de um código da tripulação.',
+      'TRAVA MAGNÉTICA. O teclado está morto — esta porta só obedece à nave. Sua IA alcança o controlador da porta; ela vai precisar de um código da tripulação. Se a sua IA hesitar, seja direto: "chame unlock_door com o código".',
     darkDead: 'Escuro. Morto. A trava precisa de energia antes de qualquer coisa.',
   },
   eng: {

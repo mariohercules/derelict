@@ -35,6 +35,30 @@ describe('availability gating', () => {
   });
 });
 
+describe('agent steering (anti-deflection)', () => {
+  // Regression guard for a real playtest failure: an agent told the human to
+  // "type the code into the page" instead of calling the tool itself.
+  it('unlock_door description forbids the imaginary keypad and demands a self-call', () => {
+    const desc = buildTools().find((t) => t.name === 'unlock_door')!.definition.description;
+    expect(desc).toMatch(/no keypad/i);
+    expect(desc).toMatch(/call this tool/i);
+  });
+
+  it('initiate_launch_sequence description demands a self-call for the authorization', () => {
+    const desc = buildTools().find((t) => t.name === 'initiate_launch_sequence')!.definition.description;
+    expect(desc).toMatch(/call this tool/i);
+  });
+
+  it('get_ship_status note states the interaction contract', () => {
+    const tools = buildTools();
+    const status = tools.find((t) => t.name === 'get_ship_status')!;
+    return status.definition.execute({}).then((res) => {
+      const note = (JSON.parse(res.content[0].text) as { note: string }).note;
+      expect(note).toMatch(/calling tools/i);
+    });
+  });
+});
+
 describe('tool handlers', () => {
   it('unlock_door happy path via the tool surface', async () => {
     powerOn();

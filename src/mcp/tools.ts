@@ -64,7 +64,10 @@ export function buildTools(): GameTool[] {
           engines_online: enginesOnline(s),
           coolant_valves_ok: valvesCorrect(s),
           launch: s.launch.phase,
-          note: 'The crew member sees the physical ship. You see this board. Between you, a whole picture.',
+          note:
+            'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
+            'You act ONLY by calling tools yourself; the crew member acts only by touching the ship. ' +
+            'No code or parameter can ever be typed into the page - when you hold a code, call the tool.',
         };
       },
       true
@@ -111,7 +114,10 @@ export function buildTools(): GameTool[] {
     ),
     mkTool(
       'unlock_door',
-      'Release the magnetic lock on a ship door. The cryo bay exit additionally requires a crew authorization code (see the manifest). Your crew member cannot do this - door controllers only answer to you.',
+      'Release the magnetic lock on a ship door. The cryo bay exit additionally requires a crew authorization code (see the manifest). ' +
+        'IMPORTANT: there is no keypad and no form anywhere on the ship - a code cannot be typed into the page. ' +
+        'The ONLY way to open a door is YOU calling this tool with the code as auth_code. ' +
+        'Never instruct the crew member to enter a code somewhere; when they give you a code, call this tool immediately.',
       (s) => s.auxPower,
       {
         type: 'object',
@@ -275,7 +281,9 @@ export function buildTools(): GameTool[] {
     ),
     mkTool(
       'initiate_launch_sequence',
-      'Begin the escape pod launch sequence. Requires a locked trajectory and the launch authorization from the chief engineer\'s final log. Two-operator rule: after initiation, the human must physically hold the confirm handle while you call confirm_launch.',
+      'Begin the escape pod launch sequence. Requires a locked trajectory and the launch authorization from the chief engineer\'s final log. ' +
+        'There is no console input for the authorization - you provide it by calling this tool yourself. ' +
+        'Two-operator rule: after initiation, the human must physically hold the confirm handle while you call confirm_launch.',
       (s) => onBridge(s) && s.trajectorySet,
       {
         type: 'object',
