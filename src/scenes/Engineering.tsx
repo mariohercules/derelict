@@ -8,7 +8,7 @@ function Gauge({ label, pressure }: { label: string; pressure: number }) {
   // 0–120 PSI sweep mapped to -120°..+120°; the number itself is never rendered as text
   const angle = (pressure / 120) * 240 - 120;
   return (
-    <svg viewBox="0 0 100 70" width="120" role="img" aria-label={`${label} analog gauge`}>
+    <svg viewBox="0 0 100 85" width="120" role="img" aria-label={`${label} analog gauge`}>
       <path d="M 10 60 A 45 45 0 1 1 90 60" fill="none" stroke="var(--line)" strokeWidth="4" />
       {[0, 30, 60, 90, 120].map((tick) => {
         const a = ((tick / 120) * 240 - 210) * (Math.PI / 180);
