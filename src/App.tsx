@@ -5,7 +5,9 @@ import { useGame } from './ui/useGame';
 import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
-import { gameStore } from './game/store';
+import { gameStore, resetGame } from './game/store';
+import { loadSavedState } from './game/persist';
+import { playAlarm, playBlip, startAmbience } from './audio/sound';
 import { CryoBay } from './scenes/CryoBay';
 import { Engineering } from './scenes/Engineering';
 import { Bridge } from './scenes/Bridge';
@@ -24,6 +26,7 @@ function ScenePlaceholder({ name }: { name: string }) {
 
 export default function App() {
   const [started, setStarted] = useState(false);
+  const [hasSave, setHasSave] = useState(() => loadSavedState() !== null);
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
   const mc = useMemo(() => detectModelContext(), []);
@@ -31,7 +34,14 @@ export default function App() {
   useEffect(() => {
     if (!mc) return;
     const registry = createToolRegistry(mc, buildTools(), gameStore);
-    return () => registry.dispose();
+    const unsubscribeSound = gameStore.subscribe((state, prevState) => {
+      if (state.auxPower && !prevState.auxPower) playBlip();
+      if (state.launch.phase === 'countdown' && prevState.launch.phase !== 'countdown') playAlarm();
+    });
+    return () => {
+      registry.dispose();
+      unsubscribeSound();
+    };
   }, [mc]);
 
   if (!started) {
@@ -41,7 +51,26 @@ export default function App() {
         <p>A two-crew escape. You see the ship. Your AI runs it. Neither of you leaves alone.</p>
         {!mc && <FallbackBanner />}
         <div>
-          <button onClick={() => setStarted(true)}>Wake up</button>
+          <button
+            onClick={() => {
+              startAmbience();
+              playBlip();
+              setStarted(true);
+            }}
+          >
+            Wake up
+          </button>
+          {hasSave && (
+            <button
+              style={{ marginLeft: 12 }}
+              onClick={() => {
+                resetGame();
+                setHasSave(false);
+              }}
+            >
+              Abandon previous run
+            </button>
+          )}
         </div>
         <p className="status-dim">
           Tip: talk to your AI like a crewmate. Describe what you see. Ask what it can reach.
