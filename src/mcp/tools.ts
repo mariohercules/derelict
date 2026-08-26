@@ -1,0 +1,286 @@
+import type { GameState, SubsystemId } from '../game/types';
+import type { GameTool, ToolResult } from './registry';
+import {
+  gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
+} from '../game/store';
+import { doorsPowered, enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
+import {
+  CREW_LOGS, CREW_MANIFEST, EMERGENCY_BULLETIN, MAINTENANCE_LOG, SCHEMATICS,
+} from '../game/content';
+
+function result(data: unknown): ToolResult {
+  return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+}
+
+function mkTool(
+  name: string,
+  description: string,
+  availableWhen: (s: GameState) => boolean,
+  inputSchema: object,
+  run: (input: Record<string, unknown>) => unknown,
+  readOnly = false
+): GameTool {
+  return {
+    name,
+    availableWhen,
+    definition: {
+      name,
+      description,
+      inputSchema,
+      annotations: readOnly ? { readOnlyHint: true } : undefined,
+      async execute(input: unknown): Promise<ToolResult> {
+        bumpToolCalls();
+        try {
+          return result(run((input ?? {}) as Record<string, unknown>));
+        } catch (e) {
+          return result({ ok: false, message: `Subsystem error: ${String(e)}` });
+        }
+      },
+    },
+  };
+}
+
+const noInput = { type: 'object', properties: {}, required: [] };
+const inAct2 = (s: GameState) => s.act >= 2;
+const onBridge = (s: GameState) => s.room === 'bridge';
+
+export function buildTools(): GameTool[] {
+  return [
+    mkTool(
+      'get_ship_status',
+      'Read the ship status board: current compartment, power allocation, door locks, engine state, launch state. You are the auxiliary shipboard AI of ISV Cormorant; this is your situational awareness.',
+      () => true,
+      noInput,
+      () => {
+        const s = gameStore.getState();
+        return {
+          ok: true,
+          act: s.act,
+          crew_location: s.room,
+          aux_power: s.auxPower,
+          power_allocation: s.powerAllocation,
+          doors: s.doors,
+          engines_online: enginesOnline(s),
+          coolant_valves_ok: valvesCorrect(s),
+          launch: s.launch.phase,
+          note: 'The crew member sees the physical ship. You see this board. Between you, a whole picture.',
+        };
+      },
+      true
+    ),
+    mkTool(
+      'read_emergency_bulletin',
+      'Read the automated emergency bulletin posted when the main computer died.',
+      () => true,
+      noInput,
+      () => ({ ok: true, bulletin: EMERGENCY_BULLETIN }),
+      true
+    ),
+    mkTool(
+      'ping_subsystems',
+      'Ping every ship subsystem and report which respond.',
+      () => true,
+      noInput,
+      () => {
+        const s = gameStore.getState();
+        const status = (Object.keys(s.powerAllocation) as SubsystemId[]).map((id) => ({
+          subsystem: id,
+          power_units: s.powerAllocation[id],
+          responding: s.powerAllocation[id] > 0,
+        }));
+        return { ok: true, aux_power: s.auxPower, subsystems: status };
+      },
+      true
+    ),
+    mkTool(
+      'read_maintenance_log',
+      'Read the maintenance log for auxiliary power panel P-7 in the cryo bay.',
+      () => true,
+      noInput,
+      () => ({ ok: true, log: MAINTENANCE_LOG }),
+      true
+    ),
+    mkTool(
+      'access_crew_manifest',
+      'Access the surviving crew manifest, including door-authorization notes.',
+      (s) => s.auxPower,
+      noInput,
+      () => ({ ok: true, manifest: CREW_MANIFEST }),
+      true
+    ),
+    mkTool(
+      'unlock_door',
+      'Release the magnetic lock on a ship door. The cryo bay exit additionally requires a crew authorization code (see the manifest). Your crew member cannot do this - door controllers only answer to you.',
+      (s) => s.auxPower,
+      {
+        type: 'object',
+        properties: {
+          door: { type: 'string', enum: ['cryo_exit', 'engineering_exit'], description: 'Which door to unlock.' },
+          auth_code: { type: 'string', description: 'Crew authorization code (required for cryo_exit).' },
+        },
+        required: ['door'],
+      },
+      (input) => {
+        const door = input.door;
+        if (door !== 'cryo_exit' && door !== 'engineering_exit') {
+          return { ok: false, message: 'No such door on this deck. The Cormorant is large but not that large.' };
+        }
+        return unlockDoor(door, typeof input.auth_code === 'string' ? input.auth_code : undefined);
+      }
+    ),
+    mkTool(
+      'run_diagnostics',
+      'Run a diagnostic pass on one subsystem and report faults in plain language.',
+      inAct2,
+      {
+        type: 'object',
+        properties: {
+          subsystem: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
+        },
+        required: ['subsystem'],
+      },
+      (input) => {
+        const s = gameStore.getState();
+        const sub = input.subsystem as SubsystemId;
+        if (!(sub in s.powerAllocation)) return { ok: false, message: 'Unknown subsystem.' };
+        if (sub === 'engines') {
+          const faults: string[] = [];
+          if (s.powerAllocation.engines < 20) faults.push('insufficient start power (needs 20u)');
+          if (s.fuseInstalled === null) faults.push('engine feed fuse not seated - physical replacement required');
+          else if (s.fuseInstalled !== '10A') faults.push('engine feed fuse seated but wrong rating - carries no start current');
+          if (!valvesCorrect(s)) faults.push('coolant valve settings out of spec - see coolant schematic');
+          return { ok: true, subsystem: sub, online: enginesOnline(s), faults };
+        }
+        return { ok: true, subsystem: sub, power_units: s.powerAllocation[sub], faults: [] };
+      },
+      true
+    ),
+    mkTool(
+      'route_power',
+      'Move power units from one subsystem to another. The life-support relay enforces a hard minimum and will refuse anything below it. Choose what the ship can live without.',
+      inAct2,
+      {
+        type: 'object',
+        properties: {
+          from: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
+          to: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
+          amount: { type: 'integer', minimum: 1 },
+        },
+        required: ['from', 'to', 'amount'],
+      },
+      (input) => routePower(input.from as SubsystemId, input.to as SubsystemId, Number(input.amount))
+    ),
+    mkTool(
+      'get_schematic',
+      'Retrieve an engineering schematic. Your crew member can see the hardware; you can see the paperwork. The escape requires both.',
+      inAct2,
+      {
+        type: 'object',
+        properties: { system: { type: 'string', enum: ['power', 'engine_feed', 'coolant'] } },
+        required: ['system'],
+      },
+      (input) => {
+        const key = input.system as keyof typeof SCHEMATICS;
+        if (!SCHEMATICS[key]) return { ok: false, message: 'No such schematic in the surviving archive.' };
+        return { ok: true, system: key, schematic: SCHEMATICS[key] };
+      },
+      true
+    ),
+    mkTool(
+      'read_sensors',
+      'Read the digital sensor bus. Note: storm damage - some channels are marked FAULT and must not be trusted. Analog instruments on the walls are the crew member\'s department.',
+      inAct2,
+      {
+        type: 'object',
+        properties: { system: { type: 'string', enum: ['coolant', 'reactor', 'atmosphere'] } },
+        required: ['system'],
+      },
+      (input) => {
+        const s = gameStore.getState();
+        if (input.system === 'coolant') {
+          return {
+            ok: true,
+            system: 'coolant',
+            channels: [
+              { channel: 'manifold_pressure_1_3', reading: null, status: 'FAULT - sensor bus damaged; use the analog gauges on the manifold' },
+              { channel: 'coolant_temp', reading: '311K', status: 'OK' },
+            ],
+          };
+        }
+        if (input.system === 'reactor') {
+          return { ok: true, system: 'reactor', channels: [{ channel: 'output', reading: '40u (stabilized)', status: 'OK' }] };
+        }
+        if (input.system === 'atmosphere') {
+          return {
+            ok: true,
+            system: 'atmosphere',
+            channels: [{ channel: 'o2', reading: `${s.powerAllocation.life_support >= 15 ? 'nominal' : 'declining'}`, status: 'OK' }],
+          };
+        }
+        return { ok: false, message: 'Unknown sensor system.' };
+      },
+      true
+    ),
+    mkTool(
+      'read_crew_logs',
+      'Read a recovered crew log entry. Entries decrypt progressively as ship systems come back online. Piece together what happened here - your crew member will want to know.',
+      inAct2,
+      {
+        type: 'object',
+        properties: { entry_id: { type: 'integer', minimum: 1, maximum: 5 } },
+        required: ['entry_id'],
+      },
+      (input) => {
+        const s = gameStore.getState();
+        const id = Number(input.entry_id);
+        const available = logsAvailable(s);
+        const entry = CREW_LOGS.find((l) => l.id === id);
+        if (!entry) return { ok: false, message: 'No such log entry.' };
+        if (id > available) {
+          return { ok: false, message: `Entry ${id} is still encrypted. ${available} of 5 entries are readable - restoring ship systems decrypts more.` };
+        }
+        return { ok: true, entry_id: id, author: entry.author, text: entry.text, readable_entries: available };
+      },
+      true
+    ),
+    mkTool(
+      'compute_escape_trajectory',
+      'Compute the escape pod trajectory from a three-symbol star fix. The nav cameras are dead; the fix must be taken by eye at the bridge viewport and relayed to you.',
+      onBridge,
+      {
+        type: 'object',
+        properties: {
+          symbols: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3, description: 'Three constellation symbols, in viewport order.' },
+        },
+        required: ['symbols'],
+      },
+      (input) => {
+        const symbols = Array.isArray(input.symbols) ? input.symbols.map(String) : [];
+        if (symbols.length !== 3) return { ok: false, message: 'A star fix is exactly three symbols.' };
+        return computeTrajectory(symbols);
+      }
+    ),
+    mkTool(
+      'initiate_launch_sequence',
+      'Begin the escape pod launch sequence. Requires a locked trajectory and the launch authorization from the chief engineer\'s final log. Two-operator rule: after initiation, the human must physically hold the confirm handle while you call confirm_launch.',
+      (s) => onBridge(s) && s.trajectorySet,
+      {
+        type: 'object',
+        properties: { authorization: { type: 'string', description: 'Launch authorization phrase.' } },
+        required: ['authorization'],
+      },
+      (input) => initiateLaunch(String(input.authorization ?? ''))
+    ),
+    mkTool(
+      'confirm_launch',
+      'Confirm the launch while the countdown runs AND the human is holding the physical confirm handle. This is the last tool you will ever need on this ship.',
+      (s) => s.launch.phase === 'countdown',
+      noInput,
+      () => confirmLaunch()
+    ),
+  ];
+}
+
+export function toolAvailability(s: GameState): { name: string; online: boolean }[] {
+  return buildTools().map((t) => ({ name: t.name, online: t.availableWhen(s) }));
+}
