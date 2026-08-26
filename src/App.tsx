@@ -34,15 +34,16 @@ export default function App() {
   useEffect(() => {
     if (!mc) return;
     const registry = createToolRegistry(mc, buildTools(), gameStore);
+    return () => registry.dispose();
+  }, [mc]);
+
+  useEffect(() => {
     const unsubscribeSound = gameStore.subscribe((state, prevState) => {
       if (state.auxPower && !prevState.auxPower) playBlip();
       if (state.launch.phase === 'countdown' && prevState.launch.phase !== 'countdown') playAlarm();
     });
-    return () => {
-      registry.dispose();
-      unsubscribeSound();
-    };
-  }, [mc]);
+    return unsubscribeSound;
+  }, []);
 
   if (!started) {
     return (
