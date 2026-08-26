@@ -6,6 +6,7 @@ import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
 import { gameStore } from './game/store';
+import { CryoBay } from './scenes/CryoBay';
 
 function ScenePlaceholder({ name }: { name: string }) {
   return (
@@ -53,7 +54,7 @@ export default function App() {
       {won ? (
         <ScenePlaceholder name="Epilogue" />
       ) : room === 'cryo_bay' ? (
-        <ScenePlaceholder name="Cryo Bay" />
+        <CryoBay />
       ) : room === 'engineering' ? (
         <ScenePlaceholder name="Engineering" />
       ) : (
