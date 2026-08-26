@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { AUTH_CODE, BREAKER_SEQUENCE, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN } from './content';
+import { AUTH_CODE, BREAKER_SEQUENCE, DOORS_REQUIRED, INITIAL_ALLOCATION, LAUNCH_AUTH, LAUNCH_WINDOW_MS, LIFE_SUPPORT_MIN, STAR_FIX } from './content';
 
 export function initialState(): GameState {
   return {
@@ -113,4 +113,48 @@ export function setValve(index: 0 | 1 | 2, value: number): void {
     valveSettings[index] = v;
     return { valveSettings };
   });
+}
+
+export function takeStarFix(): void {
+  gameStore.setState({ starFixTaken: true });
+}
+
+export function holdHandle(held: boolean): void {
+  gameStore.setState((s) => ({ launch: { ...s.launch, handleHeld: held } }));
+}
+
+export function computeTrajectory(symbols: string[]): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'bridge') return { ok: false, message: 'Navigation console is on the bridge.' };
+  const given = symbols.map((x) => String(x).trim().toUpperCase()).join('-');
+  if (given !== STAR_FIX.join('-')) {
+    return { ok: false, message: 'Star fix does not resolve. Those symbols point us into a gas giant. Re-check the viewport.' };
+  }
+  gameStore.setState({ trajectorySet: true });
+  return { ok: true, message: 'Escape trajectory locked. Pod two is pointed somewhere survivable.' };
+}
+
+export function initiateLaunch(auth: string, now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  if (!s.trajectorySet) return { ok: false, message: 'No trajectory locked. Launching blind is technically possible and universally fatal.' };
+  if (String(auth).trim().toUpperCase() !== LAUNCH_AUTH) {
+    return { ok: false, message: 'Launch authorization rejected.' };
+  }
+  if (s.launch.phase !== 'idle') return { ok: false, message: 'Launch sequence already in progress.' };
+  gameStore.setState({ launch: { ...s.launch, phase: 'countdown', countdownEndsAt: now + LAUNCH_WINDOW_MS } });
+  return { ok: true, message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${LAUNCH_WINDOW_MS / 1000}s.` };
+}
+
+export function confirmLaunch(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  if (s.launch.phase !== 'countdown') return { ok: false, message: 'No launch sequence armed.' };
+  if (s.launch.countdownEndsAt !== null && now > s.launch.countdownEndsAt) {
+    gameStore.setState({ launch: { ...s.launch, phase: 'idle', countdownEndsAt: null } });
+    return { ok: false, message: 'Launch window elapsed. Sequence reset. Take a breath and initiate again.' };
+  }
+  if (!s.launch.handleHeld) {
+    return { ok: false, message: 'Two-operator rule: confirm refused — the physical handle is not being held. Ask your human to grab it.' };
+  }
+  gameStore.setState({ launch: { ...s.launch, phase: 'launched' }, won: true });
+  return { ok: true, message: 'Pod two away. Nice flying — both of you.' };
 }
