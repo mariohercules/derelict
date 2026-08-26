@@ -8,6 +8,8 @@ import { buildTools } from './mcp/tools';
 import { gameStore } from './game/store';
 import { CryoBay } from './scenes/CryoBay';
 import { Engineering } from './scenes/Engineering';
+import { Bridge } from './scenes/Bridge';
+import { Epilogue } from './scenes/Epilogue';
 
 function ScenePlaceholder({ name }: { name: string }) {
   return (
@@ -53,13 +55,13 @@ export default function App() {
       <HUD />
       {!mc && <FallbackBanner />}
       {won ? (
-        <ScenePlaceholder name="Epilogue" />
+        <Epilogue />
       ) : room === 'cryo_bay' ? (
         <CryoBay />
       ) : room === 'engineering' ? (
         <Engineering />
       ) : (
-        <ScenePlaceholder name="Bridge" />
+        <Bridge />
       )}
     </>
   );
