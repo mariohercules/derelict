@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
+import { useStrings } from '../ui/useLocale';
 import { takeStarFix, holdHandle, enterRoom } from '../game/store';
 import { STAR_FIX } from '../game/content';
 
 function Viewport() {
   const taken = useGame((s) => s.starFixTaken);
+  const t = useStrings();
   const [alignment, setAlignment] = useState(0);
   const aligned = alignment >= 47 && alignment <= 53;
 
@@ -14,12 +16,9 @@ function Viewport() {
 
   return (
     <div className="panel">
-      <h2>Viewport — navigation reticle</h2>
-      <p className="status-dim">
-        The nav cameras are dead. The reticle is optical: drag it until the three beacons sit inside
-        the ring, then read the constellation glyphs to your AI, left to right.
-      </p>
-      <svg viewBox="0 0 400 160" width="100%" role="img" aria-label="star field with alignment reticle">
+      <h2>{t.bridge.viewportTitle}</h2>
+      <p className="status-dim">{t.bridge.viewportDesc}</p>
+      <svg viewBox="0 0 400 160" width="100%" role="img" aria-label={t.bridge.starAria}>
         <rect width="400" height="160" fill="#05080a" />
         {[30, 90, 150, 210, 300, 370].map((x, i) => (
           <circle key={i} cx={x} cy={(i * 53) % 150 + 5} r="1.5" fill="#3d4f45" />
@@ -42,9 +41,9 @@ function Viewport() {
         type="range" min={0} max={100} value={alignment}
         onChange={(e) => setAlignment(Number(e.target.value))}
         style={{ width: '100%' }}
-        aria-label="reticle alignment"
+        aria-label={t.bridge.reticleAria}
       />
-      {aligned && <p className="status-ok">Beacons locked in the ring. Three glyphs resolve beneath them.</p>}
+      {aligned && <p className="status-ok">{t.bridge.beaconsLocked}</p>}
     </div>
   );
 }
@@ -52,12 +51,13 @@ function Viewport() {
 function LaunchConsole() {
   const launch = useGame((s) => s.launch);
   const trajectorySet = useGame((s) => s.trajectorySet);
+  const t = useStrings();
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     if (launch.phase !== 'countdown') return;
-    const t = setInterval(() => setNowTick(Date.now()), 250);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNowTick(Date.now()), 250);
+    return () => clearInterval(timer);
   }, [launch.phase]);
 
   const secondsLeft =
@@ -67,29 +67,14 @@ function LaunchConsole() {
 
   return (
     <div className="panel">
-      <h2>Escape pod two — launch console</h2>
-      {!trajectorySet && (
-        <p className="status-dim">
-          TRAJECTORY: NOT SET. The console wants a course before it wants courage.
-        </p>
-      )}
-      {trajectorySet && launch.phase === 'idle' && (
-        <p className="status-ok">
-          TRAJECTORY LOCKED. Initiation is ship-side — your AI has the authorization question to answer.
-        </p>
-      )}
+      <h2>{t.bridge.consoleTitle}</h2>
+      {!trajectorySet && <p className="status-dim">{t.bridge.trajNotSet}</p>}
+      {trajectorySet && launch.phase === 'idle' && <p className="status-ok">{t.bridge.trajLocked}</p>}
       {launch.phase === 'countdown' && (
         <>
           <p className="status-bad blink" style={{ fontSize: 24 }}>T-{secondsLeft}s</p>
-          <p>
-            TWO-OPERATOR RULE: hold the handle down and keep it held while your AI confirms the launch.
-            Let go and the ship assumes you changed your mind.
-          </p>
-          {secondsLeft === 0 && (
-            <p className="status-dim">
-              Window elapsed. The ship is patient. Ask your AI to initiate again.
-            </p>
-          )}
+          <p>{t.bridge.twoOp}</p>
+          {secondsLeft === 0 && <p className="status-dim">{t.bridge.windowElapsed}</p>}
         </>
       )}
       <button
@@ -99,30 +84,29 @@ function LaunchConsole() {
         disabled={launch.phase !== 'countdown'}
         style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2 }}
       >
-        {launch.handleHeld ? 'HOLDING — DO NOT LET GO' : 'CONFIRM LAUNCH (hold)'}
+        {launch.handleHeld ? t.bridge.holding : t.bridge.confirmHold}
       </button>
     </div>
   );
 }
 
 function EngineeringLadder() {
+  const t = useStrings();
   return (
     <div className="panel">
-      <h2>Ladder down — to engineering</h2>
-      <button onClick={() => enterRoom('engineering')}>Climb back down →</button>
+      <h2>{t.bridge.ladderDown}</h2>
+      <button onClick={() => enterRoom('engineering')}>{t.bridge.climbDown}</button>
     </div>
   );
 }
 
 export function Bridge() {
+  const t = useStrings();
   return (
     <div className="scene">
       <div className="panel">
-        <h2>Bridge</h2>
-        <p>
-          Empty chairs, a cracked viewport, and one escape pod indicator burning steady green.
-          Someone left this deck ready for you.
-        </p>
+        <h2>{t.bridge.title}</h2>
+        <p>{t.bridge.intro}</p>
       </div>
       <Viewport />
       <LaunchConsole />

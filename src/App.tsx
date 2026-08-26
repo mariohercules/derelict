@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { HUD } from './ui/HUD';
 import { FallbackBanner } from './ui/FallbackBanner';
 import { useGame } from './ui/useGame';
+import { useStrings } from './ui/useLocale';
+import { LocaleToggle } from './ui/LocaleToggle';
 import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
@@ -13,22 +15,12 @@ import { Engineering } from './scenes/Engineering';
 import { Bridge } from './scenes/Bridge';
 import { Epilogue } from './scenes/Epilogue';
 
-function ScenePlaceholder({ name }: { name: string }) {
-  return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{name}</h2>
-        <p className="status-dim">Compartment under construction.</p>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [started, setStarted] = useState(false);
   const [hasSave, setHasSave] = useState(() => loadSavedState() !== null);
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
+  const t = useStrings();
   const mc = useMemo(() => detectModelContext(), []);
 
   useEffect(() => {
@@ -48,8 +40,11 @@ export default function App() {
   if (!started) {
     return (
       <div className="scene" style={{ marginTop: '15vh', textAlign: 'center' }}>
+        <div style={{ position: 'absolute', top: 12, right: 16 }}>
+          <LocaleToggle />
+        </div>
         <h1 style={{ letterSpacing: '0.4em', color: 'var(--amber)' }}>DERELICT</h1>
-        <p>A two-crew escape. You see the ship. Your AI runs it. Neither of you leaves alone.</p>
+        <p>{t.app.tagline}</p>
         {!mc && <FallbackBanner />}
         <div>
           <button
@@ -59,7 +54,7 @@ export default function App() {
               setStarted(true);
             }}
           >
-            Wake up
+            {t.app.wakeUp}
           </button>
           {hasSave && (
             <button
@@ -69,13 +64,11 @@ export default function App() {
                 setHasSave(false);
               }}
             >
-              Abandon previous run
+              {t.app.abandonRun}
             </button>
           )}
         </div>
-        <p className="status-dim">
-          Tip: talk to your AI like a crewmate. Describe what you see. Ask what it can reach.
-        </p>
+        <p className="status-dim">{t.app.tip}</p>
       </div>
     );
   }

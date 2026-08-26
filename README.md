@@ -26,6 +26,10 @@ to you: tell it what you're looking at, ask what it can see on its end, and foll
 instructions. If WebMCP isn't available, the game shows a fallback banner explaining how to
 turn it on rather than failing silently.
 
+The interface and ship narrative are available in **English and Brazilian Portuguese** — the
+game auto-detects your browser language, and an EN/PT-BR toggle sits in the corner. Tool
+names and machine codes stay in English in both; ships do not translate codes.
+
 ## How WebMCP is used
 
 The game registers and revokes tools live, in step with the ship. A subsystem that has no

@@ -4,10 +4,10 @@ import {
   gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
 } from '../game/store';
 import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
+import { CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import {
-  CREW_LOGS, CREW_MANIFEST, EMERGENCY_BULLETIN, MAINTENANCE_LOG, SCHEMATICS,
-  CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN,
-} from '../game/content';
+  getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getSchematics,
+} from '../game/narrative';
 
 function result(data: unknown): ToolResult {
   return { content: [{ type: 'text', text: JSON.stringify(data) }] };
@@ -74,7 +74,7 @@ export function buildTools(): GameTool[] {
       'Read the automated emergency bulletin posted when the main computer died.',
       () => true,
       noInput,
-      () => ({ ok: true, bulletin: EMERGENCY_BULLETIN }),
+      () => ({ ok: true, bulletin: getEmergencyBulletin() }),
       true
     ),
     mkTool(
@@ -98,7 +98,7 @@ export function buildTools(): GameTool[] {
       'Read the maintenance log for auxiliary power panel P-7 in the cryo bay.',
       () => true,
       noInput,
-      () => ({ ok: true, log: MAINTENANCE_LOG }),
+      () => ({ ok: true, log: getMaintenanceLog() }),
       true
     ),
     mkTool(
@@ -106,7 +106,7 @@ export function buildTools(): GameTool[] {
       'Access the surviving crew manifest, including door-authorization notes.',
       (s) => s.auxPower,
       noInput,
-      () => ({ ok: true, manifest: CREW_MANIFEST }),
+      () => ({ ok: true, manifest: getCrewManifest() }),
       true
     ),
     mkTool(
@@ -192,9 +192,10 @@ export function buildTools(): GameTool[] {
         required: ['system'],
       },
       (input) => {
-        const key = input.system as keyof typeof SCHEMATICS;
-        if (!Object.hasOwn(SCHEMATICS, key)) return { ok: false, message: 'No such schematic in the surviving archive.' };
-        return { ok: true, system: key, schematic: SCHEMATICS[key] };
+        const schematics = getSchematics();
+        const key = input.system as keyof typeof schematics;
+        if (!Object.hasOwn(schematics, key)) return { ok: false, message: 'No such schematic in the surviving archive.' };
+        return { ok: true, system: key, schematic: schematics[key] };
       },
       true
     ),
@@ -246,7 +247,7 @@ export function buildTools(): GameTool[] {
         const s = gameStore.getState();
         const id = Number(input.entry_id);
         const available = logsAvailable(s);
-        const entry = CREW_LOGS.find((l) => l.id === id);
+        const entry = getCrewLogs().find((l) => l.id === id);
         if (!entry) return { ok: false, message: 'No such log entry.' };
         if (id > available) {
           return { ok: false, message: `Entry ${id} is still encrypted. ${available} of 5 entries are readable - restoring ship systems decrypts more.` };
