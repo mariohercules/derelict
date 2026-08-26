@@ -59,9 +59,8 @@ stat line (tool calls made).
 
 **VO:**
 > "Trajectory's locked. My agent starts the launch sequence — but it can't finish it alone.
-> I have to physically hold this handle for the entire countdown, and it has to call
-> confirm at the same time I'm holding it. One of us without the other, and this ship never
-> leaves."
+> I have to physically hold this handle while it confirms the launch — hold and call have
+> to overlap. One of us without the other, and this ship never leaves."
 
 Let the countdown and the "POD AWAY" screen breathe for a few seconds — don't talk over the
 payoff.

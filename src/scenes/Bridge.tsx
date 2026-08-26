@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
-import { takeStarFix, holdHandle } from '../game/store';
+import { takeStarFix, holdHandle, enterRoom } from '../game/store';
 import { STAR_FIX } from '../game/content';
 
 function Viewport() {
@@ -85,6 +85,11 @@ function LaunchConsole() {
             TWO-OPERATOR RULE: hold the handle down and keep it held while your AI confirms the launch.
             Let go and the ship assumes you changed your mind.
           </p>
+          {secondsLeft === 0 && (
+            <p className="status-dim">
+              Window elapsed. The ship is patient. Ask your AI to initiate again.
+            </p>
+          )}
         </>
       )}
       <button
@@ -96,6 +101,15 @@ function LaunchConsole() {
       >
         {launch.handleHeld ? 'HOLDING — DO NOT LET GO' : 'CONFIRM LAUNCH (hold)'}
       </button>
+    </div>
+  );
+}
+
+function EngineeringLadder() {
+  return (
+    <div className="panel">
+      <h2>Ladder down — to engineering</h2>
+      <button onClick={() => enterRoom('engineering')}>Climb back down →</button>
     </div>
   );
 }
@@ -112,6 +126,7 @@ export function Bridge() {
       </div>
       <Viewport />
       <LaunchConsole />
+      <EngineeringLadder />
     </div>
   );
 }

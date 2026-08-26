@@ -10,7 +10,15 @@ export function loadSavedState(): GameState | null {
     const parsed = JSON.parse(raw) as Partial<GameState>;
     if (typeof parsed.act !== 'number' || typeof parsed.room !== 'string' || !parsed.doors) return null;
     // Merge over initialState so old saves survive new fields
-    return { ...initialState(), ...parsed } as GameState;
+    const merged = { ...initialState(), ...parsed } as GameState;
+    // Never resurrect an in-flight launch: a reload mid-countdown must not restore a stale
+    // deadline or a held handle nobody is actually holding.
+    const launch = { ...merged.launch, handleHeld: false };
+    if (launch.phase === 'countdown') {
+      launch.phase = 'idle';
+      launch.countdownEndsAt = null;
+    }
+    return { ...merged, launch };
   } catch {
     return null;
   }

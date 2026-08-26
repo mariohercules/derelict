@@ -38,9 +38,13 @@ export function createToolRegistry(
       if (shouldBeOn && !isOn) {
         const controller = new AbortController();
         active.set(t.name, controller);
-        void Promise.resolve(mc.registerTool(t.definition, { signal: controller.signal })).catch((e) =>
-          console.error(`registerTool(${t.name}) failed`, e)
-        );
+        try {
+          void Promise.resolve(mc.registerTool(t.definition, { signal: controller.signal })).catch((e) =>
+            console.error(`registerTool(${t.name}) failed`, e)
+          );
+        } catch (e) {
+          console.error(`registerTool(${t.name}) failed`, e);
+        }
       } else if (!shouldBeOn && isOn) {
         active.get(t.name)!.abort();
         active.delete(t.name);

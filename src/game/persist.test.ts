@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSavedState, startPersisting, SAVE_KEY } from './persist';
-import { gameStore, resetGame } from './store';
+import { gameStore, resetGame, initialState } from './store';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -32,5 +32,25 @@ describe('persistence', () => {
   it('returns null when a save is missing expected fields', () => {
     storage.set(SAVE_KEY, JSON.stringify({ hello: 'world' }));
     expect(loadSavedState()).toBeNull();
+  });
+
+  it('sanitizes an in-flight countdown on load: back to idle, no handle held', () => {
+    const saved = {
+      ...initialState(),
+      launch: { phase: 'countdown', countdownEndsAt: 123456789, handleHeld: true },
+    };
+    storage.set(SAVE_KEY, JSON.stringify(saved));
+    const loaded = loadSavedState();
+    expect(loaded?.launch).toEqual({ phase: 'idle', countdownEndsAt: null, handleHeld: false });
+  });
+
+  it('keeps a launched save as launched, but still clears handleHeld', () => {
+    const saved = {
+      ...initialState(),
+      launch: { phase: 'launched', countdownEndsAt: null, handleHeld: true },
+    };
+    storage.set(SAVE_KEY, JSON.stringify(saved));
+    const loaded = loadSavedState();
+    expect(loaded?.launch).toEqual({ phase: 'launched', countdownEndsAt: null, handleHeld: false });
   });
 });

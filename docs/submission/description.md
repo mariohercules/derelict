@@ -49,10 +49,10 @@ that can read and act on systems — have to actually rely on each other.
 The finale is the clearest example of what this pairing makes possible that neither a solo
 player nor a solo agent could do. The escape pod launch is a two-operator action: the agent
 calls `initiate_launch_sequence` once a valid trajectory is locked, which starts a
-countdown; the human must then physically press and *hold* a confirm handle in the UI for
-the countdown's duration while the agent calls `confirm_launch`. If the human lets go, or
-the agent never calls it, the sequence lapses and nothing happens. Launch requires
-simultaneous, sustained intent from both a person and their agent — not a single click
+countdown; the human must then physically press and *hold* a confirm handle in the UI while
+the agent confirms, calling `confirm_launch`. If the human lets go, or the agent never calls
+it, the sequence lapses and nothing happens. Launch requires simultaneous, sustained intent
+from both a person and their agent — not a single click
 attributed to whichever side happened to act first. That's a pattern that doesn't exist in
 either "AI-assisted app" design or traditional multiplayer: a real-time, stateful commitment
 that only resolves when a physical human action and an autonomous tool call overlap in

@@ -193,7 +193,7 @@ export function buildTools(): GameTool[] {
       },
       (input) => {
         const key = input.system as keyof typeof SCHEMATICS;
-        if (!SCHEMATICS[key]) return { ok: false, message: 'No such schematic in the surviving archive.' };
+        if (!Object.hasOwn(SCHEMATICS, key)) return { ok: false, message: 'No such schematic in the surviving archive.' };
         return { ok: true, system: key, schematic: SCHEMATICS[key] };
       },
       true
