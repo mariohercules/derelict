@@ -3,9 +3,10 @@ import type { GameTool, ToolResult } from './registry';
 import {
   gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
 } from '../game/store';
-import { doorsPowered, enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
+import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
 import {
   CREW_LOGS, CREW_MANIFEST, EMERGENCY_BULLETIN, MAINTENANCE_LOG, SCHEMATICS,
+  CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN,
 } from '../game/content';
 
 function result(data: unknown): ToolResult {
@@ -145,9 +146,9 @@ export function buildTools(): GameTool[] {
         if (!(sub in s.powerAllocation)) return { ok: false, message: 'Unknown subsystem.' };
         if (sub === 'engines') {
           const faults: string[] = [];
-          if (s.powerAllocation.engines < 20) faults.push('insufficient start power (needs 20u)');
+          if (s.powerAllocation.engines < ENGINES_REQUIRED) faults.push(`insufficient start power (needs ${ENGINES_REQUIRED}u)`);
           if (s.fuseInstalled === null) faults.push('engine feed fuse not seated - physical replacement required');
-          else if (s.fuseInstalled !== '10A') faults.push('engine feed fuse seated but wrong rating - carries no start current');
+          else if (s.fuseInstalled !== CORRECT_FUSE) faults.push('engine feed fuse seated but wrong rating - carries no start current');
           if (!valvesCorrect(s)) faults.push('coolant valve settings out of spec - see coolant schematic');
           return { ok: true, subsystem: sub, online: enginesOnline(s), faults };
         }
@@ -168,7 +169,18 @@ export function buildTools(): GameTool[] {
         },
         required: ['from', 'to', 'amount'],
       },
-      (input) => routePower(input.from as SubsystemId, input.to as SubsystemId, Number(input.amount))
+      (input) => {
+        const validSubsystems: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
+        const from = input.from as unknown;
+        const to = input.to as unknown;
+        if (!validSubsystems.includes(from as SubsystemId)) {
+          return { ok: false, message: 'No such subsystem on this bus. The Cormorant predates whatever you are thinking of.' };
+        }
+        if (!validSubsystems.includes(to as SubsystemId)) {
+          return { ok: false, message: 'No such subsystem on this bus. The Cormorant predates whatever you are thinking of.' };
+        }
+        return routePower(from as SubsystemId, to as SubsystemId, Number(input.amount));
+      }
     ),
     mkTool(
       'get_schematic',
@@ -214,7 +226,7 @@ export function buildTools(): GameTool[] {
           return {
             ok: true,
             system: 'atmosphere',
-            channels: [{ channel: 'o2', reading: `${s.powerAllocation.life_support >= 15 ? 'nominal' : 'declining'}`, status: 'OK' }],
+            channels: [{ channel: 'o2', reading: `${s.powerAllocation.life_support >= LIFE_SUPPORT_MIN ? 'nominal' : 'declining'}`, status: 'OK' }],
           };
         }
         return { ok: false, message: 'Unknown sensor system.' };

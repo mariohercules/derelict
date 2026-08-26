@@ -68,6 +68,15 @@ describe('tool handlers', () => {
     expect(gameStore.getState().toolCalls).toBe(2);
   });
 
+  it('route_power with invalid subsystem returns error and leaves powerAllocation unchanged', async () => {
+    gameStore.setState({ act: 2, room: 'engineering' });
+    const before = JSON.stringify(gameStore.getState().powerAllocation);
+    const out = await call('route_power', { from: 'warp_core', to: 'engines', amount: 10 });
+    expect(out.ok).toBe(false);
+    const after = JSON.stringify(gameStore.getState().powerAllocation);
+    expect(before).toBe(after);
+  });
+
   it('full agent-side run to victory', async () => {
     powerOn();
     await call('unlock_door', { door: 'cryo_exit', auth_code: AUTH_CODE });
