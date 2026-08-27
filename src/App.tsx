@@ -77,6 +77,12 @@ export default function App() {
         <h1 style={{ letterSpacing: '0.4em', color: 'var(--amber)' }}>DERELICT</h1>
         <p>{t.app.tagline}</p>
         {!mc && <FallbackBanner />}
+        <div className="panel" style={{ textAlign: 'left', maxWidth: 680, margin: '20px auto' }}>
+          <h2>{t.app.howTitle}</h2>
+          <p className="status-dim">1. {t.app.how1}</p>
+          <p className="status-dim">2. {t.app.how2}</p>
+          <p className="status-dim">3. {t.app.how3}</p>
+        </div>
         <div>
           <button
             onClick={() => {
@@ -99,7 +105,6 @@ export default function App() {
             </button>
           )}
         </div>
-        <p className="status-dim">{t.app.tip}</p>
         <BuildTag />
       </div>
     );

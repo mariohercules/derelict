@@ -6,7 +6,10 @@ export interface UIStrings {
     tagline: string;
     wakeUp: string;
     abandonRun: string;
-    tip: string;
+    howTitle: string;
+    how1: string;
+    how2: string;
+    how3: string;
   };
   hud: {
     engines: string;
@@ -96,7 +99,13 @@ const en: UIStrings = {
     tagline: 'A two-crew escape. You see the ship. Your AI runs it. Neither of you leaves alone.',
     wakeUp: 'Wake up',
     abandonRun: 'Abandon previous run',
-    tip: 'Tip: talk to your AI like a crewmate. Describe what you see. Ask what it can reach.',
+    howTitle: 'How it works',
+    how1:
+      "Your AI boards with you. Open this page where your agent can reach it — ChatGPT's in-app browser works out of the box; Chrome needs WebMCP enabled. If the link is severed, a red warning will say so.",
+    how2:
+      "The crew is a pair. You press what is physical — buttons, levers, valves. Your AI operates the ship's systems — the dots up top show its current reach, and they light up as you two make progress.",
+    how3:
+      'Talk like crewmates. Describe what you see; ask what it can read. When it unlocks something, the next move is physical — and yours.',
   },
   hud: {
     engines: 'ENGINES',
@@ -202,7 +211,13 @@ const ptBR: UIStrings = {
     tagline: 'Uma fuga para dois tripulantes. Você vê a nave. Sua IA a opera. Nenhum dos dois sai sozinho.',
     wakeUp: 'Acordar',
     abandonRun: 'Abandonar jornada anterior',
-    tip: 'Dica: fale com sua IA como uma tripulante. Descreva o que você vê. Pergunte o que ela alcança.',
+    howTitle: 'Como funciona',
+    how1:
+      'Sua IA embarca com você. Abra esta página onde seu agente possa alcançá-la — o browser do app do ChatGPT funciona de fábrica; no Chrome, o WebMCP precisa estar ativo. Se o link estiver rompido, um aviso vermelho vai dizer.',
+    how2:
+      'A tripulação é uma dupla. Você aperta o que é físico — botões, alavancas, válvulas. Sua IA opera os sistemas da nave — as bolinhas no topo mostram o alcance dela agora, e elas acendem conforme vocês avançam.',
+    how3:
+      'Conversem como tripulantes. Descreva o que você vê; pergunte o que ela lê. Quando ela destravar algo, o próximo movimento é físico — e é seu.',
   },
   hud: {
     engines: 'MOTORES',
