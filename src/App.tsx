@@ -15,6 +15,17 @@ import { Engineering } from './scenes/Engineering';
 import { Bridge } from './scenes/Bridge';
 import { Epilogue } from './scenes/Epilogue';
 
+function BuildTag() {
+  return (
+    <div
+      className="status-dim"
+      style={{ position: 'fixed', bottom: 6, right: 10, fontSize: 10, opacity: 0.6, pointerEvents: 'none' }}
+    >
+      {__BUILD_ID__}
+    </div>
+  );
+}
+
 export default function App() {
   const [started, setStarted] = useState(false);
   const [hasSave, setHasSave] = useState(() => loadSavedState() !== null);
@@ -89,6 +100,7 @@ export default function App() {
           )}
         </div>
         <p className="status-dim">{t.app.tip}</p>
+        <BuildTag />
       </div>
     );
   }
@@ -106,6 +118,7 @@ export default function App() {
       ) : (
         <Bridge />
       )}
+      <BuildTag />
     </>
   );
 }
