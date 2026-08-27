@@ -124,13 +124,24 @@ export function buildTools(): GameTool[] {
       {
         type: 'object',
         properties: {
-          door: { type: 'string', enum: ['cryo_exit', 'engineering_exit'], description: 'Which door to unlock.' },
-          auth_code: { type: 'string', description: 'Crew authorization code (required for cryo_exit).' },
+          door: {
+            type: 'string',
+            enum: ['cryo_exit', 'engineering_exit'],
+            description: 'Which door to unlock. If omitted, the next locked door in progression is assumed.',
+          },
+          auth_code: {
+            type: ['string', 'number'],
+            description: 'Crew authorization code (required for cryo_exit). Send as a string to preserve leading zeros.',
+          },
         },
-        required: ['door'],
+        required: [],
       },
       (input) => {
-        const door = input.door;
+        const s = gameStore.getState();
+        let door = input.door;
+        if (door === undefined || door === null || door === '') {
+          door = s.doors.cryo_exit ? 'engineering_exit' : 'cryo_exit';
+        }
         if (door !== 'cryo_exit' && door !== 'engineering_exit') {
           return {
             ok: false,
@@ -139,7 +150,9 @@ export function buildTools(): GameTool[] {
               'for the cryo bay exit, or unlock_door({door: "engineering_exit"}) for the bridge hatch.',
           };
         }
-        return unlockDoor(door, typeof input.auth_code === 'string' ? input.auth_code : undefined);
+        // Agents sometimes send the code as a number, which eats the leading zero.
+        const auth = input.auth_code == null ? undefined : String(input.auth_code).padStart(4, '0');
+        return unlockDoor(door, auth);
       }
     ),
     mkTool(

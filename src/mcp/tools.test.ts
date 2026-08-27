@@ -67,6 +67,34 @@ describe('tool handlers', () => {
     expect(gameStore.getState().doors.cryo_exit).toBe(true);
   });
 
+  it('unlock_door infers cryo_exit when the agent sends only the code', async () => {
+    // Playtest regression: two different agents called unlock_door(0407) bare.
+    powerOn();
+    const out = await call('unlock_door', { auth_code: AUTH_CODE });
+    expect(out.ok).toBe(true);
+    expect(gameStore.getState().doors.cryo_exit).toBe(true);
+  });
+
+  it('unlock_door tolerates a numeric code that lost its leading zero', async () => {
+    powerOn();
+    const out = await call('unlock_door', { door: 'cryo_exit', auth_code: 407 });
+    expect(out.ok).toBe(true);
+    expect(gameStore.getState().doors.cryo_exit).toBe(true);
+  });
+
+  it('a bare unlock_door call targets the next locked door in progression', async () => {
+    powerOn();
+    await call('unlock_door', { auth_code: AUTH_CODE });
+    gameStore.setState((s) => ({
+      act: 2,
+      room: 'engineering',
+      powerAllocation: { ...s.powerAllocation, doors: 5, comms: 5 },
+    }));
+    const out = await call('unlock_door', {});
+    expect(out.ok).toBe(true);
+    expect(gameStore.getState().doors.engineering_exit).toBe(true);
+  });
+
   it('unlock_door returns an in-fiction error for a bad door id (never throws)', async () => {
     powerOn();
     const out = await call('unlock_door', { door: 'airlock_9', auth_code: AUTH_CODE });
