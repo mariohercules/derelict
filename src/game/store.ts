@@ -63,7 +63,13 @@ export function unlockDoor(door: DoorId, code?: string): ActionResult {
     }
   }
   gameStore.setState({ doors: { ...s.doors, [door]: true } });
-  return { ok: true, message: `Magnetic lock released: ${door}.` };
+  return {
+    ok: true,
+    message:
+      `Magnetic lock released: ${door}. The door is open, but nothing more happens until the crew member ` +
+      'physically walks through it — deeper systems come online only when they step into the next compartment. ' +
+      'Tell them to walk through now.',
+  };
 }
 
 const ROOM_REQUIRES: Record<RoomId, DoorId | null> = {

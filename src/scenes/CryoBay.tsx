@@ -73,7 +73,10 @@ function ExitDoor() {
     <div className="panel">
       <h2>{t.cryo.exitTitle}</h2>
       {unlocked ? (
-        <button onClick={() => enterRoom('engineering')}>{t.cryo.stepThrough}</button>
+        <>
+          <p className="status-ok blink">{t.cryo.doorOpen}</p>
+          <button onClick={() => enterRoom('engineering')}>{t.cryo.stepThrough}</button>
+        </>
       ) : (
         <p className={auxPower ? 'status-bad' : 'status-dim'}>
           {auxPower ? t.cryo.magLocked : t.cryo.darkDead}

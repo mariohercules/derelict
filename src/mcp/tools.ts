@@ -67,7 +67,9 @@ export function buildTools(): GameTool[] {
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
             'You act ONLY by calling tools yourself; the crew member acts only by touching the ship. ' +
-            'No code or parameter can ever be typed into the page - when you hold a code, call the tool.',
+            'No code or parameter can ever be typed into the page - when you hold a code, call the tool. ' +
+            'Deeper-compartment tools come online only when the crew member physically walks into those compartments - ' +
+            'check crew_location, and if they are behind an open door, tell them to step through it.',
         };
       },
       true
@@ -130,7 +132,12 @@ export function buildTools(): GameTool[] {
       (input) => {
         const door = input.door;
         if (door !== 'cryo_exit' && door !== 'engineering_exit') {
-          return { ok: false, message: 'No such door on this deck. The Cormorant is large but not that large.' };
+          return {
+            ok: false,
+            message:
+              'No such door on this deck. Call this tool with a "door" parameter — unlock_door({door: "cryo_exit", auth_code: "<code>"}) ' +
+              'for the cryo bay exit, or unlock_door({door: "engineering_exit"}) for the bridge hatch.',
+          };
         }
         return unlockDoor(door, typeof input.auth_code === 'string' ? input.auth_code : undefined);
       }

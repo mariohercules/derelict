@@ -35,6 +35,7 @@ export interface UIStrings {
     putBack: string;
     photoAria: string;
     exitTitle: string;
+    doorOpen: string;
     stepThrough: string;
     magLocked: string;
     darkDead: string;
@@ -59,6 +60,7 @@ export interface UIStrings {
     flowSteadies: string;
     ladderUp: string;
     enginesHum: string;
+    hatchOpen: string;
     climbUp: string;
     servosPowered: string;
     servosUnpowered: string;
@@ -124,6 +126,7 @@ const en: UIStrings = {
     putBack: 'Put photo back',
     photoAria: 'A framed family photo',
     exitTitle: 'Exit — to engineering',
+    doorOpen: 'THE DOOR IS OPEN. Nothing else happens until you walk through it.',
     stepThrough: 'Step through the open door →',
     magLocked:
       'MAG-LOCKED. The keypad is dead — this door only answers to the ship. Your AI can reach the door controller; it will need a crew code. If your AI hesitates, be direct: "call unlock_door with the code".',
@@ -158,6 +161,7 @@ const en: UIStrings = {
     flowSteadies: 'Coolant flow steadies. The pipes stop their complaining.',
     ladderUp: 'Ladder up — to the bridge',
     enginesHum: 'Deep below, the engines settle into a healthy hum.',
+    hatchOpen: 'THE HATCH IS OPEN. The bridge is one climb away.',
     climbUp: 'Climb to the bridge →',
     servosPowered: 'Servos have power now — the lock still needs a release from the ship side.',
     servosUnpowered: 'The hatch servos are unpowered. Doors need juice before they need manners.',
@@ -229,6 +233,7 @@ const ptBR: UIStrings = {
     putBack: 'Devolver a foto',
     photoAria: 'Uma foto de família emoldurada',
     exitTitle: 'Saída — para a engenharia',
+    doorOpen: 'A PORTA ESTÁ ABERTA. Nada mais acontece até você atravessá-la.',
     stepThrough: 'Atravessar a porta aberta →',
     magLocked:
       'TRAVA MAGNÉTICA. O teclado está morto — esta porta só obedece à nave. Sua IA alcança o controlador da porta; ela vai precisar de um código da tripulação. Se a sua IA hesitar, seja direto: "chame unlock_door com o código".',
@@ -263,6 +268,7 @@ const ptBR: UIStrings = {
     flowSteadies: 'O fluxo de refrigeração se estabiliza. Os canos param de reclamar.',
     ladderUp: 'Escada acima — para a ponte',
     enginesHum: 'Lá embaixo, os motores assentam num zumbido saudável.',
+    hatchOpen: 'A ESCOTILHA ESTÁ ABERTA. A ponte está a uma subida de distância.',
     climbUp: 'Subir para a ponte →',
     servosPowered: 'Os servos têm energia agora — a trava ainda precisa de uma liberação do lado da nave.',
     servosUnpowered: 'Os servos da escotilha estão sem energia. Portas precisam de energia antes de precisarem de modos.',

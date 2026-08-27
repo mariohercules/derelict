@@ -123,7 +123,10 @@ function BridgeDoor() {
       <h2>{t.eng.ladderUp}</h2>
       {engines && <p className="status-ok">{t.eng.enginesHum}</p>}
       {unlocked ? (
-        <button onClick={() => enterRoom('bridge')}>{t.eng.climbUp}</button>
+        <>
+          <p className="status-ok blink">{t.eng.hatchOpen}</p>
+          <button onClick={() => enterRoom('bridge')}>{t.eng.climbUp}</button>
+        </>
       ) : (
         <p className={powered ? 'status-bad' : 'status-dim'}>
           {powered ? t.eng.servosPowered : t.eng.servosUnpowered}

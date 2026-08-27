@@ -50,6 +50,8 @@ export default function App() {
   useEffect(() => {
     const unsubscribeSound = gameStore.subscribe((state, prevState) => {
       if (state.auxPower && !prevState.auxPower) playBlip();
+      if (state.doors.cryo_exit && !prevState.doors.cryo_exit) playBlip();
+      if (state.doors.engineering_exit && !prevState.doors.engineering_exit) playBlip();
       if (state.launch.phase === 'countdown' && prevState.launch.phase !== 'countdown') playAlarm();
     });
     return unsubscribeSound;

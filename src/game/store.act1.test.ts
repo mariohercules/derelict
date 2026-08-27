@@ -40,6 +40,14 @@ describe('cryo exit door', () => {
     expect(unlockDoor('cryo_exit', AUTH_CODE).ok).toBe(true);
     expect(gameStore.getState().doors.cryo_exit).toBe(true);
   });
+
+  it('success message tells the agent the human must walk through', () => {
+    // Playtest regression: agents unlocked the door and then waited for act-2
+    // tools to appear, not knowing progression needs the human's physical step.
+    flipBreaker('C'); flipBreaker('A'); flipBreaker('B');
+    const r = unlockDoor('cryo_exit', AUTH_CODE);
+    expect(r.message).toMatch(/walk|step/i);
+  });
 });
 
 describe('room movement', () => {
