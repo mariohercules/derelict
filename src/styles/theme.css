@@ -124,3 +124,11 @@ input[type='range']:focus-visible {
     animation: none;
   }
 }
+
+button:focus {
+  outline: none;
+}
+button:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}

@@ -131,9 +131,14 @@ function LaunchConsole() {
         </>
       )}
       <button
-        onPointerDown={() => holdHandle(true)}
+        onPointerDown={(e) => {
+          // Capture the pointer: the hold survives drift off the button
+          // (its own label swap resizes it mid-press) and release still
+          // fires here even if the pointer ends up elsewhere.
+          e.currentTarget.setPointerCapture(e.pointerId);
+          holdHandle(true);
+        }}
         onPointerUp={() => holdHandle(false)}
-        onPointerLeave={() => holdHandle(false)}
         onPointerCancel={() => holdHandle(false)}
         onKeyDown={(e) => {
           if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
@@ -146,7 +151,7 @@ function LaunchConsole() {
         }}
         onBlur={() => holdHandle(false)}
         disabled={launch.phase !== 'countdown'}
-        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2 }}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch' }}
       >
         {launch.handleHeld ? t.bridge.holding : t.bridge.confirmHold}
       </button>
