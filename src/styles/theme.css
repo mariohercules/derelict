@@ -110,3 +110,17 @@ input[type='range']:focus-visible {
   outline: 1px solid var(--amber);
   outline-offset: 3px;
 }
+
+/* Nav beacon pulse (bridge viewport) */
+@keyframes beacon-pulse {
+  50% { opacity: 0.45; }
+}
+.beacon-halo {
+  animation: beacon-pulse 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .beacon-halo,
+  .blink {
+    animation: none;
+  }
+}
