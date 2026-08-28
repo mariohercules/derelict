@@ -2,37 +2,79 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { installFuse, setValve, enterRoom } from '../game/store';
 import { doorsPowered, enginesOnline, valvesCorrect } from '../game/derived';
-import { GAUGE_PRESSURES } from '../game/content';
+import { GAUGE_PRESSURES, LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
 import type { FuseRating, SubsystemId } from '../game/types';
 
+// Gauge geometry: 0–120 PSI sweeps -120°..+120°, measured clockwise from 12 o'clock.
+// The pressure value itself is never rendered as text — reading the needle is the puzzle.
+const CX = 60;
+const CY = 64;
+
+function polar(r: number, deg: number): [number, number] {
+  const rad = (deg * Math.PI) / 180;
+  return [+(CX + r * Math.sin(rad)).toFixed(2), +(CY - r * Math.cos(rad)).toFixed(2)];
+}
+
+function arcPath(r: number, fromDeg: number, toDeg: number): string {
+  const [x1, y1] = polar(r, fromDeg);
+  const [x2, y2] = polar(r, toDeg);
+  const large = toDeg - fromDeg > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+}
+
+const valueDeg = (v: number) => -120 + (v / 120) * 240;
+
 function Gauge({ label, pressure, ariaLabel }: { label: string; pressure: number; ariaLabel: string }) {
-  // 0–120 PSI sweep mapped to -120°..+120°; the number itself is never rendered as text
-  const angle = (pressure / 120) * 240 - 120;
+  const d = valueDeg(pressure);
+  const rad = (d * Math.PI) / 180;
+  const ux = Math.sin(rad);
+  const uy = -Math.cos(rad);
+  const px = Math.cos(rad);
+  const py = Math.sin(rad);
+  const needle = [
+    [CX + 35 * ux, CY + 35 * uy], // tip
+    [CX + 2.2 * px, CY + 2.2 * py],
+    [CX - 9 * ux, CY - 9 * uy], // counterweight tail
+    [CX - 2.2 * px, CY - 2.2 * py],
+  ]
+    .map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`)
+    .join(' ');
+
   return (
-    <svg viewBox="0 0 100 85" width="120" role="img" aria-label={ariaLabel}>
-      <path d="M 10 60 A 45 45 0 1 1 90 60" fill="none" stroke="var(--line)" strokeWidth="4" />
-      {[0, 30, 60, 90, 120].map((tick) => {
-        const a = ((tick / 120) * 240 - 210) * (Math.PI / 180);
+    <svg viewBox="0 0 120 120" width="128" role="img" aria-label={ariaLabel}>
+      {/* bezel + face */}
+      <circle cx={CX} cy={CY} r="56" fill="#0c110e" stroke="#3a4a40" strokeWidth="3" />
+      <circle cx={CX} cy={CY} r="52" fill="none" stroke="var(--line)" strokeWidth="1.5" />
+      {/* scale */}
+      <path d={arcPath(44, -120, 120)} fill="none" stroke="#33443a" strokeWidth="2" />
+      <path d={arcPath(44, valueDeg(100), 120)} fill="none" stroke="var(--amber)" strokeWidth="3" opacity="0.5" />
+      {[10, 20, 40, 50, 70, 80, 100, 110].map((v) => {
+        const [x1, y1] = polar(44, valueDeg(v));
+        const [x2, y2] = polar(40.5, valueDeg(v));
+        return <line key={v} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#4a5a50" strokeWidth="1" />;
+      })}
+      {[0, 30, 60, 90, 120].map((v) => {
+        const [x1, y1] = polar(44, valueDeg(v));
+        const [x2, y2] = polar(37, valueDeg(v));
+        const [tx, ty] = polar(28, valueDeg(v));
         return (
-          <g key={tick}>
-            <line
-              x1={50 + 38 * Math.cos(a)} y1={60 + 38 * Math.sin(a)}
-              x2={50 + 45 * Math.cos(a)} y2={60 + 45 * Math.sin(a)}
-              stroke="var(--dim)" strokeWidth="2"
-            />
-            <text x={50 + 30 * Math.cos(a)} y={60 + 30 * Math.sin(a)} fill="var(--dim)" fontSize="7" textAnchor="middle">
-              {tick}
+          <g key={v}>
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#7a8f82" strokeWidth="2" />
+            <text x={tx} y={ty + 2.5} fill="var(--dim)" fontSize="7.5" textAnchor="middle">
+              {v}
             </text>
           </g>
         );
       })}
-      <line
-        x1="50" y1="60"
-        x2={50 + 40 * Math.cos((angle - 90) * (Math.PI / 180))}
-        y2={60 + 40 * Math.sin((angle - 90) * (Math.PI / 180))}
-        stroke="var(--amber)" strokeWidth="3"
-      />
-      <text x="50" y="68" fill="var(--text)" fontSize="8" textAnchor="middle">{label}</text>
+      {/* needle + hub */}
+      <polygon points={needle} fill="var(--amber)" />
+      <circle cx={CX} cy={CY} r="5" fill="#1d2620" stroke="#3a4a40" strokeWidth="1.5" />
+      <circle cx={CX} cy={CY} r="1.8" fill="var(--amber)" />
+      {/* engraved label plate */}
+      <rect x="39" y="86" width="42" height="13" rx="2" fill="#131a16" stroke="var(--line)" />
+      <text x={CX} y="95.5" fill="var(--text)" fontSize="7" letterSpacing="1" textAnchor="middle">
+        {label}
+      </text>
     </svg>
   );
 }
@@ -43,6 +85,29 @@ const FUSES: { rating: FuseRating; bands: string[] }[] = [
   { rating: '15A', bands: ['#27ae60', '#27ae60', '#27ae60'] },
 ];
 
+function FuseCartridge({ bands }: { bands: string[] }) {
+  const bandW = 7;
+  const gap = 5;
+  const total = bands.length * bandW + (bands.length - 1) * gap;
+  const start = 12 + (60 - total) / 2;
+  return (
+    <svg viewBox="0 0 84 30" width="84" aria-hidden="true">
+      {/* ceramic body */}
+      <rect x="10" y="8" width="64" height="14" rx="3" fill="#241f18" stroke="#4a4438" />
+      <rect x="12" y="9.5" width="60" height="3" rx="1.5" fill="#3a332a" opacity="0.8" />
+      {/* color bands */}
+      {bands.map((c, i) => (
+        <rect key={i} x={start + i * (bandW + gap)} y="8" width={bandW} height="14" fill={c} />
+      ))}
+      {/* metal end caps */}
+      <rect x="2" y="5" width="10" height="20" rx="2" fill="#7d837a" stroke="#4a4f46" />
+      <rect x="3" y="6.5" width="8" height="3" rx="1.5" fill="#a9aea4" opacity="0.7" />
+      <rect x="72" y="5" width="10" height="20" rx="2" fill="#7d837a" stroke="#4a4f46" />
+      <rect x="73" y="6.5" width="8" height="3" rx="1.5" fill="#a9aea4" opacity="0.7" />
+    </svg>
+  );
+}
+
 function FuseBox() {
   const installed = useGame((s) => s.fuseInstalled);
   const t = useStrings();
@@ -50,19 +115,29 @@ function FuseBox() {
     <div className="panel">
       <h2>{t.eng.fuseTitle}</h2>
       <p className="status-dim">{t.eng.fuseDesc}</p>
-      <div style={{ display: 'flex', gap: 16 }}>
-        {FUSES.map((f) => (
-          <button key={f.rating} onClick={() => installFuse(f.rating)} disabled={installed === f.rating}
-            aria-label={t.eng.fuseAria(f.bands.length)}>
-            <svg viewBox="0 0 60 24" width="60">
-              <rect x="2" y="4" width="56" height="16" rx="8" fill="#1d2620" stroke="var(--line)" />
-              {f.bands.map((c, i) => (
-                <rect key={i} x={14 + i * 12} y="4" width="7" height="16" fill={c} />
-              ))}
-            </svg>
-            {installed === f.rating ? t.eng.seated : t.eng.seatIt}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        {FUSES.map((f) => {
+          const seated = installed === f.rating;
+          return (
+            <button
+              key={f.rating}
+              onClick={() => installFuse(f.rating)}
+              disabled={seated}
+              aria-label={t.eng.fuseAria(f.bands.length)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                ...(seated
+                  ? { borderColor: 'var(--amber)', boxShadow: '0 0 12px rgba(255, 180, 84, 0.25)' }
+                  : {}),
+              }}
+            >
+              <FuseCartridge bands={f.bands} />
+              {seated ? <span className="status-ok">{t.eng.seated}</span> : t.eng.seatIt}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -84,8 +159,11 @@ function CoolantManifold() {
               type="range" min={0} max={9} value={valves[i]}
               onChange={(e) => setValve(i as 0 | 1 | 2, Number(e.target.value))}
               aria-label={t.eng.valveAria(i + 1)}
+              style={{ width: 116 }}
             />
-            <div>{t.eng.valve} {valves[i]}</div>
+            <div>
+              {t.eng.valve} <strong style={{ color: 'var(--amber)' }}>{valves[i]}</strong>
+            </div>
           </div>
         ))}
       </div>
@@ -103,10 +181,60 @@ function PowerBoard() {
       <h2>{t.eng.powerBoard}</h2>
       <p className="status-dim">{t.eng.readOnly}</p>
       {order.map((id) => (
-        <div key={id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ width: 110 }}>{t.eng.subsystems[id]}</span>
-          <span style={{ color: 'var(--amber)' }}>{'█'.repeat(alloc[id])}</span>
-          <span className="status-dim">{alloc[id]}u</span>
+        <div key={id} style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '7px 0' }}>
+          <span style={{ width: 128, flexShrink: 0, fontSize: 13, lineHeight: 1.15 }}>
+            {t.eng.subsystems[id]}
+          </span>
+          {/* capacity track: full width = the reactor's 40u, one cell per unit */}
+          <div
+            style={{
+              position: 'relative',
+              flex: 1,
+              maxWidth: 340,
+              height: 14,
+              background: '#0c110e',
+              border: '1px solid var(--line)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 1,
+                bottom: 1,
+                left: 1,
+                width: `${(alloc[id] / REACTOR_OUTPUT) * 100}%`,
+                background: 'linear-gradient(180deg, #ffc878, var(--amber) 55%, #d99a3f)',
+                borderRadius: 2,
+                transition: 'width 0.35s ease',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage:
+                  'repeating-linear-gradient(to right, transparent 0, transparent calc(2.5% - 1px), rgba(10, 14, 12, 0.9) calc(2.5% - 1px), rgba(10, 14, 12, 0.9) 2.5%)',
+              }}
+            />
+            {id === 'life_support' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: `${(LIFE_SUPPORT_MIN / REACTOR_OUTPUT) * 100}%`,
+                  width: 2,
+                  background: 'var(--red)',
+                  opacity: 0.85,
+                }}
+              />
+            )}
+          </div>
+          <span className="status-dim" style={{ width: 34, flexShrink: 0 }}>
+            {alloc[id]}u
+          </span>
         </div>
       ))}
     </div>
