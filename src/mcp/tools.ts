@@ -103,7 +103,7 @@ export function buildTools(): GameTool[] {
       'Read the maintenance log for auxiliary power panel P-7 in the cryo bay.',
       () => true,
       noInput,
-      () => ({ ok: true, log: getMaintenanceLog() }),
+      () => ({ ok: true, log: getMaintenanceLog(gameStore.getState().seed) }),
       true
     ),
     mkTool(
@@ -273,7 +273,7 @@ export function buildTools(): GameTool[] {
         const s = gameStore.getState();
         const id = Number(input.entry_id);
         const available = logsAvailable(s);
-        const entry = getCrewLogs().find((l) => l.id === id);
+        const entry = getCrewLogs(s.seed).find((l) => l.id === id);
         if (!entry) return { ok: false, message: 'No such log entry.' };
         if (id > available) {
           return { ok: false, message: `Entry ${id} is still encrypted. ${available} of 5 entries are readable - restoring ship systems decrypts more.` };

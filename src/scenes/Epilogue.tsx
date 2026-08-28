@@ -12,7 +12,7 @@ export function Epilogue() {
         <p>{t.epilogue.outro}</p>
         <p className="status-dim">{t.epilogue.stats(toolCalls)}</p>
       </div>
-      <button onClick={resetGame}>{t.epilogue.wakeAgain}</button>
+      <button onClick={() => resetGame()}>{t.epilogue.wakeAgain}</button>
     </div>
   );
 }

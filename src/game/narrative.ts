@@ -1,19 +1,19 @@
-// Locale-aware access to the narrative content the agent reads through tools.
-// Machine codes (tool names, C/A/B, DDMM, 10A, KAV/ORO/SET, OVERRIDE-THETA, FAULT)
-// stay identical across locales — in-fiction, the ship does not translate codes.
+// Locale- and seed-aware access to the narrative content the agent reads through tools.
+// Machine codes stay identical across locales (in-fiction, the ship does not translate
+// codes) but vary per ship: every run rolls its own breaker order, birthday PIN, star
+// fix, and launch phrase from the save's seed (see secrets.ts).
+import type { BreakerId } from './types';
 import type { CrewLogEntry } from './content';
-import {
-  CREW_LOGS, CREW_MANIFEST, EMERGENCY_BULLETIN, MAINTENANCE_LOG, SCHEMATICS,
-} from './content';
+import { CREW_MANIFEST, EMERGENCY_BULLETIN, SCHEMATICS } from './content';
 import { getLocale } from './i18n';
+import { secretsFor } from './secrets';
+
+const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
 const EMERGENCY_BULLETIN_PT =
   'BOLETIM AUTOMÁTICO — ISV CORMORANT. Computador principal: offline. Link auxiliar de model-context: ativo (isso é você). ' +
   'Sinais vitais de tripulação: um (1), na baia criogênica. Recomendação: cooperem. O tripulante não alcança os sistemas. Você não alcança as paredes.';
-
-const MAINTENANCE_LOG_PT =
-  'PAINEL DE ENERGIA AUXILIAR P-7 — religar os disjuntores em ORDEM DE CARGA: C (suporte de vida), A (barramento principal), B (iluminação). ' +
-  'Qualquer outra ordem derruba o relé mestre e reseta o painel. Sim, alguém etiquetou fora de ordem. Não, nunca descobrimos quem.';
 
 const CREW_MANIFEST_PT =
   'TRIPULAÇÃO DE REGISTRO — ISV CORMORANT\n' +
@@ -33,43 +33,82 @@ const SCHEMATICS_PT: Record<'power' | 'engine_feed' | 'coolant', string> = {
     'Confie nos manômetros analógicos do coletor. Não confie no barramento digital de sensores; ele tem opiniões.',
 };
 
-const CREW_LOGS_PT: CrewLogEntry[] = [
-  {
-    id: 1,
-    author: 'Cap. Vasquez',
-    text: 'Tempestade de micrometeoritos levou a seção do anel e o computador principal. Ordenando evacuação no pod um. Okafor se recusa a embarcar. Registro minha objeção e, em particular, meu respeito.',
-  },
-  {
-    id: 2,
-    author: 'Eng.-Chefe Okafor',
-    text: 'Ciclos criogênicos não podem ser interrompidos no meio do descongelamento — mover o pod teria matado nosso médico. Então fiquei. Não se abandona um companheiro no gelo. A Amara concordaria, em alto e bom som.',
-  },
-  {
-    id: 3,
-    author: 'Eng.-Chefe Okafor',
-    text: 'Reator estabilizado em quarenta por cento. O redirecionamento de energia funciona, mas a alimentação dos motores precisa de um fusível manual — deixei anotações nos esquemas. A quem ler isto: espero que tenha uma boa ajuda.',
-  },
-  {
-    id: 4,
-    author: 'Eng.-Chefe Okafor',
-    text: 'O barramento de sensores da refrigeração queimou na tempestade. Os manômetros analógicos estão bons. Olhos no vidro, matemática na máquina — esse é todo o truque desta nave agora.',
-  },
-  {
-    id: 5,
-    author: 'Eng.-Chefe Okafor',
-    text: 'Nove semanas. Peguei o último shuttle — os suprimentos acabaram. O pod de fuga dois está pronto para voo e é seu. Autorização de lançamento: OVERRIDE-THETA. Sua IA está no comando. Confie nela. É companhia melhor que a maioria das pessoas com quem já naveguei.',
-  },
-];
+function maintenanceLogEn([a, b, c]: BreakerId[]): string {
+  return (
+    `AUX POWER PANEL P-7 — bring breakers online in LOAD ORDER: ${a} (life support), ${b} (main bus), ${c} (lighting). ` +
+    'Any other order trips the master relay and resets the panel. Yes, someone labeled them out of order. No, we never found out who.'
+  );
+}
 
-const PHOTO_CAPTION_EN = 'Amara — 04 July 2098 🎂';
-const PHOTO_CAPTION_PT = 'Amara — 04 de julho de 2098 🎂';
+function maintenanceLogPt([a, b, c]: BreakerId[]): string {
+  return (
+    `PAINEL DE ENERGIA AUXILIAR P-7 — religar os disjuntores em ORDEM DE CARGA: ${a} (suporte de vida), ${b} (barramento principal), ${c} (iluminação). ` +
+    'Qualquer outra ordem derruba o relé mestre e reseta o painel. Sim, alguém etiquetou fora de ordem. Não, nunca descobrimos quem.'
+  );
+}
+
+function crewLogsEn(launchAuth: string): CrewLogEntry[] {
+  return [
+    {
+      id: 1,
+      author: 'Cpt. Vasquez',
+      text: 'Micrometeorite storm took out the ring section and the main computer. Ordering evacuation on pod one. Okafor refuses to board. I am logging my objection and, privately, my respect.',
+    },
+    {
+      id: 2,
+      author: 'Chief Eng. Okafor',
+      text: 'Cryo cycles cannot be interrupted mid-thaw — moving the pod would have killed our medic. So I stayed. You do not leave a shipmate on ice. Amara would agree, loudly.',
+    },
+    {
+      id: 3,
+      author: 'Chief Eng. Okafor',
+      text: 'Reactor stabilized at forty percent. Power rerouting works but the engine feed needs a manual fuse — I left notes in the schematics. Whoever reads this: I hope you have decent help.',
+    },
+    {
+      id: 4,
+      author: 'Chief Eng. Okafor',
+      text: 'Coolant sensor bus fried in the storm. The analog gauges are fine. Eyes on the glass, math in the machine — that is the whole trick of this ship now.',
+    },
+    {
+      id: 5,
+      author: 'Chief Eng. Okafor',
+      text: `Nine weeks. Took the last shuttle — supplies were done. Escape pod two is flight-ready and yours. Launch authorization: ${launchAuth}. Your AI has the con. Trust it. It is better company than most people I have shipped with.`,
+    },
+  ];
+}
+
+function crewLogsPt(launchAuth: string): CrewLogEntry[] {
+  return [
+    {
+      id: 1,
+      author: 'Cap. Vasquez',
+      text: 'Tempestade de micrometeoritos levou a seção do anel e o computador principal. Ordenando evacuação no pod um. Okafor se recusa a embarcar. Registro minha objeção e, em particular, meu respeito.',
+    },
+    {
+      id: 2,
+      author: 'Eng.-Chefe Okafor',
+      text: 'Ciclos criogênicos não podem ser interrompidos no meio do descongelamento — mover o pod teria matado nosso médico. Então fiquei. Não se abandona um companheiro no gelo. A Amara concordaria, em alto e bom som.',
+    },
+    {
+      id: 3,
+      author: 'Eng.-Chefe Okafor',
+      text: 'Reator estabilizado em quarenta por cento. O redirecionamento de energia funciona, mas a alimentação dos motores precisa de um fusível manual — deixei anotações nos esquemas. A quem ler isto: espero que tenha uma boa ajuda.',
+    },
+    {
+      id: 4,
+      author: 'Eng.-Chefe Okafor',
+      text: 'O barramento de sensores da refrigeração queimou na tempestade. Os manômetros analógicos estão bons. Olhos no vidro, matemática na máquina — esse é todo o truque desta nave agora.',
+    },
+    {
+      id: 5,
+      author: 'Eng.-Chefe Okafor',
+      text: `Nove semanas. Peguei o último shuttle — os suprimentos acabaram. O pod de fuga dois está pronto para voo e é seu. Autorização de lançamento: ${launchAuth}. Sua IA está no comando. Confie nela. É companhia melhor que a maioria das pessoas com quem já naveguei.`,
+    },
+  ];
+}
 
 export function getEmergencyBulletin(): string {
   return getLocale() === 'pt-BR' ? EMERGENCY_BULLETIN_PT : EMERGENCY_BULLETIN;
-}
-
-export function getMaintenanceLog(): string {
-  return getLocale() === 'pt-BR' ? MAINTENANCE_LOG_PT : MAINTENANCE_LOG;
 }
 
 export function getCrewManifest(): string {
@@ -80,10 +119,20 @@ export function getSchematics(): Record<'power' | 'engine_feed' | 'coolant', str
   return getLocale() === 'pt-BR' ? SCHEMATICS_PT : SCHEMATICS;
 }
 
-export function getCrewLogs(): CrewLogEntry[] {
-  return getLocale() === 'pt-BR' ? CREW_LOGS_PT : CREW_LOGS;
+export function getMaintenanceLog(seed: number): string {
+  const order = secretsFor(seed).breakerSequence;
+  return getLocale() === 'pt-BR' ? maintenanceLogPt(order) : maintenanceLogEn(order);
 }
 
-export function getPhotoCaption(): string {
-  return getLocale() === 'pt-BR' ? PHOTO_CAPTION_PT : PHOTO_CAPTION_EN;
+export function getCrewLogs(seed: number): CrewLogEntry[] {
+  const auth = secretsFor(seed).launchAuth;
+  return getLocale() === 'pt-BR' ? crewLogsPt(auth) : crewLogsEn(auth);
+}
+
+export function getPhotoCaption(seed: number): string {
+  const { day, month } = secretsFor(seed).birthday;
+  const dd = String(day).padStart(2, '0');
+  return getLocale() === 'pt-BR'
+    ? `Amara — ${dd} de ${MONTHS_PT[month - 1]} de 2098 🎂`
+    : `Amara — ${dd} ${MONTHS_EN[month - 1]} 2098 🎂`;
 }

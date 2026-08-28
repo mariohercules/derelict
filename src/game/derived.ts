@@ -1,8 +1,10 @@
 import type { GameState } from './types';
-import { CORRECT_FUSE, DOORS_REQUIRED, ENGINES_REQUIRED, VALVE_TARGETS } from './content';
+import { CORRECT_FUSE, DOORS_REQUIRED, ENGINES_REQUIRED } from './content';
+import { secretsFor } from './secrets';
 
 export function valvesCorrect(s: GameState): boolean {
-  return s.valveSettings.every((v, i) => v === VALVE_TARGETS[i]);
+  const targets = secretsFor(s.seed).valveTargets;
+  return s.valveSettings.every((v, i) => v === targets[i]);
 }
 
 export function doorsPowered(s: GameState): boolean {

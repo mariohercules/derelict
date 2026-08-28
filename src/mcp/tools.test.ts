@@ -3,7 +3,7 @@ import { buildTools, toolAvailability } from './tools';
 import { gameStore, resetGame, flipBreaker } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX } from '../game/content';
 
-beforeEach(() => resetGame());
+beforeEach(() => resetGame(0));
 
 function powerOn() {
   flipBreaker('C'); flipBreaker('A'); flipBreaker('B');

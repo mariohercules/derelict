@@ -2,7 +2,8 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { installFuse, setValve, enterRoom } from '../game/store';
 import { doorsPowered, enginesOnline, valvesCorrect } from '../game/derived';
-import { GAUGE_PRESSURES, LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
+import { LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
+import { secretsFor } from '../game/secrets';
 import type { FuseRating, SubsystemId } from '../game/types';
 
 // Gauge geometry: 0–120 PSI sweeps -120°..+120°, measured clockwise from 12 o'clock.
@@ -146,13 +147,14 @@ function FuseBox() {
 function CoolantManifold() {
   const valves = useGame((s) => s.valveSettings);
   const ok = useGame(valvesCorrect);
+  const pressures = secretsFor(useGame((s) => s.seed)).gaugePressures;
   const t = useStrings();
   return (
     <div className="panel">
       <h2>{t.eng.coolant}</h2>
       <p className="status-dim">{t.eng.coolantDesc}</p>
       <div style={{ display: 'flex', gap: 24 }}>
-        {GAUGE_PRESSURES.map((p, i) => (
+        {pressures.map((p, i) => (
           <div key={i} style={{ textAlign: 'center' }}>
             <Gauge label={t.eng.line(i + 1)} pressure={p} ariaLabel={t.eng.gaugeAria(t.eng.line(i + 1))} />
             <input

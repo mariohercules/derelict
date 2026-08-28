@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { gameStore, resetGame, removeGrate, flipBreaker, unlockDoor, enterRoom } from './store';
 import { AUTH_CODE } from './content';
 
-beforeEach(() => resetGame());
+beforeEach(() => resetGame(0));
 
 describe('aux power breakers', () => {
   it('turns aux power on for the correct sequence C, A, B', () => {

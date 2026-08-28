@@ -4,6 +4,7 @@ import {
   getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getPhotoCaption, getSchematics,
 } from './narrative';
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
+import { secretsFor } from './secrets';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -66,8 +67,8 @@ describe('localized narrative', () => {
 
   it('keeps machine codes intact in pt-BR', () => {
     setLocale('pt-BR');
-    expect(getCrewLogs()[4].text).toContain(LAUNCH_AUTH);
-    expect(getMaintenanceLog()).toMatch(/C.*A.*B/);
+    expect(getCrewLogs(0)[4].text).toContain(LAUNCH_AUTH);
+    expect(getMaintenanceLog(0)).toMatch(/C.*A.*B/);
     expect(getSchematics().coolant).toContain('12');
     expect(getSchematics().engine_feed).toContain('10A');
     expect(getCrewManifest()).toContain('DDMM');
@@ -77,8 +78,17 @@ describe('localized narrative', () => {
     // AUTH_CODE is DDMM: day 04, month 07 (July/julho)
     expect(AUTH_CODE).toBe('0407');
     setLocale('en');
-    expect(getPhotoCaption()).toContain('04 July');
+    expect(getPhotoCaption(0)).toContain('04 July');
     setLocale('pt-BR');
-    expect(getPhotoCaption()).toContain('04 de julho');
+    expect(getPhotoCaption(0)).toContain('04 de julho');
+  });
+
+  it('renders a seeded ship\'s birthday and launch phrase into the narrative', () => {
+    const seed = 777;
+    const s = secretsFor(seed);
+    setLocale('pt-BR');
+    expect(getPhotoCaption(seed)).toContain(String(s.birthday.day).padStart(2, '0'));
+    expect(getCrewLogs(seed)[4].text).toContain(s.launchAuth);
+    expect(getMaintenanceLog(seed)).toContain(`${s.breakerSequence[0]} (suporte de vida)`);
   });
 });

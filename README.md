@@ -51,6 +51,9 @@ Two layers of asymmetry make the tools necessary rather than decorative:
   some only on the agent's side (crew logs, engineering schematics, sensor channels). Most
   puzzles require relaying information across that boundary in both directions before
   either side can act.
+- **Every ship is unique:** each run rolls a seed that decides the breaker order, Amara's
+  birthday (the door PIN), the gauge pressures, the three star-fix glyphs, and the launch
+  phrase. Nothing is memorizable, and the answers are not sitting in this repository.
 
 Tool descriptions are written in-fiction — the agent is addressed directly as the ship's
 auxiliary AI — so it plays its role without any prompting from the human. Every tool

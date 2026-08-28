@@ -11,7 +11,7 @@ vi.stubGlobal('localStorage', {
 
 beforeEach(() => {
   storage.clear();
-  resetGame();
+  resetGame(0);
 });
 
 describe('persistence', () => {
@@ -42,6 +42,20 @@ describe('persistence', () => {
     storage.set(SAVE_KEY, JSON.stringify(saved));
     const loaded = loadSavedState();
     expect(loaded?.launch).toEqual({ phase: 'idle', countdownEndsAt: null, handleHeld: false });
+  });
+
+  it('round-trips the ship seed', () => {
+    const stop = startPersisting();
+    resetGame(4242);
+    stop();
+    expect(loadSavedState()?.seed).toBe(4242);
+  });
+
+  it('treats a save from before seeded ships as the classic ship', () => {
+    const legacy = { ...initialState(0) } as Record<string, unknown>;
+    delete legacy.seed;
+    storage.set(SAVE_KEY, JSON.stringify(legacy));
+    expect(loadSavedState()?.seed).toBe(0);
   });
 
   it('rejects a save with a malformed launch object', () => {

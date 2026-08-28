@@ -17,6 +17,7 @@ export interface LaunchState {
 }
 
 export interface GameState {
+  seed: number;
   act: 1 | 2 | 3;
   room: RoomId;
   auxPower: boolean;

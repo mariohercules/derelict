@@ -7,7 +7,7 @@ import { LAUNCH_AUTH, LAUNCH_WINDOW_MS, STAR_FIX } from './content';
 const T0 = 1_000_000;
 
 beforeEach(() => {
-  resetGame();
+  resetGame(0);
   gameStore.setState({ room: 'bridge', act: 3 });
 });
 

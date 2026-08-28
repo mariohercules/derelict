@@ -3,7 +3,7 @@ import { gameStore, resetGame, routePower, installFuse, setValve } from './store
 import { enginesOnline, valvesCorrect, logsAvailable, doorsPowered } from './derived';
 import { VALVE_TARGETS } from './content';
 
-beforeEach(() => resetGame());
+beforeEach(() => resetGame(0));
 
 describe('routePower', () => {
   it('moves power between subsystems', () => {

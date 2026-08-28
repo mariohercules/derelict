@@ -10,6 +10,7 @@ import photoLoop from '../assets/family-photo.mp4';
 function FamilyPhoto() {
   const [zoomed, setZoomed] = useState(false);
   const t = useStrings();
+  const seed = useGame((s) => s.seed);
   const reducedMotion =
     typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   return (
@@ -66,7 +67,7 @@ function FamilyPhoto() {
               padding: '6px 0 2px',
             }}
           >
-            {getPhotoCaption()}
+            {getPhotoCaption(seed)}
           </div>
         </div>
       )}

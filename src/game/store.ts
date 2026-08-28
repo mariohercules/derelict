@@ -1,9 +1,11 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { AUTH_CODE, BREAKER_SEQUENCE, DOORS_REQUIRED, INITIAL_ALLOCATION, LAUNCH_AUTH, LAUNCH_WINDOW_MS, LIFE_SUPPORT_MIN, STAR_FIX } from './content';
+import { DOORS_REQUIRED, INITIAL_ALLOCATION, LAUNCH_WINDOW_MS, LIFE_SUPPORT_MIN } from './content';
+import { randomSeed, secretsFor } from './secrets';
 
-export function initialState(): GameState {
+export function initialState(seed: number = randomSeed()): GameState {
   return {
+    seed,
     act: 1,
     room: 'cryo_bay',
     auxPower: false,
@@ -23,8 +25,8 @@ export function initialState(): GameState {
 
 export const gameStore = createStore<GameState>(() => initialState());
 
-export function resetGame(): void {
-  gameStore.setState(initialState(), true);
+export function resetGame(seed?: number): void {
+  gameStore.setState(initialState(seed), true);
 }
 
 export function bumpToolCalls(): void {
@@ -39,14 +41,15 @@ export function flipBreaker(id: BreakerId): void {
   const s = gameStore.getState();
   if (s.auxPower) return;
   const flipped = [...s.breakersFlipped, id];
-  const expected = BREAKER_SEQUENCE.slice(0, flipped.length);
+  const sequence = secretsFor(s.seed).breakerSequence;
+  const expected = sequence.slice(0, flipped.length);
   if (flipped.join('') !== expected.join('')) {
     gameStore.setState({ breakersFlipped: [] }); // master relay trips
     return;
   }
   gameStore.setState({
     breakersFlipped: flipped,
-    auxPower: flipped.length === BREAKER_SEQUENCE.length,
+    auxPower: flipped.length === sequence.length,
   });
 }
 
@@ -55,7 +58,7 @@ export function unlockDoor(door: DoorId, code?: string): ActionResult {
   if (s.doors[door]) return { ok: true, message: 'Door is already unlocked.' };
   if (door === 'cryo_exit') {
     if (!s.auxPower) return { ok: false, message: 'Door servos unpowered. Auxiliary power is offline.' };
-    if (code !== AUTH_CODE) return { ok: false, message: 'Authorization code rejected by door controller.' };
+    if (code !== secretsFor(s.seed).authCode) return { ok: false, message: 'Authorization code rejected by door controller.' };
   }
   if (door === 'engineering_exit') {
     if (s.powerAllocation.doors < DOORS_REQUIRED) {
@@ -136,7 +139,7 @@ export function computeTrajectory(symbols: string[]): ActionResult {
     return { ok: false, message: 'No optical fix logged. The viewport reticle must be aligned by hand first — that is crew work, not yours.' };
   }
   const given = symbols.map((x) => String(x).trim().toUpperCase()).join('-');
-  if (given !== STAR_FIX.join('-')) {
+  if (given !== secretsFor(s.seed).starFix.join('-')) {
     return { ok: false, message: 'Star fix does not resolve. Those symbols point us into a gas giant. Re-check the viewport.' };
   }
   gameStore.setState({ trajectorySet: true });
@@ -149,7 +152,7 @@ export function initiateLaunch(auth: string, now: number = Date.now()): ActionRe
     return { ok: false, message: 'Two-operator rule: the crew member must be on the bridge, hand within reach of the confirm handle. They are below decks. Initiation refused.' };
   }
   if (!s.trajectorySet) return { ok: false, message: 'No trajectory locked. Launching blind is technically possible and universally fatal.' };
-  if (String(auth).trim().toUpperCase() !== LAUNCH_AUTH) {
+  if (String(auth).trim().toUpperCase() !== secretsFor(s.seed).launchAuth) {
     return { ok: false, message: 'Launch authorization rejected.' };
   }
   const expired =

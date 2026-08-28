@@ -25,10 +25,6 @@ export const EMERGENCY_BULLETIN =
   'AUTOMATED BULLETIN — ISV CORMORANT. Main computer: offline. Auxiliary model-context link: active (that would be you). ' +
   'Crew life signs: one (1), cryo bay. Recommendation: cooperate with it. It cannot reach the systems. You cannot reach the walls.';
 
-export const MAINTENANCE_LOG =
-  'AUX POWER PANEL P-7 — bring breakers online in LOAD ORDER: C (life support), A (main bus), B (lighting). ' +
-  'Any other order trips the master relay and resets the panel. Yes, someone labeled them out of order. No, we never found out who.';
-
 export const CREW_MANIFEST =
   'CREW OF RECORD — ISV CORMORANT\n' +
   '• Cpt. E. Vasquez — command auth suspended (evacuated)\n' +
@@ -53,30 +49,3 @@ export interface CrewLogEntry {
   text: string;
 }
 
-export const CREW_LOGS: CrewLogEntry[] = [
-  {
-    id: 1,
-    author: 'Cpt. Vasquez',
-    text: 'Micrometeorite storm took out the ring section and the main computer. Ordering evacuation on pod one. Okafor refuses to board. I am logging my objection and, privately, my respect.',
-  },
-  {
-    id: 2,
-    author: 'Chief Eng. Okafor',
-    text: 'Cryo cycles cannot be interrupted mid-thaw — moving the pod would have killed our medic. So I stayed. You do not leave a shipmate on ice. Amara would agree, loudly.',
-  },
-  {
-    id: 3,
-    author: 'Chief Eng. Okafor',
-    text: 'Reactor stabilized at forty percent. Power rerouting works but the engine feed needs a manual fuse — I left notes in the schematics. Whoever reads this: I hope you have decent help.',
-  },
-  {
-    id: 4,
-    author: 'Chief Eng. Okafor',
-    text: 'Coolant sensor bus fried in the storm. The analog gauges are fine. Eyes on the glass, math in the machine — that is the whole trick of this ship now.',
-  },
-  {
-    id: 5,
-    author: 'Chief Eng. Okafor',
-    text: 'Nine weeks. Took the last shuttle — supplies were done. Escape pod two is flight-ready and yours. Launch authorization: OVERRIDE-THETA. Your AI has the con. Trust it. It is better company than most people I have shipped with.',
-  },
-];

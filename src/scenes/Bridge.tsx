@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { takeStarFix, holdHandle, enterRoom } from '../game/store';
-import { STAR_FIX } from '../game/content';
+import { secretsFor } from '../game/secrets';
 
 // Deterministic star field (no per-render randomness — the sky must hold still).
 // x spans -30..430 so the parallax shift never exposes an empty edge.
@@ -15,6 +15,7 @@ const STARS = Array.from({ length: 42 }, (_, i) => ({
 
 function Viewport() {
   const taken = useGame((s) => s.starFixTaken);
+  const starFix = secretsFor(useGame((s) => s.seed)).starFix;
   const t = useStrings();
   const [alignment, setAlignment] = useState(0);
   const aligned = alignment >= 47 && alignment <= 53;
@@ -50,7 +51,7 @@ function Viewport() {
               <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#9fb3a8" opacity={s.o} />
             ))}
           </g>
-          {STAR_FIX.map((glyph, i) => {
+          {starFix.map((glyph, i) => {
             const x = 155 + i * 45 + (50 - alignment) * 2;
             return (
               <g key={glyph}>

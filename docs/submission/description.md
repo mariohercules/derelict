@@ -37,6 +37,9 @@ and read aloud. In Act 2, the human watches three analog pressure gauges — han
 needles, nothing structured behind them — while the agent's sensor tool for that exact
 channel comes back marked `FAULT`, by design; the human has to describe what they see, the
 agent computes the correct valve settings from a schematic, and the human turns the dials.
+And none of those answers can be memorized or looked up: every run rolls a seed that
+re-generates the breaker order, the birthday PIN, the gauge pressures, the star-fix glyphs,
+and the launch phrase — the ship in this description is one of about two billion.
 Neither side is ever the "real" player. Neither side has enough information to solve
 anything alone. That asymmetry is the whole game, not a wrapper around it — and it's why
 DERELICT is a better experience *because* it's cooperative, rather than despite it. A
