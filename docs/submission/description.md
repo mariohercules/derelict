@@ -80,6 +80,6 @@ of crashing. A live **AI LINK** panel in the game's HUD shows exactly which of t
 are online at any moment, so the WebMCP mechanic that drives the whole design is visible
 on screen the entire time you're playing.
 
-**Live:** https://webmcp-challenger.vercel.app (ChatGPT's in-app browser works out of the
+**Live:** https://derelict-game.vercel.app (ChatGPT's in-app browser works out of the
 box; Chrome 149+ needs `chrome://flags/#enable-webmcp-testing` enabled first)
 **Source:** https://github.com/mariohercules/derelict (MIT licensed)

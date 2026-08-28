@@ -14,7 +14,7 @@ what you see, and let it tell you what it can do about it.
 
 ## How to play
 
-**Play it live:** [webmcp-challenger.vercel.app](https://webmcp-challenger.vercel.app)
+**Play it live:** [derelict-game.vercel.app](https://derelict-game.vercel.app)
 
 WebMCP needs a host that exposes `document.modelContext` to the page. Two ways to get one:
 

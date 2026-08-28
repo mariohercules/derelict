@@ -4,7 +4,7 @@
 mic, one browser tab — no editing tricks needed beyond cuts between beats).
 
 Record in either ChatGPT's in-app browser or Chrome 149+ with
-`chrome://flags/#enable-webmcp-testing` enabled, at https://webmcp-challenger.vercel.app.
+`chrome://flags/#enable-webmcp-testing` enabled, at https://derelict-game.vercel.app.
 Play for real — the beats below map onto actual game moments, not staged UI.
 
 ---
@@ -73,11 +73,11 @@ visible.
 
 **VO:**
 > "Tools come and go as the ship changes — that's WebMCP. DERELICT: live at
-> webmcp-challenger.vercel.app, source at github.com/mariohercules/derelict."
+> derelict-game.vercel.app, source at github.com/mariohercules/derelict."
 
 **On-screen text (final frame, held 2–3s):**
 ```
-webmcp-challenger.vercel.app
+derelict-game.vercel.app
 github.com/mariohercules/derelict
 ```
 
