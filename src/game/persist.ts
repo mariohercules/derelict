@@ -49,7 +49,7 @@ function validShape(p: Partial<GameState>): boolean {
   if (!PHASES.includes(ritual.phase as RitualPhase)) return false;
   if (ritual.active !== null && ritual.active !== 'launch') return false;
   if (ritual.endsAt !== null && !isFiniteNumber(ritual.endsAt)) return false;
-  if (p.ending !== undefined && p.ending !== null && p.ending !== 'leave_unknowing') return false;
+  if (p.ending !== undefined && p.ending !== null && !['leave_unknowing', 'leave_knowing'].includes(p.ending)) return false;
   if (p.checkpoint !== undefined && p.checkpoint !== null) {
     const c = p.checkpoint as unknown as Record<string, unknown>;
     if (![1, 2, 3].includes(c.chapter as number) || !ROOM_IDS.includes(c.room as RoomId)) return false;

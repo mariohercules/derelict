@@ -1,4 +1,4 @@
-import { ROOMS, roomStatus } from '../game/rooms';
+import { EDGES, ROOMS, ROOM_BY_ID, roomStatus } from '../game/rooms';
 import { enterRoom } from '../game/store';
 import { useGame } from './useGame';
 import { useStrings } from './useLocale';
@@ -36,6 +36,17 @@ export function DeckMap() {
         {/* hull silhouette */}
         <path d="M 14 30 L 40 14 L 370 14 L 392 45 L 392 105 L 370 128 L 40 128 L 14 110 Z" fill="#0a0e0c" stroke="#2a3a30" strokeWidth="2" />
         <line x1="20" y1="72" x2="388" y2="72" stroke="#2a3a30" strokeWidth="1" strokeDasharray="3 3" />
+        {EDGES.map((e) => {
+          const a = ROOM_BY_ID[e.a];
+          const b = ROOM_BY_ID[e.b];
+          const passable =
+            a.chapter <= state.chapter && b.chapter <= state.chapter && (!e.door || state.doors[e.door]);
+          return (
+            <line key={`${e.a}-${e.b}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+              stroke={passable ? 'rgba(125, 219, 138, 0.45)' : '#24302a'} strokeWidth="2"
+              strokeDasharray={passable ? undefined : '3 3'} />
+          );
+        })}
         {ROOMS.map((r) => {
           const status = roomStatus(state, r.id);
           const clickable = status === 'open';

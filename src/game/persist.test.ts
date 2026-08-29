@@ -101,6 +101,11 @@ describe('persistence', () => {
     storage.set(SAVE_KEY, JSON.stringify(saved));
     expect(loadSavedState()).toBeNull();
   });
+
+  it('accepts the leave_knowing ending', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ending: 'leave_knowing', won: true }));
+    expect(loadSavedState()?.ending).toBe('leave_knowing');
+  });
 });
 
 describe('v1 → v2 migration', () => {

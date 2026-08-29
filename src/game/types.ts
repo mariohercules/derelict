@@ -13,7 +13,7 @@ export interface ActionResult {
 }
 
 export type ChapterId = 1 | 2 | 3;
-export type EndingId = 'leave_unknowing';
+export type EndingId = 'leave_unknowing' | 'leave_knowing';
 
 export type RitualId = 'launch';
 export type RitualPhase = 'idle' | 'armed' | 'done';

@@ -136,6 +136,16 @@ describe('chapter 1 hook: the sealed log', () => {
     expect(gameStore.getState().ending).toBe('leave_unknowing');
     expect(gameStore.getState().chapter).toBe(1);
   });
+
+  it('winning after breaking the seal records the "leave, knowing" ending', () => {
+    takeStarFix();
+    computeTrajectory([...STAR_FIX]);
+    breakSeal();
+    initiateLaunch(LAUNCH_AUTH, T0);
+    holdHandle(true);
+    confirmLaunch(T0 + 1000);
+    expect(gameStore.getState().ending).toBe('leave_knowing');
+  });
 });
 
 describe('checkpoints', () => {

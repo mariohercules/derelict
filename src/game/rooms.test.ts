@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ROOMS, ROOM_IDS, roomStatus } from './rooms';
+import { EDGES, ROOMS, ROOM_IDS, edgeBetween, roomStatus } from './rooms';
 import { gameStore, resetGame } from './store';
 
 beforeEach(() => resetGame(0));
@@ -18,5 +18,28 @@ describe('room graph', () => {
     gameStore.setState({ doors: { cryo_exit: true, engineering_exit: false } });
     expect(roomStatus(gameStore.getState(), 'engineering')).toBe('open');
     expect(roomStatus(gameStore.getState(), 'bridge')).toBe('locked');
+  });
+});
+
+describe('adjacency', () => {
+  it('rooms connect only along corridors', () => {
+    expect(edgeBetween('cryo_bay', 'engineering')?.door).toBe('cryo_exit');
+    expect(edgeBetween('engineering', 'bridge')?.door).toBe('engineering_exit');
+    expect(edgeBetween('cryo_bay', 'bridge')).toBeUndefined();
+    expect(EDGES.length).toBe(10);
+  });
+
+  it('an open door to a non-adjacent room does not make it reachable', () => {
+    gameStore.setState({ doors: { cryo_exit: true, engineering_exit: true } });
+    // from cryo bay, the bridge is two corridors away
+    expect(roomStatus(gameStore.getState(), 'bridge')).toBe('locked');
+    gameStore.setState({ room: 'engineering' });
+    expect(roomStatus(gameStore.getState(), 'bridge')).toBe('open');
+  });
+
+  it('chapter-2 corridors open without doors once the chapter is reached', () => {
+    gameStore.setState({ chapter: 2 });
+    expect(roomStatus(gameStore.getState(), 'medbay')).toBe('open');
+    expect(roomStatus(gameStore.getState(), 'crew_quarters')).toBe('locked'); // not adjacent to cryo bay
   });
 });

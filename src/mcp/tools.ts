@@ -5,7 +5,7 @@ import {
 } from '../game/store';
 import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
 import { CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
-import { ROOMS, roomStatus } from '../game/rooms';
+import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
 import {
   getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getSchematics,
@@ -84,7 +84,7 @@ export function buildTools(): GameTool[] {
     ),
     mkTool(
       'get_deck_map',
-      'Read the deck map: every compartment of ISV Cormorant with its status for the crew member — current, open, locked (a door you can release), or sealed (a bulkhead that will not open in this chapter of the ship). Use it to tell the crew member where they can physically go.',
+      'Read the deck map: every compartment of ISV Cormorant with its status for the crew member — current, open, locked (either no direct corridor from where the crew member stands, or a door you can release), or sealed (a bulkhead that will not open in this chapter of the ship). Use it to tell the crew member where they can physically go.',
       () => true,
       noInput,
       () => {
@@ -93,7 +93,13 @@ export function buildTools(): GameTool[] {
           ok: true,
           crew_location: s.room,
           chapter: s.chapter,
-          rooms: ROOMS.map((r) => ({ id: r.id, chapter: r.chapter, status: roomStatus(s, r.id), requires_door: r.requires })),
+          rooms: ROOMS.map((r) => ({
+            id: r.id,
+            chapter: r.chapter,
+            status: roomStatus(s, r.id),
+            door: edgeBetween(s.room, r.id)?.door ?? null,
+            adjacent: edgeBetween(s.room, r.id) !== undefined,
+          })),
         };
       },
       true
