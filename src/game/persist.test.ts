@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadSavedState, startPersisting, SAVE_KEY } from './persist';
+import { loadSavedState, startPersisting, migrateV1, SAVE_KEY, LEGACY_SAVE_KEY } from './persist';
 import { gameStore, resetGame, initialState } from './store';
 
 const storage = new Map<string, string>();
@@ -84,5 +84,58 @@ describe('persistence', () => {
   it('rejects a save with an impossible chapter', () => {
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 7 }));
     expect(loadSavedState()).toBeNull();
+  });
+});
+
+describe('v1 → v2 migration', () => {
+  function v1Save(overrides: Record<string, unknown> = {}) {
+    return {
+      seed: 0, act: 3, room: 'bridge', auxPower: true, grateRemoved: true, breakersFlipped: ['C', 'A', 'B'],
+      doors: { cryo_exit: true, engineering_exit: true },
+      powerAllocation: { life_support: 15, doors: 5, medbay: 0, engines: 20, comms: 0 },
+      fuseInstalled: '10A', valveSettings: [6, 3, 7], starFixTaken: true, trajectorySet: true,
+      launch: { phase: 'countdown', countdownEndsAt: 123456789, handleHeld: true },
+      toolCalls: 30, won: false,
+      ...overrides,
+    };
+  }
+
+  it('maps a v1 launch to a ritual and fills the new fields', () => {
+    const m = migrateV1(v1Save());
+    expect(m.ritual).toEqual({ active: 'launch', phase: 'armed', endsAt: 123456789, held: true });
+    expect(m.chapter).toBe(1);
+    expect(m.sealedLogRead).toBe(false);
+    expect(m.ending).toBeNull();
+    expect(m.checkpoint).toEqual({ chapter: 1, room: 'bridge' });
+    expect((m as Record<string, unknown>).launch).toBeUndefined();
+  });
+
+  it('maps a won v1 save to the leave-unknowing ending and a done ritual', () => {
+    const m = migrateV1(v1Save({ won: true, launch: { phase: 'launched', countdownEndsAt: null, handleHeld: false } }));
+    expect(m.ending).toBe('leave_unknowing');
+    expect(m.ritual?.phase).toBe('done');
+  });
+
+  it('loads a v1 save from the legacy key when no v2 save exists, with progress intact', () => {
+    storage.set(LEGACY_SAVE_KEY, JSON.stringify(v1Save()));
+    const loaded = loadSavedState();
+    expect(loaded?.room).toBe('bridge');
+    expect(loaded?.trajectorySet).toBe(true);
+    expect(loaded?.ritual).toEqual({ active: null, phase: 'idle', endsAt: null, held: false }); // armed → sanitized
+    expect(loaded?.chapter).toBe(1);
+  });
+
+  it('prefers the v2 save when both exist', () => {
+    storage.set(LEGACY_SAVE_KEY, JSON.stringify(v1Save({ room: 'engineering' })));
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), room: 'bridge', doors: { cryo_exit: true, engineering_exit: true } }));
+    expect(loadSavedState()?.room).toBe('bridge');
+  });
+
+  it('writes v2 only', () => {
+    const stop = startPersisting();
+    gameStore.setState({ auxPower: true });
+    stop();
+    expect(storage.has(SAVE_KEY)).toBe(true);
+    expect(storage.has(LEGACY_SAVE_KEY)).toBe(false);
   });
 });
