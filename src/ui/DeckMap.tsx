@@ -9,6 +9,7 @@ const STROKE = { current: 'var(--amber)', open: 'var(--green)', locked: 'var(--d
 export function DeckMap() {
   const state = useGame((s) => s);
   const t = useStrings();
+  const statusLabel = { open: t.deck.legendOpen, locked: t.deck.legendLocked, sealed: t.deck.legendSealed } as const;
   return (
     <div className="deckmap" aria-label={t.deck.title}>
       <svg viewBox="0 0 400 140" width="100%" role="group">
@@ -35,7 +36,7 @@ export function DeckMap() {
               tabIndex={clickable ? 0 : undefined}
               style={{ cursor: clickable ? 'pointer' : 'default' }}
               role={clickable ? 'button' : undefined}
-              aria-label={status === 'current' ? t.hud.rooms[r.id] : `${t.hud.rooms[r.id]} — ${status}`}
+              aria-label={status === 'current' ? t.hud.rooms[r.id] : `${t.hud.rooms[r.id]} — ${statusLabel[status]}`}
             >
               <rect x={r.x - 30} y={r.y - 16} width="60" height="32" rx="3"
                 fill={FILL[status]} stroke={STROKE[status]} strokeWidth={status === 'current' ? 2 : 1}

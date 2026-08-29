@@ -154,6 +154,7 @@ describe('tool handlers', () => {
     expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'read_sealed_log')!.online).toBe(false);
     const status1 = await call('get_ship_status');
     expect(status1.sealed_log).toBe('unread');
+    expect(status1.sealed_log_hint).toBe('The crew member breaks the seal by hand at the launch console; you cannot open it.');
     breakSeal();
     expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'read_sealed_log')!.online).toBe(true);
     const out = await call('read_sealed_log');
@@ -161,6 +162,7 @@ describe('tool handlers', () => {
     expect(out.text).toMatch(/94 seconds/);
     const status2 = await call('get_ship_status');
     expect(status2.sealed_log).toBe('read');
+    expect(status2.sealed_log_hint).toBeUndefined();
   });
 
   it('get_deck_map lists every compartment with its status', async () => {

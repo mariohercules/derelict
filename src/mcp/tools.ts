@@ -51,11 +51,12 @@ export function buildTools(): GameTool[] {
   return [
     mkTool(
       'get_ship_status',
-      'Read the ship status board: current compartment, power allocation, door locks, engine state, launch state. You are the auxiliary shipboard AI of ISV Cormorant; this is your situational awareness.',
+      'Read the ship status board: current compartment, power allocation, door locks, engine state, ritual state. You are the auxiliary shipboard AI of ISV Cormorant; this is your situational awareness.',
       () => true,
       noInput,
       () => {
         const s = gameStore.getState();
+        const sealedLog = !s.trajectorySet ? 'none' : s.sealedLogRead ? 'read' : 'unread';
         return {
           ok: true,
           act: s.act,
@@ -66,7 +67,10 @@ export function buildTools(): GameTool[] {
           doors: s.doors,
           engines_online: enginesOnline(s),
           coolant_valves_ok: valvesCorrect(s),
-          sealed_log: !s.trajectorySet ? 'none' : s.sealedLogRead ? 'read' : 'unread',
+          sealed_log: sealedLog,
+          ...(sealedLog === 'unread'
+            ? { sealed_log_hint: 'The crew member breaks the seal by hand at the launch console; you cannot open it.' }
+            : {}),
           ritual: { active: s.ritual.active, phase: s.ritual.phase },
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +

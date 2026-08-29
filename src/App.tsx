@@ -68,6 +68,8 @@ export default function App() {
     return unsubscribeSound;
   }, []);
 
+  const Scene = SCENES[room];
+
   if (!started) {
     return (
       <div className="scene" style={{ marginTop: '15vh', textAlign: 'center' }}>
@@ -83,7 +85,7 @@ export default function App() {
           <p className="status-dim">2. {t.app.how2}</p>
           <p className="status-dim">3. {t.app.how3}</p>
         </div>
-        {saved?.checkpoint && (
+        {saved?.checkpoint && !saved.won && (
           <p className="status-dim">{t.app.checkpoint(saved.checkpoint.chapter, t.hud.rooms[saved.checkpoint.room])}</p>
         )}
         <div>
@@ -122,10 +124,7 @@ export default function App() {
       ) : (
         <>
           <DeckMap />
-          {(() => {
-            const Scene = SCENES[room];
-            return <Scene />;
-          })()}
+          <Scene />
         </>
       )}
       <BuildTag />

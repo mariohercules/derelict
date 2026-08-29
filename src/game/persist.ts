@@ -100,6 +100,7 @@ export function startPersisting(): () => void {
   return gameStore.subscribe((s) => {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(s));
+      localStorage.removeItem(LEGACY_SAVE_KEY);
     } catch {
       // Private mode / quota: play on without saves.
     }

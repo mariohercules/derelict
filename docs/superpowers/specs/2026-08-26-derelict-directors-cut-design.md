@@ -92,6 +92,7 @@ Nothing in this document starts before the challenge submission is complete (vid
 
 ## 10. Addendum (Aug 29) — production freeze and seeded ships
 
-- `v1.0-challenge` is tagged. **Production (`derelict-game.vercel.app`) stays on that tag until judging concludes**; the Director's Cut lives on the `directors-cut` branch and is tested on Vercel preview deployments (`npx vercel` without `--prod`).
+- `v1.0-challenge` is tagged. Production freeze lifted Aug 29 (the entry was not judged); each plan merges to `main` and deploys to prod at its playable milestone. The Director's Cut lives on the `directors-cut` branch and is tested on Vercel preview deployments (`npx vercel` without `--prod`).
 - Seeded ships already shipped in v1.0 (`src/game/secrets.ts`, seed 0 = classic ship). Every new chapter's secrets (medbay records, Kestrel registry fragment, core-vault column pattern, beacon coordinates) derive from the same seed.
 - Delivery is phased into three plans, each leaving a playable game: **A — Foundations** (chapter/save v2, deck map + scene registry, ritual framework, Chapter 1 retune with the sealed-log hook and the "Leave, unknowing" ending); **B — Chapter 2** (Medbay, Crew Quarters, Hydroponics, Cargo Bay, their tools and logs); **C — Chapter 3** (kill-switch engine, Reactor Room, Core Vault, Comms Array, the three joint-ritual endings).
+- Plan B must add room adjacency (`RoomMeta.adjacent`) and align map geometry with the fiction (engineering below the bridge) before the mid-deck opens; Plan C must make `ending` the epilogue discriminator.

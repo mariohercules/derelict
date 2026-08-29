@@ -85,6 +85,22 @@ describe('persistence', () => {
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 7 }));
     expect(loadSavedState()).toBeNull();
   });
+
+  it('rejects a save with an impossible checkpoint chapter', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), checkpoint: { chapter: 9, room: 'bridge' } }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a save with a bogus ending', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ending: 'bogus' }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a save with a bogus ritual.active', () => {
+    const saved = { ...initialState(0), ritual: { active: 'bogus', phase: 'idle', endsAt: null, held: false } };
+    storage.set(SAVE_KEY, JSON.stringify(saved));
+    expect(loadSavedState()).toBeNull();
+  });
 });
 
 describe('v1 → v2 migration', () => {
@@ -131,7 +147,8 @@ describe('v1 → v2 migration', () => {
     expect(loadSavedState()?.room).toBe('bridge');
   });
 
-  it('writes v2 only', () => {
+  it('writes v2 only, clearing a pre-existing legacy save', () => {
+    storage.set(LEGACY_SAVE_KEY, JSON.stringify(v1Save()));
     const stop = startPersisting();
     gameStore.setState({ auxPower: true });
     stop();

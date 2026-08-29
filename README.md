@@ -33,9 +33,9 @@ names and machine codes stay in English in both; ships do not translate codes.
 ## How WebMCP is used
 
 The game registers and revokes tools live, in step with the ship. A subsystem that has no
-power has no tools — the agent starts with just 4 tools online, and when the human restores
+power has no tools — the agent starts with just 5 tools online, and when the human restores
 aux power, new tools visibly light up on the in-game **AI LINK** panel, and the agent can
-suddenly act where it couldn't a second ago. Across the three acts the game defines 14
+suddenly act where it couldn't a second ago. Across the three acts the game defines 16
 tools in total, gated open and closed by ship state: reading the ship's status and logs,
 unlocking doors, routing power, running diagnostics, pulling schematics and sensor data,
 computing a nav fix, and — in the two-operator finale — initiating and then confirming the
@@ -66,7 +66,7 @@ The implementation lives in [`src/mcp/`](src/mcp/):
   registered tool set against current game state on every change, registering newly
   available tools and revoking (via `AbortController`) tools whose subsystem just lost
   power.
-- [`tools.ts`](src/mcp/tools.ts) — the 14 tool definitions: schemas, in-fiction
+- [`tools.ts`](src/mcp/tools.ts) — the 16 tool definitions: schemas, in-fiction
   descriptions, availability predicates, and handlers that dispatch into the game store.
 - [`detect.ts`](src/mcp/detect.ts) — detects whether `document.modelContext` exists so the
   game can fall back gracefully when it doesn't.
