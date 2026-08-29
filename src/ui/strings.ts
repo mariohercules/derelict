@@ -92,6 +92,8 @@ export interface UIStrings {
     stats: (toolCalls: number) => string;
     wakeAgain: string;
   };
+  deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
+  sealed: { title: string; body: string };
 }
 
 const en: UIStrings = {
@@ -207,6 +209,11 @@ const en: UIStrings = {
     stats: (toolCalls) =>
       `Escaped by: one human (hands, eyes, judgment) + one AI (${toolCalls} tool calls on ship systems). Neither of you could have done it alone. That was the point.`,
     wakeAgain: 'Wake up again',
+  },
+  deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
+  sealed: {
+    title: 'Sealed bulkhead',
+    body: 'The door here is welded from the other side, and the ship has no opinion about it yet. Whatever this compartment holds belongs to a later chapter.',
   },
 };
 
@@ -324,6 +331,11 @@ const ptBR: UIStrings = {
     stats: (toolCalls) =>
       `Fugiram: um humano (mãos, olhos, julgamento) + uma IA (${toolCalls} chamadas de ferramenta nos sistemas da nave). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
     wakeAgain: 'Acordar de novo',
+  },
+  deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
+  sealed: {
+    title: 'Anteparo selado',
+    body: 'A porta aqui foi soldada do outro lado, e a nave ainda não tem opinião sobre isso. O que este compartimento guarda pertence a um capítulo posterior.',
   },
 };
 

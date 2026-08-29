@@ -10,10 +10,9 @@ import { buildTools } from './mcp/tools';
 import { gameStore, resetGame } from './game/store';
 import { loadSavedState } from './game/persist';
 import { playAlarm, playBlip, startAmbience } from './audio/sound';
-import { CryoBay } from './scenes/CryoBay';
-import { Engineering } from './scenes/Engineering';
-import { Bridge } from './scenes/Bridge';
+import { SCENES } from './scenes/registry';
 import { Epilogue } from './scenes/Epilogue';
+import { DeckMap } from './ui/DeckMap';
 
 function BuildTag() {
   return (
@@ -116,12 +115,14 @@ export default function App() {
       {!mc && <FallbackBanner />}
       {won ? (
         <Epilogue />
-      ) : room === 'cryo_bay' ? (
-        <CryoBay />
-      ) : room === 'engineering' ? (
-        <Engineering />
       ) : (
-        <Bridge />
+        <>
+          <DeckMap />
+          {(() => {
+            const Scene = SCENES[room];
+            return <Scene />;
+          })()}
+        </>
       )}
       <BuildTag />
     </>

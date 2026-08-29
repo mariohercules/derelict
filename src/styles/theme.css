@@ -61,6 +61,12 @@ button:disabled { color: var(--dim); border-color: var(--dim); cursor: not-allow
   align-items: baseline;
 }
 
+.deckmap {
+  max-width: 560px;
+  margin: 12px auto 0;
+  padding: 0 16px;
+}
+
 .ailink { display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .ailink .tool { white-space: nowrap; }
 
