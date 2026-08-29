@@ -3,6 +3,7 @@ import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, Su
 import { DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
+import { roomStatus } from './rooms';
 
 export function initialState(seed: number = randomSeed()): GameState {
   return {
@@ -80,19 +81,16 @@ export function unlockDoor(door: DoorId, code?: string): ActionResult {
   };
 }
 
-const ROOM_REQUIRES: Record<RoomId, DoorId | null> = {
-  cryo_bay: null,
-  engineering: 'cryo_exit',
-  bridge: 'engineering_exit',
-};
-
 export function enterRoom(room: RoomId): ActionResult {
   const s = gameStore.getState();
-  const needed = ROOM_REQUIRES[room];
-  if (needed && !s.doors[needed]) {
+  const status = roomStatus(s, room);
+  if (status === 'sealed') {
+    return { ok: false, message: `${room} is sealed. Whatever is behind that bulkhead belongs to a later chapter of this ship.` };
+  }
+  if (status === 'locked') {
     return { ok: false, message: `The way to ${room} is sealed.` };
   }
-  const act = room === 'bridge' ? 3 : room === 'engineering' ? Math.max(s.act, 2) as 2 | 3 : s.act;
+  const act = room === 'bridge' ? 3 : room === 'engineering' ? (Math.max(s.act, 2) as 2 | 3) : s.act;
   const checkpoint = room === 'bridge' && s.checkpoint === null ? { chapter: s.chapter, room } : s.checkpoint;
   gameStore.setState({ room, act, checkpoint });
   return { ok: true, message: `Entered ${room}.` };

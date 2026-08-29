@@ -19,7 +19,7 @@ describe('availability gating', () => {
   it('starts with only the always-on tools', () => {
     const online = toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
     expect(online.sort()).toEqual(
-      ['get_ship_status', 'ping_subsystems', 'read_emergency_bulletin', 'read_maintenance_log'].sort()
+      ['get_deck_map', 'get_ship_status', 'ping_subsystems', 'read_emergency_bulletin', 'read_maintenance_log'].sort()
     );
   });
 
@@ -147,5 +147,15 @@ describe('tool handlers', () => {
     const conf = await call('confirm_launch');
     expect(conf.ok).toBe(true);
     expect(gameStore.getState().won).toBe(true);
+  });
+
+  it('get_deck_map lists every compartment with its status', async () => {
+    const out = await call('get_deck_map');
+    expect(out.ok).toBe(true);
+    expect(out.rooms).toHaveLength(10);
+    const byId = Object.fromEntries(out.rooms.map((r: { id: string; status: string }) => [r.id, r.status]));
+    expect(byId.cryo_bay).toBe('current');
+    expect(byId.engineering).toBe('locked');
+    expect(byId.core_vault).toBe('sealed');
   });
 });

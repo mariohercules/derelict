@@ -1,4 +1,7 @@
-export type RoomId = 'cryo_bay' | 'engineering' | 'bridge';
+export type RoomId =
+  | 'cryo_bay' | 'engineering' | 'bridge'
+  | 'medbay' | 'crew_quarters' | 'hydroponics' | 'cargo_bay'
+  | 'reactor_room' | 'core_vault' | 'comms_array';
 export type SubsystemId = 'life_support' | 'doors' | 'medbay' | 'engines' | 'comms';
 export type DoorId = 'cryo_exit' | 'engineering_exit';
 export type FuseRating = '5A' | '10A' | '15A';

@@ -111,7 +111,11 @@ const en: UIStrings = {
     engines: 'ENGINES',
     ailinkTitle: 'Ship systems currently exposed to your AI via WebMCP',
     severed: 'severed',
-    rooms: { cryo_bay: 'cryo bay', engineering: 'engineering', bridge: 'bridge' },
+    rooms: {
+      cryo_bay: 'cryo bay', engineering: 'engineering', bridge: 'bridge',
+      medbay: 'medbay', crew_quarters: 'crew quarters', hydroponics: 'hydroponics', cargo_bay: 'cargo bay',
+      reactor_room: 'reactor room', core_vault: 'core vault', comms_array: 'comms array',
+    },
   },
   cryo: {
     title: 'Cryo bay',
@@ -223,7 +227,11 @@ const ptBR: UIStrings = {
     engines: 'MOTORES',
     ailinkTitle: 'Sistemas da nave atualmente expostos à sua IA via WebMCP',
     severed: 'rompido',
-    rooms: { cryo_bay: 'baia criogênica', engineering: 'engenharia', bridge: 'ponte' },
+    rooms: {
+      cryo_bay: 'baia criogênica', engineering: 'engenharia', bridge: 'ponte',
+      medbay: 'enfermaria', crew_quarters: 'cabines', hydroponics: 'hidroponia', cargo_bay: 'porão de carga',
+      reactor_room: 'sala do reator', core_vault: 'cofre do núcleo', comms_array: 'arranjo de comms',
+    },
   },
   cryo: {
     title: 'Baia criogênica',

@@ -63,4 +63,10 @@ describe('room movement', () => {
     expect(gameStore.getState().room).toBe('engineering');
     expect(gameStore.getState().act).toBe(2);
   });
+
+  it('refuses compartments sealed until a later chapter', () => {
+    const r = enterRoom('medbay');
+    expect(r.ok).toBe(false);
+    expect(gameStore.getState().room).toBe('cryo_bay');
+  });
 });

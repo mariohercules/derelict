@@ -1,11 +1,11 @@
 import { gameStore, initialState } from './store';
 import type { GameState, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
 import { CLASSIC_SEED } from './secrets';
+import { ROOM_IDS } from './rooms';
 
 export const SAVE_KEY = 'derelict-save-v2';
 export const LEGACY_SAVE_KEY = 'derelict-save-v1';
 
-const ROOM_IDS: RoomId[] = ['cryo_bay', 'engineering', 'bridge'];
 const SUBSYSTEMS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
 const PHASES: RitualPhase[] = ['idle', 'armed', 'done'];
 
