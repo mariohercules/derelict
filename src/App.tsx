@@ -27,7 +27,8 @@ function BuildTag() {
 
 export default function App() {
   const [started, setStarted] = useState(false);
-  const [hasSave, setHasSave] = useState(() => loadSavedState() !== null);
+  const [saved, setSaved] = useState(() => loadSavedState());
+  const hasSave = saved !== null;
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
   const t = useStrings();
@@ -82,6 +83,9 @@ export default function App() {
           <p className="status-dim">2. {t.app.how2}</p>
           <p className="status-dim">3. {t.app.how3}</p>
         </div>
+        {saved?.checkpoint && (
+          <p className="status-dim">{t.app.checkpoint(saved.checkpoint.chapter, t.hud.rooms[saved.checkpoint.room])}</p>
+        )}
         <div>
           <button
             onClick={() => {
@@ -97,7 +101,7 @@ export default function App() {
               style={{ marginLeft: 12 }}
               onClick={() => {
                 resetGame();
-                setHasSave(false);
+                setSaved(null);
               }}
             >
               {t.app.abandonRun}

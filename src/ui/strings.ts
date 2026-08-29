@@ -10,6 +10,7 @@ export interface UIStrings {
     how1: string;
     how2: string;
     how3: string;
+    checkpoint: (chapter: number, room: string) => string;
   };
   hud: {
     engines: string;
@@ -90,6 +91,8 @@ export interface UIStrings {
   epilogue: {
     podAway: string;
     outro: string;
+    outroKnowing: string;
+    outroUnknowing: string;
     stats: (toolCalls: number) => string;
     wakeAgain: string;
   };
@@ -109,6 +112,7 @@ const en: UIStrings = {
       "The crew is a pair. You press what is physical — buttons, levers, valves. Your AI operates the ship's systems — the dots up top show its current reach, and they light up as you two make progress.",
     how3:
       'Talk like crewmates. Describe what you see; ask what it can read. When it unlocks something, the next move is physical — and yours.',
+    checkpoint: (chapter, room) => `Checkpoint — Chapter ${chapter}: ${room}`,
   },
   hud: {
     engines: 'ENGINES',
@@ -212,6 +216,10 @@ const en: UIStrings = {
     podAway: 'POD AWAY',
     outro:
       'The Cormorant shrinks behind you — dark, patient, and finally at rest. Okafor was right about your AI. Better company than most.',
+    outroKnowing:
+      'The Cormorant shrinks behind you — dark, patient, and holding its breath. You broke the seal. You read the line. You launched anyway. Ninety-four seconds is a long time to leave unexplained.',
+    outroUnknowing:
+      'The Cormorant shrinks behind you — dark, patient, and finally at rest. Somewhere behind the launch console, a sealed message you never found keeps its ninety-four seconds to itself.',
     stats: (toolCalls) =>
       `Escaped by: one human (hands, eyes, judgment) + one AI (${toolCalls} tool calls on ship systems). Neither of you could have done it alone. That was the point.`,
     wakeAgain: 'Wake up again',
@@ -235,6 +243,7 @@ const ptBR: UIStrings = {
       'A tripulação é uma dupla. Você aperta o que é físico — botões, alavancas, válvulas. Sua IA opera os sistemas da nave — as bolinhas no topo mostram o alcance dela agora, e elas acendem conforme vocês avançam.',
     how3:
       'Conversem como tripulantes. Descreva o que você vê; pergunte o que ela lê. Quando ela destravar algo, o próximo movimento é físico — e é seu.',
+    checkpoint: (chapter, room) => `Checkpoint — Capítulo ${chapter}: ${room}`,
   },
   hud: {
     engines: 'MOTORES',
@@ -339,6 +348,10 @@ const ptBR: UIStrings = {
     podAway: 'POD LANÇADO',
     outro:
       'A Cormorant encolhe atrás de você — escura, paciente e finalmente em paz. Okafor tinha razão sobre a sua IA. Companhia melhor que a maioria.',
+    outroKnowing:
+      'A Cormorant encolhe atrás de você — escura, paciente, prendendo a respiração. Você rompeu o selo. Leu a linha. Lançou mesmo assim. Noventa e quatro segundos é muito tempo para deixar sem explicação.',
+    outroUnknowing:
+      'A Cormorant encolhe atrás de você — escura, paciente e finalmente em paz. Em algum lugar atrás do console de lançamento, uma mensagem selada que você nunca encontrou guarda seus noventa e quatro segundos para si.',
     stats: (toolCalls) =>
       `Fugiram: um humano (mãos, olhos, julgamento) + uma IA (${toolCalls} chamadas de ferramenta nos sistemas da nave). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
     wakeAgain: 'Acordar de novo',
