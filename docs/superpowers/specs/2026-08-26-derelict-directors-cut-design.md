@@ -89,3 +89,9 @@ Plus the Chapter 1 early ending ("Leave, unknowing") as an epilogue variant.
 ## 9. Sequencing constraint
 
 Nothing in this document starts before the challenge submission is complete (video recorded, Devpost submitted). First act of this project: tag the submitted commit `v1.0-challenge`, then branch `directors-cut`.
+
+## 10. Addendum (Aug 29) — production freeze and seeded ships
+
+- `v1.0-challenge` is tagged. **Production (`derelict-game.vercel.app`) stays on that tag until judging concludes**; the Director's Cut lives on the `directors-cut` branch and is tested on Vercel preview deployments (`npx vercel` without `--prod`).
+- Seeded ships already shipped in v1.0 (`src/game/secrets.ts`, seed 0 = classic ship). Every new chapter's secrets (medbay records, Kestrel registry fragment, core-vault column pattern, beacon coordinates) derive from the same seed.
+- Delivery is phased into three plans, each leaving a playable game: **A — Foundations** (chapter/save v2, deck map + scene registry, ritual framework, Chapter 1 retune with the sealed-log hook and the "Leave, unknowing" ending); **B — Chapter 2** (Medbay, Crew Quarters, Hydroponics, Cargo Bay, their tools and logs); **C — Chapter 3** (kill-switch engine, Reactor Room, Core Vault, Comms Array, the three joint-ritual endings).
