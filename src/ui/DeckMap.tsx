@@ -6,6 +6,26 @@ import { useStrings } from './useLocale';
 const FILL = { current: 'var(--amber)', open: '#1d2620', locked: '#10151a', sealed: '#0b0e0c' } as const;
 const STROKE = { current: 'var(--amber)', open: 'var(--green)', locked: 'var(--dim)', sealed: '#2a3a30' } as const;
 
+// Splits a room label into up to two lines so it fits its 60×32 map box.
+// Short labels pass through untouched; long ones are balanced across two
+// lines by word — a single long word (e.g. "HYDROPONICS") stays on one line.
+export function splitLabel(label: string, max = 11): string[] {
+  if (label.length <= max) return [label];
+  const words = label.split(' ');
+  if (words.length === 1) return [label];
+  // balance the two lines: move words to the first line while it stays under half the total
+  const lines: string[] = ['', ''];
+  const half = label.length / 2;
+  for (const w of words) {
+    if (lines[1] === '' && (lines[0].length === 0 || lines[0].length + 1 + w.length <= half + 2)) {
+      lines[0] = lines[0] ? `${lines[0]} ${w}` : w;
+    } else {
+      lines[1] = lines[1] ? `${lines[1]} ${w}` : w;
+    }
+  }
+  return lines[1] ? lines : [lines[0]];
+}
+
 export function DeckMap() {
   const state = useGame((s) => s);
   const t = useStrings();
@@ -41,10 +61,27 @@ export function DeckMap() {
               <rect x={r.x - 30} y={r.y - 16} width="60" height="32" rx="3"
                 fill={FILL[status]} stroke={STROKE[status]} strokeWidth={status === 'current' ? 2 : 1}
                 strokeDasharray={status === 'sealed' ? '2 2' : undefined} />
-              <text x={r.x} y={r.y + 3} textAnchor="middle" fontSize="7.5" letterSpacing="0.5"
-                fill={status === 'current' ? '#0a0e0c' : status === 'sealed' ? '#3d4f45' : 'var(--text)'}>
-                {t.hud.rooms[r.id].toUpperCase()}
-              </text>
+              {(() => {
+                const lines = splitLabel(t.hud.rooms[r.id].toUpperCase());
+                const singleLine = lines.length === 1;
+                return (
+                  <text x={r.x} y={singleLine ? r.y + 3 : undefined} textAnchor="middle"
+                    fontSize={singleLine ? '7.5' : '6.8'} letterSpacing={singleLine ? '0.5' : undefined}
+                    fill={status === 'current' ? '#0a0e0c' : status === 'sealed' ? '#3d4f45' : 'var(--text)'}>
+                    {lines.map((line, i) => {
+                      const y = singleLine ? undefined : i === 0 ? r.y - 2 : r.y + 7;
+                      const overflow = line.length > 11;
+                      return (
+                        <tspan key={i} x={r.x} y={y}
+                          textLength={overflow ? 54 : undefined}
+                          lengthAdjust={overflow ? 'spacingAndGlyphs' : undefined}>
+                          {line}
+                        </tspan>
+                      );
+                    })}
+                  </text>
+                );
+              })()}
             </g>
           );
         })}
