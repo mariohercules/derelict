@@ -1,12 +1,12 @@
 import { gameStore, initialState } from './store';
-import type { GameState, LaunchPhase, RoomId, SubsystemId } from './types';
+import type { GameState, RitualPhase, RoomId, SubsystemId } from './types';
 import { CLASSIC_SEED } from './secrets';
 
 export const SAVE_KEY = 'derelict-save-v1';
 
 const ROOMS: RoomId[] = ['cryo_bay', 'engineering', 'bridge'];
 const SUBSYSTEMS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
-const PHASES: LaunchPhase[] = ['idle', 'countdown', 'launched'];
+const PHASES: RitualPhase[] = ['idle', 'armed', 'done'];
 
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
@@ -20,10 +20,11 @@ function validShape(p: Partial<GameState>): boolean {
   if (typeof p.act !== 'number' || ![1, 2, 3].includes(p.act)) return false;
   if (typeof p.room !== 'string' || !ROOMS.includes(p.room as RoomId)) return false;
   if (!p.doors || typeof p.doors !== 'object') return false;
-  if (!p.launch || typeof p.launch !== 'object') return false;
-  const launch = p.launch as unknown as Record<string, unknown>;
-  if (!PHASES.includes(launch.phase as LaunchPhase)) return false;
-  if (launch.countdownEndsAt !== null && !isFiniteNumber(launch.countdownEndsAt)) return false;
+  if (!p.ritual || typeof p.ritual !== 'object') return false;
+  const ritual = p.ritual as unknown as Record<string, unknown>;
+  if (!PHASES.includes(ritual.phase as RitualPhase)) return false;
+  if (ritual.active !== null && ritual.active !== 'launch') return false;
+  if (ritual.endsAt !== null && !isFiniteNumber(ritual.endsAt)) return false;
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
   if (!SUBSYSTEMS.every((k) => isFiniteNumber(alloc[k]))) return false;
@@ -45,12 +46,13 @@ export function loadSavedState(): GameState | null {
     const merged = { ...initialState(), ...parsed } as GameState;
     // Never resurrect an in-flight launch: a reload mid-countdown must not restore a stale
     // deadline or a held handle nobody is actually holding.
-    const launch = { ...merged.launch, handleHeld: false };
-    if (launch.phase === 'countdown') {
-      launch.phase = 'idle';
-      launch.countdownEndsAt = null;
+    const ritual = { ...merged.ritual, held: false };
+    if (ritual.phase === 'armed') {
+      ritual.active = null;
+      ritual.phase = 'idle';
+      ritual.endsAt = null;
     }
-    return { ...merged, launch };
+    return { ...merged, ritual };
   } catch {
     return null;
   }

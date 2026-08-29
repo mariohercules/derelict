@@ -34,14 +34,10 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
   });
 
-  it('sanitizes an in-flight countdown on load: back to idle, no handle held', () => {
-    const saved = {
-      ...initialState(),
-      launch: { phase: 'countdown', countdownEndsAt: 123456789, handleHeld: true },
-    };
+  it('sanitizes an armed ritual on load: back to idle, no handle held', () => {
+    const saved = { ...initialState(0), ritual: { active: 'launch', phase: 'armed', endsAt: 123456789, held: true } };
     storage.set(SAVE_KEY, JSON.stringify(saved));
-    const loaded = loadSavedState();
-    expect(loaded?.launch).toEqual({ phase: 'idle', countdownEndsAt: null, handleHeld: false });
+    expect(loadSavedState()?.ritual).toEqual({ active: null, phase: 'idle', endsAt: null, held: false });
   });
 
   it('round-trips the ship seed', () => {
@@ -59,7 +55,7 @@ describe('persistence', () => {
   });
 
   it('rejects a save with a malformed launch object', () => {
-    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(), launch: null }));
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ritual: null }));
     expect(loadSavedState()).toBeNull();
   });
 
@@ -79,13 +75,9 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
   });
 
-  it('keeps a launched save as launched, but still clears handleHeld', () => {
-    const saved = {
-      ...initialState(),
-      launch: { phase: 'launched', countdownEndsAt: null, handleHeld: true },
-    };
+  it('keeps a completed ritual as done, but still clears the held flag', () => {
+    const saved = { ...initialState(0), ritual: { active: 'launch', phase: 'done', endsAt: null, held: true } };
     storage.set(SAVE_KEY, JSON.stringify(saved));
-    const loaded = loadSavedState();
-    expect(loaded?.launch).toEqual({ phase: 'launched', countdownEndsAt: null, handleHeld: false });
+    expect(loadSavedState()?.ritual).toEqual({ active: 'launch', phase: 'done', endsAt: null, held: false });
   });
 });

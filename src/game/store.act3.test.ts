@@ -44,7 +44,7 @@ describe('launch sequence', () => {
     ready();
     gameStore.setState({ room: 'engineering' });
     expect(initiateLaunch(LAUNCH_AUTH, T0).ok).toBe(false);
-    expect(gameStore.getState().launch.phase).toBe('idle');
+    expect(gameStore.getState().ritual.phase).toBe('idle');
   });
 
   it('re-arms after an expired window instead of refusing forever', () => {
@@ -53,7 +53,7 @@ describe('launch sequence', () => {
     const later = T0 + LAUNCH_WINDOW_MS + 1;
     const r = initiateLaunch(LAUNCH_AUTH, later);
     expect(r.ok).toBe(true);
-    expect(gameStore.getState().launch.countdownEndsAt).toBe(later + LAUNCH_WINDOW_MS);
+    expect(gameStore.getState().ritual.endsAt).toBe(later + LAUNCH_WINDOW_MS);
   });
 
   it('still refuses a second initiate while the window is live', () => {
@@ -70,16 +70,16 @@ describe('launch sequence', () => {
   it('starts the countdown with trajectory and auth', () => {
     ready();
     expect(initiateLaunch(LAUNCH_AUTH, T0).ok).toBe(true);
-    const l = gameStore.getState().launch;
-    expect(l.phase).toBe('countdown');
-    expect(l.countdownEndsAt).toBe(T0 + LAUNCH_WINDOW_MS);
+    const l = gameStore.getState().ritual;
+    expect(l.phase).toBe('armed');
+    expect(l.endsAt).toBe(T0 + LAUNCH_WINDOW_MS);
   });
 
   it('confirm fails while the handle is not held', () => {
     ready();
     initiateLaunch(LAUNCH_AUTH, T0);
     expect(confirmLaunch(T0 + 1000).ok).toBe(false);
-    expect(gameStore.getState().launch.phase).toBe('countdown');
+    expect(gameStore.getState().ritual.phase).toBe('armed');
   });
 
   it('confirm succeeds while the handle is held inside the window — game won', () => {
@@ -88,7 +88,7 @@ describe('launch sequence', () => {
     holdHandle(true);
     expect(confirmLaunch(T0 + 1000).ok).toBe(true);
     const s = gameStore.getState();
-    expect(s.launch.phase).toBe('launched');
+    expect(s.ritual.phase).toBe('done');
     expect(s.won).toBe(true);
   });
 
@@ -97,6 +97,6 @@ describe('launch sequence', () => {
     initiateLaunch(LAUNCH_AUTH, T0);
     holdHandle(true);
     expect(confirmLaunch(T0 + LAUNCH_WINDOW_MS + 1).ok).toBe(false);
-    expect(gameStore.getState().launch.phase).toBe('idle');
+    expect(gameStore.getState().ritual.phase).toBe('idle');
   });
 });

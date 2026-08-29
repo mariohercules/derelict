@@ -102,29 +102,30 @@ function Viewport() {
 }
 
 function LaunchConsole() {
-  const launch = useGame((s) => s.launch);
+  const ritual = useGame((s) => s.ritual);
+  const armed = ritual.active === 'launch' && ritual.phase === 'armed';
   const trajectorySet = useGame((s) => s.trajectorySet);
   const t = useStrings();
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
-    if (launch.phase !== 'countdown') return;
+    if (!armed) return;
     setNowTick(Date.now()); // reset immediately: a stale mount-time tick would flash an inflated T-minus
     const timer = setInterval(() => setNowTick(Date.now()), 250);
     return () => clearInterval(timer);
-  }, [launch.phase]);
+  }, [armed]);
 
   const secondsLeft =
-    launch.phase === 'countdown' && launch.countdownEndsAt
-      ? Math.max(0, Math.ceil((launch.countdownEndsAt - nowTick) / 1000))
+    armed && ritual.endsAt
+      ? Math.max(0, Math.ceil((ritual.endsAt - nowTick) / 1000))
       : null;
 
   return (
     <div className="panel">
       <h2>{t.bridge.consoleTitle}</h2>
       {!trajectorySet && <p className="status-dim">{t.bridge.trajNotSet}</p>}
-      {trajectorySet && launch.phase === 'idle' && <p className="status-ok">{t.bridge.trajLocked}</p>}
-      {launch.phase === 'countdown' && (
+      {trajectorySet && ritual.phase === 'idle' && <p className="status-ok">{t.bridge.trajLocked}</p>}
+      {armed && (
         <>
           <p className="status-bad blink" style={{ fontSize: 24 }}>T-{secondsLeft}s</p>
           <p>{t.bridge.twoOp}</p>
@@ -151,10 +152,10 @@ function LaunchConsole() {
           if (e.key === ' ' || e.key === 'Enter') holdHandle(false);
         }}
         onBlur={() => holdHandle(false)}
-        disabled={launch.phase !== 'countdown'}
+        disabled={!armed}
         style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch' }}
       >
-        {launch.handleHeld ? t.bridge.holding : t.bridge.confirmHold}
+        {ritual.held ? t.bridge.holding : t.bridge.confirmHold}
       </button>
     </div>
   );

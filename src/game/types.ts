@@ -3,17 +3,20 @@ export type SubsystemId = 'life_support' | 'doors' | 'medbay' | 'engines' | 'com
 export type DoorId = 'cryo_exit' | 'engineering_exit';
 export type FuseRating = '5A' | '10A' | '15A';
 export type BreakerId = 'A' | 'B' | 'C';
-export type LaunchPhase = 'idle' | 'countdown' | 'launched';
 
 export interface ActionResult {
   ok: boolean;
   message: string;
 }
 
-export interface LaunchState {
-  phase: LaunchPhase;
-  countdownEndsAt: number | null; // epoch ms
-  handleHeld: boolean;
+export type RitualId = 'launch';
+export type RitualPhase = 'idle' | 'armed' | 'done';
+
+export interface RitualState {
+  active: RitualId | null;
+  phase: RitualPhase;
+  endsAt: number | null; // epoch ms
+  held: boolean;
 }
 
 export interface GameState {
@@ -29,7 +32,7 @@ export interface GameState {
   valveSettings: [number, number, number];
   starFixTaken: boolean;
   trajectorySet: boolean;
-  launch: LaunchState;
+  ritual: RitualState;
   toolCalls: number;
   won: boolean;
 }

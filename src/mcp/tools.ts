@@ -5,6 +5,7 @@ import {
 } from '../game/store';
 import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
 import { CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
+import { isArmed } from '../game/ritual';
 import {
   getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getSchematics,
 } from '../game/narrative';
@@ -63,7 +64,7 @@ export function buildTools(): GameTool[] {
           doors: s.doors,
           engines_online: enginesOnline(s),
           coolant_valves_ok: valvesCorrect(s),
-          launch: s.launch.phase,
+          ritual: { active: s.ritual.active, phase: s.ritual.phase },
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
             'You act ONLY by calling tools yourself; the crew member acts only by touching the ship. ' +
@@ -315,7 +316,7 @@ export function buildTools(): GameTool[] {
     mkTool(
       'confirm_launch',
       'Confirm the launch while the countdown runs AND the human is holding the physical confirm handle. This is the last tool you will ever need on this ship.',
-      (s) => s.launch.phase === 'countdown',
+      (s) => isArmed(s.ritual, 'launch'),
       noInput,
       () => confirmLaunch()
     ),

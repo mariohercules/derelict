@@ -1,7 +1,8 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { DOORS_REQUIRED, INITIAL_ALLOCATION, LAUNCH_WINDOW_MS, LIFE_SUPPORT_MIN } from './content';
+import { DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN } from './content';
 import { randomSeed, secretsFor } from './secrets';
+import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
 
 export function initialState(seed: number = randomSeed()): GameState {
   return {
@@ -17,7 +18,7 @@ export function initialState(seed: number = randomSeed()): GameState {
     valveSettings: [0, 0, 0],
     starFixTaken: false,
     trajectorySet: false,
-    launch: { phase: 'idle', countdownEndsAt: null, handleHeld: false },
+    ritual: { ...IDLE_RITUAL },
     toolCalls: 0,
     won: false,
   };
@@ -129,7 +130,7 @@ export function takeStarFix(): void {
 }
 
 export function holdHandle(held: boolean): void {
-  gameStore.setState((s) => ({ launch: { ...s.launch, handleHeld: held } }));
+  gameStore.setState((s) => ({ ritual: { ...s.ritual, held } }));
 }
 
 export function computeTrajectory(symbols: string[]): ActionResult {
@@ -155,28 +156,23 @@ export function initiateLaunch(auth: string, now: number = Date.now()): ActionRe
   if (String(auth).trim().toUpperCase() !== secretsFor(s.seed).launchAuth) {
     return { ok: false, message: 'Launch authorization rejected.' };
   }
-  const expired =
-    s.launch.phase === 'countdown' && s.launch.countdownEndsAt !== null && now > s.launch.countdownEndsAt;
-  if (s.launch.phase !== 'idle' && !expired) {
-    return {
-      ok: false,
-      message: s.launch.phase === 'launched' ? 'Pod two is already away.' : 'Launch sequence already in progress.',
-    };
-  }
-  gameStore.setState({ launch: { ...s.launch, phase: 'countdown', countdownEndsAt: now + LAUNCH_WINDOW_MS } });
-  return { ok: true, message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${LAUNCH_WINDOW_MS / 1000}s.` };
+  if (s.ritual.phase === 'done') return { ok: false, message: 'Pod two is already away.' };
+  const { next, result } = armRitual(s.ritual, 'launch', now);
+  if (!result.ok) return { ok: false, message: 'Launch sequence already in progress.' };
+  gameStore.setState({ ritual: next });
+  return {
+    ok: true,
+    message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${RITUALS.launch.windowMs / 1000}s.`,
+  };
 }
 
 export function confirmLaunch(now: number = Date.now()): ActionResult {
   const s = gameStore.getState();
-  if (s.launch.phase !== 'countdown') return { ok: false, message: 'No launch sequence armed.' };
-  if (s.launch.countdownEndsAt !== null && now > s.launch.countdownEndsAt) {
-    gameStore.setState({ launch: { ...s.launch, phase: 'idle', countdownEndsAt: null } });
-    return { ok: false, message: 'Launch window elapsed. Sequence reset. Take a breath and initiate again.' };
+  const { next, result } = confirmRitual(s.ritual, 'launch', now);
+  if (!result.ok) {
+    gameStore.setState({ ritual: next });
+    return result;
   }
-  if (!s.launch.handleHeld) {
-    return { ok: false, message: 'Two-operator rule: confirm refused — the physical handle is not being held. Ask your human to grab it.' };
-  }
-  gameStore.setState({ launch: { ...s.launch, phase: 'launched' }, won: true });
+  gameStore.setState({ ritual: next, won: true });
   return { ok: true, message: 'Pod two away. Nice flying — both of you.' };
 }

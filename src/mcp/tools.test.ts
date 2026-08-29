@@ -143,7 +143,7 @@ describe('tool handlers', () => {
     await call('compute_escape_trajectory', { symbols: [...STAR_FIX] });
     const init = await call('initiate_launch_sequence', { authorization: LAUNCH_AUTH });
     expect(init.ok).toBe(true);
-    gameStore.setState((s) => ({ launch: { ...s.launch, handleHeld: true } }));
+    gameStore.setState((s) => ({ ritual: { ...s.ritual, held: true } }));
     const conf = await call('confirm_launch');
     expect(conf.ok).toBe(true);
     expect(gameStore.getState().won).toBe(true);
