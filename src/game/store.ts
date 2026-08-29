@@ -21,6 +21,10 @@ export function initialState(seed: number = randomSeed()): GameState {
     ritual: { ...IDLE_RITUAL },
     toolCalls: 0,
     won: false,
+    chapter: 1,
+    sealedLogRead: false,
+    ending: null,
+    checkpoint: null,
   };
 }
 
@@ -89,7 +93,8 @@ export function enterRoom(room: RoomId): ActionResult {
     return { ok: false, message: `The way to ${room} is sealed.` };
   }
   const act = room === 'bridge' ? 3 : room === 'engineering' ? Math.max(s.act, 2) as 2 | 3 : s.act;
-  gameStore.setState({ room, act });
+  const checkpoint = room === 'bridge' && s.checkpoint === null ? { chapter: s.chapter, room } : s.checkpoint;
+  gameStore.setState({ room, act, checkpoint });
   return { ok: true, message: `Entered ${room}.` };
 }
 
@@ -127,6 +132,15 @@ export function setValve(index: 0 | 1 | 2, value: number): void {
 
 export function takeStarFix(): void {
   gameStore.setState({ starFixTaken: true });
+}
+
+export function breakSeal(): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'bridge') return { ok: false, message: 'The sealed log is on the bridge, wedged behind the launch console.' };
+  if (!s.trajectorySet) return { ok: false, message: 'The pre-launch check has not run yet. Nothing has surfaced.' };
+  if (s.sealedLogRead) return { ok: true, message: 'The seal is already broken.' };
+  gameStore.setState({ sealedLogRead: true });
+  return { ok: true, message: 'Seal broken. The log is addressed to you by name.' };
 }
 
 export function holdHandle(held: boolean): void {
@@ -173,6 +187,6 @@ export function confirmLaunch(now: number = Date.now()): ActionResult {
     gameStore.setState({ ritual: next });
     return result;
   }
-  gameStore.setState({ ritual: next, won: true });
+  gameStore.setState({ ritual: next, won: true, ending: 'leave_unknowing' });
   return { ok: true, message: 'Pod two away. Nice flying — both of you.' };
 }

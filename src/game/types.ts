@@ -9,6 +9,9 @@ export interface ActionResult {
   message: string;
 }
 
+export type ChapterId = 1 | 2 | 3;
+export type EndingId = 'leave_unknowing';
+
 export type RitualId = 'launch';
 export type RitualPhase = 'idle' | 'armed' | 'done';
 
@@ -17,6 +20,11 @@ export interface RitualState {
   phase: RitualPhase;
   endsAt: number | null; // epoch ms
   held: boolean;
+}
+
+export interface Checkpoint {
+  chapter: ChapterId;
+  room: RoomId;
 }
 
 export interface GameState {
@@ -35,4 +43,8 @@ export interface GameState {
   ritual: RitualState;
   toolCalls: number;
   won: boolean;
+  chapter: ChapterId;
+  sealedLogRead: boolean;
+  ending: EndingId | null;
+  checkpoint: Checkpoint | null;
 }

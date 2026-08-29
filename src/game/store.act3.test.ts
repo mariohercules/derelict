@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  gameStore, resetGame, computeTrajectory, initiateLaunch, confirmLaunch, holdHandle, takeStarFix,
+  gameStore, resetGame, computeTrajectory, initiateLaunch, confirmLaunch, holdHandle, takeStarFix, breakSeal, enterRoom,
 } from './store';
 import { LAUNCH_AUTH, LAUNCH_WINDOW_MS, STAR_FIX } from './content';
 
@@ -108,5 +108,42 @@ describe('launch sequence', () => {
     initiateLaunch(LAUNCH_AUTH, T0 + LAUNCH_WINDOW_MS + 2);
     expect(confirmLaunch(T0 + LAUNCH_WINDOW_MS + 3).ok).toBe(true);
     expect(gameStore.getState().won).toBe(true);
+  });
+});
+
+describe('chapter 1 hook: the sealed log', () => {
+  it('cannot be opened before the pre-launch check (trajectory set)', () => {
+    expect(breakSeal().ok).toBe(false);
+    expect(gameStore.getState().sealedLogRead).toBe(false);
+  });
+
+  it('opens once the trajectory is locked, and only on the bridge', () => {
+    takeStarFix();
+    computeTrajectory([...STAR_FIX]);
+    gameStore.setState({ room: 'engineering' });
+    expect(breakSeal().ok).toBe(false);
+    gameStore.setState({ room: 'bridge' });
+    expect(breakSeal().ok).toBe(true);
+    expect(gameStore.getState().sealedLogRead).toBe(true);
+  });
+
+  it('winning in chapter 1 records the "leave, unknowing" ending', () => {
+    takeStarFix();
+    computeTrajectory([...STAR_FIX]);
+    initiateLaunch(LAUNCH_AUTH, T0);
+    holdHandle(true);
+    confirmLaunch(T0 + 1000);
+    expect(gameStore.getState().ending).toBe('leave_unknowing');
+    expect(gameStore.getState().chapter).toBe(1);
+  });
+});
+
+describe('checkpoints', () => {
+  it('reaching the bridge records the chapter 1 checkpoint', () => {
+    resetGame(0);
+    gameStore.setState({ doors: { cryo_exit: true, engineering_exit: true }, room: 'engineering', act: 2 });
+    expect(gameStore.getState().checkpoint).toBeNull();
+    enterRoom('bridge');
+    expect(gameStore.getState().checkpoint).toEqual({ chapter: 1, room: 'bridge' });
   });
 });

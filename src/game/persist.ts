@@ -17,6 +17,7 @@ function isFiniteNumber(v: unknown): v is number {
 // allocations, phantom launch phases, rooms that do not exist).
 function validShape(p: Partial<GameState>): boolean {
   if (!isFiniteNumber(p.seed)) return false;
+  if (p.chapter !== undefined && ![1, 2, 3].includes(p.chapter as number)) return false;
   if (typeof p.act !== 'number' || ![1, 2, 3].includes(p.act)) return false;
   if (typeof p.room !== 'string' || !ROOMS.includes(p.room as RoomId)) return false;
   if (!p.doors || typeof p.doors !== 'object') return false;

@@ -80,4 +80,9 @@ describe('persistence', () => {
     storage.set(SAVE_KEY, JSON.stringify(saved));
     expect(loadSavedState()?.ritual).toEqual({ active: 'launch', phase: 'done', endsAt: null, held: false });
   });
+
+  it('rejects a save with an impossible chapter', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 7 }));
+    expect(loadSavedState()).toBeNull();
+  });
 });
