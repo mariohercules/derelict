@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { buildTools, toolAvailability } from './tools';
-import { gameStore, resetGame, flipBreaker } from '../game/store';
+import { gameStore, resetGame, flipBreaker, breakSeal } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX } from '../game/content';
 
 beforeEach(() => resetGame(0));
@@ -147,6 +147,20 @@ describe('tool handlers', () => {
     const conf = await call('confirm_launch');
     expect(conf.ok).toBe(true);
     expect(gameStore.getState().won).toBe(true);
+  });
+
+  it('read_sealed_log is offline until the human breaks the seal, then returns the 94-second line', async () => {
+    gameStore.setState({ act: 3, room: 'bridge', starFixTaken: true, trajectorySet: true });
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'read_sealed_log')!.online).toBe(false);
+    const status1 = await call('get_ship_status');
+    expect(status1.sealed_log).toBe('unread');
+    breakSeal();
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'read_sealed_log')!.online).toBe(true);
+    const out = await call('read_sealed_log');
+    expect(out.ok).toBe(true);
+    expect(out.text).toMatch(/94 seconds/);
+    const status2 = await call('get_ship_status');
+    expect(status2.sealed_log).toBe('read');
   });
 
   it('get_deck_map lists every compartment with its status', async () => {

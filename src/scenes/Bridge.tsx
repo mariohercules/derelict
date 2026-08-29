@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
-import { takeStarFix, holdHandle, enterRoom } from '../game/store';
+import { takeStarFix, holdHandle, enterRoom, breakSeal } from '../game/store';
 import { secretsFor } from '../game/secrets';
 
 // Deterministic star field (no per-render randomness — the sky must hold still).
@@ -101,6 +101,29 @@ function Viewport() {
   );
 }
 
+function SealedLog() {
+  const trajectorySet = useGame((s) => s.trajectorySet);
+  const read = useGame((s) => s.sealedLogRead);
+  const t = useStrings();
+  if (!trajectorySet) return null;
+  return (
+    <div className="panel" style={{ borderColor: read ? 'var(--line)' : 'var(--amber)' }}>
+      <h2>{t.bridge.sealedTitle}</h2>
+      {read ? (
+        <>
+          <p style={{ fontSize: 17 }}>{t.bridge.sealedLine}</p>
+          <p className="status-dim">{t.bridge.sealedAfter}</p>
+        </>
+      ) : (
+        <>
+          <p className="status-dim">{t.bridge.sealedFound}</p>
+          <button onClick={() => breakSeal()}>{t.bridge.breakSeal}</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function LaunchConsole() {
   const ritual = useGame((s) => s.ritual);
   const armed = ritual.active === 'launch' && ritual.phase === 'armed';
@@ -180,6 +203,7 @@ export function Bridge() {
         <p>{t.bridge.intro}</p>
       </div>
       <Viewport />
+      <SealedLog />
       <LaunchConsole />
       <EngineeringLadder />
     </div>

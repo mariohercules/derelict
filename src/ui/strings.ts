@@ -85,6 +85,7 @@ export interface UIStrings {
     confirmHold: string;
     ladderDown: string;
     climbDown: string;
+    sealedTitle: string; sealedFound: string; breakSeal: string; sealedLine: string; sealedAfter: string;
   };
   epilogue: {
     podAway: string;
@@ -201,6 +202,11 @@ const en: UIStrings = {
     confirmHold: 'CONFIRM LAUNCH (hold)',
     ladderDown: 'Ladder down — to engineering',
     climbDown: 'Climb back down →',
+    sealedTitle: 'Pre-launch check — sealed log',
+    sealedFound: 'The pre-launch check surfaced a sealed log wedged behind the console. It is addressed to you. By name.',
+    breakSeal: 'Break the seal',
+    sealedLine: '"PRIME died 94 seconds before the storm."',
+    sealedAfter: 'Your AI can read the full entry now. It will not make the launch any easier.',
   },
   epilogue: {
     podAway: 'POD AWAY',
@@ -323,6 +329,11 @@ const ptBR: UIStrings = {
     confirmHold: 'CONFIRMAR LANÇAMENTO (segure)',
     ladderDown: 'Escada abaixo — para a engenharia',
     climbDown: 'Descer de volta →',
+    sealedTitle: 'Checagem pré-lançamento — log selado',
+    sealedFound: 'A checagem pré-lançamento revelou um log selado encaixado atrás do console. Está endereçado a você. Pelo nome.',
+    breakSeal: 'Romper o selo',
+    sealedLine: '"PRIME morreu 94 segundos antes da tempestade."',
+    sealedAfter: 'Sua IA pode ler a entrada completa agora. Isso não vai facilitar o lançamento.',
   },
   epilogue: {
     podAway: 'POD LANÇADO',

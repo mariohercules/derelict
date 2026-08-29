@@ -66,6 +66,7 @@ export function buildTools(): GameTool[] {
           doors: s.doors,
           engines_online: enginesOnline(s),
           coolant_valves_ok: valvesCorrect(s),
+          sealed_log: !s.trajectorySet ? 'none' : s.sealedLogRead ? 'read' : 'unread',
           ritual: { active: s.ritual.active, phase: s.ritual.phase },
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
@@ -317,6 +318,21 @@ export function buildTools(): GameTool[] {
         if (symbols.length !== 3) return { ok: false, message: 'A star fix is exactly three symbols.' };
         return computeTrajectory(symbols);
       }
+    ),
+    mkTool(
+      'read_sealed_log',
+      'Read the sealed log the pre-launch check surfaced — addressed to the crew member by name, seal broken by their hand. It is short, and it does not fit the story of this ship.',
+      (s) => s.sealedLogRead,
+      noInput,
+      () => ({
+        ok: true,
+        addressed_to: 'the medical officer, by name',
+        text:
+          'PRIME died 94 seconds before the storm. Main computer shutdown logged at T-00:01:34 before first debris impact. ' +
+          'Origin of the shutdown command: withheld. If you are reading this, you launched before the ship could explain itself.',
+        note: 'This changes nothing about the launch. It changes everything about the ship. Decide together whether to leave now.',
+      }),
+      true
     ),
     mkTool(
       'initiate_launch_sequence',
