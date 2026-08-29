@@ -96,3 +96,5 @@ Nothing in this document starts before the challenge submission is complete (vid
 - Seeded ships already shipped in v1.0 (`src/game/secrets.ts`, seed 0 = classic ship). Every new chapter's secrets (medbay records, Kestrel registry fragment, core-vault column pattern, beacon coordinates) derive from the same seed.
 - Delivery is phased into three plans, each leaving a playable game: **A — Foundations** (chapter/save v2, deck map + scene registry, ritual framework, Chapter 1 retune with the sealed-log hook and the "Leave, unknowing" ending); **B — Chapter 2** (Medbay, Crew Quarters, Hydroponics, Cargo Bay, their tools and logs); **C — Chapter 3** (kill-switch engine, Reactor Room, Core Vault, Comms Array, the three joint-ritual endings).
 - Plan B must add room adjacency (`RoomMeta.adjacent`) and align map geometry with the fiction (engineering below the bridge) before the mid-deck opens; Plan C must make `ending` the epilogue discriminator.
+
+**Plan A (Foundations) shipped Aug 29, 2026** — merged to `main` and deployed (108 tests). Next: Plan B (Chapter 2).
