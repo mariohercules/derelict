@@ -22,9 +22,20 @@ export function DeckMap() {
             <g
               key={r.id}
               onClick={clickable ? () => enterRoom(r.id) : undefined}
+              onKeyDown={
+                clickable
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.key === ' ') e.preventDefault();
+                        enterRoom(r.id);
+                      }
+                    }
+                  : undefined
+              }
+              tabIndex={clickable ? 0 : undefined}
               style={{ cursor: clickable ? 'pointer' : 'default' }}
               role={clickable ? 'button' : undefined}
-              aria-label={`${t.hud.rooms[r.id]} — ${status === 'current' ? '' : status}`}
+              aria-label={status === 'current' ? t.hud.rooms[r.id] : `${t.hud.rooms[r.id]} — ${status}`}
             >
               <rect x={r.x - 30} y={r.y - 16} width="60" height="32" rx="3"
                 fill={FILL[status]} stroke={STROKE[status]} strokeWidth={status === 'current' ? 2 : 1}

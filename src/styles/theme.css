@@ -66,6 +66,7 @@ button:disabled { color: var(--dim); border-color: var(--dim); cursor: not-allow
   margin: 12px auto 0;
   padding: 0 16px;
 }
+.deckmap g[role='button']:focus-visible rect { stroke: var(--amber); stroke-width: 2; }
 
 .ailink { display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .ailink .tool { white-space: nowrap; }
