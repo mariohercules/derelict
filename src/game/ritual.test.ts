@@ -45,7 +45,7 @@ describe('confirmRitual', () => {
     const armed = { ...armRitual(IDLE_RITUAL, 'launch', T0).next, held: true };
     const { next, result } = confirmRitual(armed, 'launch', T0 + W + 1);
     expect(result.ok).toBe(false);
-    expect(next).toEqual(IDLE_RITUAL);
+    expect(next).toEqual({ ...IDLE_RITUAL, held: true });
   });
 
   it('completes when held inside the window', () => {

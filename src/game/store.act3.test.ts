@@ -99,4 +99,14 @@ describe('launch sequence', () => {
     expect(confirmLaunch(T0 + LAUNCH_WINDOW_MS + 1).ok).toBe(false);
     expect(gameStore.getState().ritual.phase).toBe('idle');
   });
+
+  it('keeps the handle held across an expired window, so a fresh arm+confirm succeeds without re-holding', () => {
+    ready();
+    initiateLaunch(LAUNCH_AUTH, T0);
+    holdHandle(true);
+    confirmLaunch(T0 + LAUNCH_WINDOW_MS + 1); // window elapsed; handle is still physically held
+    initiateLaunch(LAUNCH_AUTH, T0 + LAUNCH_WINDOW_MS + 2);
+    expect(confirmLaunch(T0 + LAUNCH_WINDOW_MS + 3).ok).toBe(true);
+    expect(gameStore.getState().won).toBe(true);
+  });
 });

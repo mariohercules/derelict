@@ -40,7 +40,10 @@ export function confirmRitual(r: RitualState, id: RitualId, now: number): { next
     return { next: r, result: { ok: false, message: 'No sequence is armed.' } };
   }
   if (ritualExpired(r, now)) {
-    return { next: IDLE_RITUAL, result: { ok: false, message: 'Window elapsed. Sequence reset. Take a breath and arm it again.' } };
+    return {
+      next: { ...IDLE_RITUAL, held: r.held },
+      result: { ok: false, message: 'Window elapsed. Sequence reset. Take a breath and arm it again.' },
+    };
   }
   if (!r.held) {
     return {
