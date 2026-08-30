@@ -110,7 +110,6 @@ function FragmentConsole() {
 
 function KernelCradle() {
   const correct = useGame((s) => rackCorrect(s));
-  const kernel = useGame((s) => s.chapter3.kernelSeated);
   const ritual = useGame((s) => s.ritual);
   const t = useStrings();
   const armed = ritual.active === 'restore' && ritual.phase === 'armed';
@@ -123,21 +122,27 @@ function KernelCradle() {
     return () => clearInterval(timer);
   }, [armed]);
   const secondsLeft = armed && ritual.endsAt ? Math.max(0, Math.ceil((ritual.endsAt - nowTick) / 1000)) : null;
+  const elapsed = armed && secondsLeft === 0;
   if (!correct) return null;
   return (
     <div className="panel" style={{ borderColor: armed ? 'var(--amber)' : 'var(--line)' }}>
       <h2>{t.vault.kernelTitle}</h2>
       <p className="status-dim">{t.vault.kernelDesc}</p>
-      {!armed && (
+      {(!armed || elapsed) && (
         <button onClick={() => setRefused(!seatKernel().ok)} style={{ borderColor: 'var(--amber)' }}>{t.vault.seatKernel}</button>
       )}
       {refused && !armed && <p className="status-dim" style={{ marginTop: 8 }}>{t.vault.anotherRitual}</p>}
-      {kernel && !armed && secondsLeft === null && ritual.phase !== 'done' && <p className="status-dim" style={{ marginTop: 8 }}>{t.vault.windowElapsed}</p>}
       {armed && (
         <>
           <p className="status-ok">{t.vault.kernelSeated}</p>
-          <p className="status-bad blink" style={{ fontSize: 24 }}>T-{secondsLeft}s</p>
-          <p>{t.vault.twoOp}</p>
+          {elapsed ? (
+            <p className="status-dim" style={{ marginTop: 8 }}>{t.vault.windowElapsed}</p>
+          ) : (
+            <>
+              <p className="status-bad blink" style={{ fontSize: 24 }}>T-{secondsLeft}s</p>
+              <p>{t.vault.twoOp}</p>
+            </>
+          )}
         </>
       )}
       <button
@@ -147,10 +152,10 @@ function KernelCradle() {
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); holdHandle(true); } }}
         onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') holdHandle(false); }}
         onBlur={() => holdHandle(false)}
-        disabled={!armed}
+        disabled={!armed || elapsed}
         style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch', marginTop: 10 }}
       >
-        {ritual.held && armed ? t.vault.leverHolding : t.vault.leverHold}
+        {ritual.held && armed && !elapsed ? t.vault.leverHolding : t.vault.leverHold}
       </button>
     </div>
   );
