@@ -247,12 +247,14 @@ describe('chapter 2 tools', () => {
 
   it('get_deck_map reflects chapter-2 room status from the bridge after startInvestigation', async () => {
     investigating();
+    // a real crew member cannot reach the bridge without both doors open
+    gameStore.setState({ doors: { cryo_exit: true, engineering_exit: true } });
     const out = await call('get_deck_map');
     const byId = Object.fromEntries(
       (out.rooms as { id: string; status: string; adjacent: boolean }[]).map((r) => [r.id, r])
     );
     expect(byId.hydroponics.status).toBe('open');
-    expect(byId.engineering.status).toBe('locked');
+    expect(byId.engineering.status).toBe('open');
     expect(byId.medbay).toMatchObject({ status: 'locked', adjacent: false });
     expect(byId.comms_array.status).toBe('sealed');
   });
