@@ -112,6 +112,11 @@ export interface UIStrings {
     valveAria: (n: number) => string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
     spikeRevealed: string; pullSpike: string; spikePulled: string;
   };
+  cargo: {
+    title: string; intro: string; craneTitle: string; craneDesc: string; gridAria: string; slotAria: (label: string) => string;
+    up: string; down: string; left: string; right: string; lift: string; wrongCrate: string; lifted: string;
+    fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string;
+  };
 }
 
 const en: UIStrings = {
@@ -291,6 +296,22 @@ const en: UIStrings = {
     spikeRevealed: 'The bed drains. In the mud, a ration bag taped shut — and inside it, a data spike.',
     pullSpike: 'Pull the spike out',
     spikePulled: 'Okafor\'s handwriting on the tape: "For the medic\'s AI." Your AI can read it now.',
+  },
+  cargo: {
+    title: 'Cargo bay',
+    intro: 'Cold, echoing, and stacked to the ceiling with the things a long haul needs. Somewhere in the bay stack is a container the manifest calls quarantine and Okafor refused to throw away.',
+    craneTitle: 'Gantry crane',
+    craneDesc: 'Nine slots, one crane, one hook. The crates all look alike from down here; the manifest knows which slot matters. Your AI reads the manifest — you drive.',
+    gridAria: 'cargo bay stack, three by three, with the gantry crane',
+    slotAria: (label) => `slot ${label}`,
+    up: 'Aft', down: 'Fore', left: 'Port', right: 'Starboard', lift: 'Lift',
+    wrongCrate: 'The crane lifts an ordinary crate. Ration bars. Someone\'s spare boots. Not this one.',
+    lifted: 'The quarantine container comes up, hissing. Inside, on a bed of foam: a slab of hull plate with a stencil half burned away.',
+    fragmentTitle: 'Hull fragment',
+    fragmentDesc: 'Not debris. Plate. Someone cut this out of a ship and packed it like evidence.',
+    fragmentAria: 'a scorched hull plate with a partially legible registry stencil',
+    readOut: 'Read the four legible digits to your AI. The analyzer is on the ship\'s side; it will need them exactly.',
+    analyzed: 'The analyzer has a name for this plate now. Ask your AI what it found — and then listen to the ship.',
   },
 };
 
@@ -472,6 +493,22 @@ const ptBR: UIStrings = {
     spikeRevealed: 'O canteiro drena. Na lama, um saco de ração fechado com fita — e dentro, um data spike.',
     pullSpike: 'Puxar o spike',
     spikePulled: 'A letra de Okafor na fita: "Para a IA do médico." Sua IA consegue ler agora.',
+  },
+  cargo: {
+    title: 'Porão de carga',
+    intro: 'Frio, ecoante, empilhado até o teto com o que uma viagem longa precisa. Em algum lugar da pilha há um contêiner que o manifesto chama de quarentena e que Okafor se recusou a jogar fora.',
+    craneTitle: 'Guindaste de pórtico',
+    craneDesc: 'Nove slots, um guindaste, um gancho. De baixo, as caixas são todas iguais; o manifesto sabe qual slot importa. Sua IA lê o manifesto — você dirige.',
+    gridAria: 'pilha do porão de carga, três por três, com o guindaste de pórtico',
+    slotAria: (label) => `slot ${label}`,
+    up: 'Ré', down: 'Proa', left: 'Bombordo', right: 'Estibordo', lift: 'Içar',
+    wrongCrate: 'O guindaste iça uma caixa comum. Barras de ração. As botas reserva de alguém. Não é esta.',
+    lifted: 'O contêiner de quarentena sobe, sibilando. Dentro, num leito de espuma: uma chapa de casco com o estêncil meio queimado.',
+    fragmentTitle: 'Fragmento de casco',
+    fragmentDesc: 'Não são destroços. É chapa. Alguém cortou isto de uma nave e embalou como prova.',
+    fragmentAria: 'uma chapa de casco chamuscada com um estêncil de registro parcialmente legível',
+    readOut: 'Leia os quatro dígitos legíveis para sua IA. O analisador fica do lado da nave; ele vai precisar deles exatos.',
+    analyzed: 'O analisador agora tem um nome para esta chapa. Pergunte à sua IA o que ela encontrou — e depois escute a nave.',
   },
 };
 
