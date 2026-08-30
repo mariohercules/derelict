@@ -186,10 +186,13 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
   });
 
-  it('resumes an active kill-switch with its cycle clock intact', () => {
+  it('restarts the cycle from calm on resume', () => {
     const c3 = { ...initialState(0).chapter3, cycleStartedAt: 123456, wave: 'active' as const };
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 3, killswitch: 'active', chapter3: c3 }));
-    expect(loadSavedState()?.chapter3.cycleStartedAt).toBe(123456);
+    const loaded = loadSavedState();
+    expect(loaded?.chapter3.wave).toBe('calm');
+    expect(loaded?.chapter3.cycleStartedAt).toBeGreaterThan(Date.now() - 2000);
+    expect(loaded?.chapter3.cycleStartedAt).toBeLessThanOrEqual(Date.now() + 2000);
   });
 });
 

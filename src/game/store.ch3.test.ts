@@ -70,6 +70,15 @@ describe('the wave clock', () => {
     expect(gameStore.getState().chapter3.wave).toBe('calm');
     expect(gameStore.getState().chapter3.wavesEndured).toBe(0);
   });
+
+  it('never materializes calm straight into active: a throttled tab jumping past the warning window is telegraphed a warning first', () => {
+    inReactorRoom();
+    const jumpNow = T0 + WAVE_CALM_MS + WAVE_WARNING_MS + 5; // a tick that lands well inside the active window
+    tickKillswitch(jumpNow);
+    expect(gameStore.getState().chapter3.wave).toBe('warning');
+    tickKillswitch(jumpNow + WAVE_WARNING_MS);
+    expect(gameStore.getState().chapter3.wave).toBe('active');
+  });
 });
 
 describe('reactor room — isolation breakers', () => {
@@ -97,6 +106,27 @@ describe('reactor room — isolation breakers', () => {
     gameStore.setState({ room: 'engineering' });
     expect(cutIsolation('core').ok).toBe(false);
     expect(gameStore.getState().chapter3.shielded).toEqual([]);
+  });
+
+  it('a shielded bus holds its isolation power for good: routing it back out is refused', () => {
+    inReactorRoom();
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('core').ok).toBe(true);
+    const before = gameStore.getState().powerAllocation;
+    const r = routePower('isolation', 'engines', SHIELD_COST);
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/holding|shielded/i);
+    expect(gameStore.getState().powerAllocation).toEqual(before);
+  });
+
+  it('with headroom above what is held, isolation gives up the free units but not the last held ones', () => {
+    inReactorRoom();
+    routePower('comms', 'isolation', 2 * SHIELD_COST); // 10u in, one bus shielded holds 5u
+    expect(cutIsolation('core').ok).toBe(true);
+    expect(routePower('isolation', 'engines', SHIELD_COST).ok).toBe(true); // 10 → 5, still covers the hold
+    expect(gameStore.getState().powerAllocation.isolation).toBe(SHIELD_COST);
+    expect(routePower('isolation', 'engines', SHIELD_COST).ok).toBe(false); // the last 5u are spoken for
+    expect(gameStore.getState().powerAllocation.isolation).toBe(SHIELD_COST);
   });
 });
 
@@ -131,6 +161,26 @@ describe('quarantine', () => {
   it('refuses while the kill-switch is merely stirring', () => {
     kestrelConfirmed();
     expect(quarantineKillswitch().ok).toBe(false);
+  });
+
+  it('is reachable from a real, finished chapter-1 power allocation, and LEAVE still works after', () => {
+    inReactorRoom(T0);
+    // A finished chapter 1: life support at its floor, doors/engines paid for,
+    // nothing spare in medbay or comms — the only surplus left is engines.
+    gameStore.setState({ powerAllocation: { life_support: 15, doors: 5, medbay: 0, engines: 20, comms: 0, isolation: 0 } });
+    routePower('engines', 'isolation', 5);
+    routePower('engines', 'isolation', 5);
+    routePower('engines', 'isolation', 5);
+    routePower('engines', 'isolation', 5);
+    expect(gameStore.getState().powerAllocation.isolation).toBe(20);
+    expect(cutIsolation('core').ok).toBe(true);
+    expect(cutIsolation('nav').ok).toBe(true);
+    expect(cutIsolation('archive').ok).toBe(true);
+    expect(cutIsolation('comms').ok).toBe(true);
+    quarantineKillswitch(); quarantineKillswitch(); quarantineKillswitch(); quarantineKillswitch();
+    expect(gameStore.getState().killswitch).toBe('contained');
+    gameStore.setState({ room: 'bridge' });
+    expect(initiateLaunch(LAUNCH_AUTH, T0 + 1000).ok).toBe(true); // engines at 0 do not gate LEAVE
   });
 });
 
@@ -197,6 +247,13 @@ describe('comms array — the dish', () => {
     gameStore.setState({ room: 'bridge' });
     enterRoom('comms_array', T0);
   }
+
+  it('comms_array wakes the kill-switch too — the lower deck is not only the reactor room', () => {
+    atDish();
+    const s = gameStore.getState();
+    expect(s.killswitch).toBe('active');
+    expect(s.chapter3.cycleStartedAt).toBe(T0);
+  });
 
   it('aligns within three degrees of the classic bearing and clamps the axes', () => {
     atDish();

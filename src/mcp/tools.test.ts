@@ -4,6 +4,7 @@ import {
   gameStore, resetGame, flipBreaker, breakSeal,
   startInvestigation, moveCrane, liftCrate, setIrrigation, retrieveSpike,
   enterRoom, routePower, cutIsolation, seatColumn, seatKernel, holdHandle, setDish, openBand,
+  initiateLaunch, queryFragmentMemory, readPrimeCache,
 } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
 
@@ -397,5 +398,51 @@ describe('chapter 3 tools', () => {
     holdHandle(true);
     expect((await call('broadcast_evidence')).ok).toBe(true);
     expect(gameStore.getState().ending).toBe('broadcast');
+  });
+
+  it('confirm_launch drops during an active wave (its bus is NAV) and returns once NAV is shielded', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'bridge' });
+    expect(initiateLaunch(LAUNCH_AUTH, T0).ok).toBe(true); // armed from the bridge
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
+    expect(online()).not.toContain('confirm_launch');
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('nav').ok).toBe(true);
+    expect(online()).toContain('confirm_launch');
+  });
+
+  it('merge_fragment drops during an active wave (its bus is CORE) and returns once CORE is shielded', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    enterRoom('core_vault', T0 + 1000);
+    seatColumn(0, 'C'); seatColumn(1, 'A'); seatColumn(2, 'D'); seatColumn(3, 'B');
+    queryFragmentMemory(); queryFragmentMemory(); queryFragmentMemory();
+    expect(seatKernel(T0 + 2000).ok).toBe(true); // arms restore
+    gameStore.setState((s) => ({ room: 'reactor_room', chapter3: { ...s.chapter3, wave: 'active' } }));
+    expect(online()).not.toContain('merge_fragment');
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('core').ok).toBe(true);
+    expect(online()).toContain('merge_fragment');
+  });
+
+  it('broadcast_evidence drops during an active wave (its bus is COMMS) and returns once COMMS is shielded', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    enterRoom('core_vault', T0 + 1000);
+    seatColumn(0, 'C'); seatColumn(1, 'A'); seatColumn(2, 'D'); seatColumn(3, 'B');
+    expect(readPrimeCache().ok).toBe(true);
+    gameStore.setState({ room: 'bridge' });
+    enterRoom('comms_array', T0 + 2000);
+    setDish('az', 217); setDish('el', 34);
+    expect(openBand(T0 + 3000).ok).toBe(true); // arms broadcast
+    gameStore.setState((s) => ({ room: 'reactor_room', chapter3: { ...s.chapter3, wave: 'active' } }));
+    expect(online()).not.toContain('broadcast_evidence');
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('comms').ok).toBe(true);
+    expect(online()).toContain('broadcast_evidence');
   });
 });
