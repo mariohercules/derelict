@@ -252,6 +252,17 @@ describe('core vault — the rack', () => {
     expect(gameStore.getState().ritual.phase).toBe('idle');
     expect(seatKernel(T0 + RESTORE_WINDOW_MS + 2).ok).toBe(true);
   });
+
+  it('a column cannot sit in two cradles', () => {
+    inVault();
+    expect(seatColumn(0, 'C').ok).toBe(true);
+    const r = seatColumn(1, 'C');
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/cradle 1/);
+    expect(gameStore.getState().chapter3.rack).toEqual(['C', null, null, null]);
+    seatColumn(0, null);
+    expect(seatColumn(1, 'C').ok).toBe(true);
+  });
 });
 
 describe('comms array — the dish', () => {

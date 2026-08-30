@@ -27,8 +27,16 @@ function Rack() {
   const correct = useGame((s) => rackCorrect(s));
   const t = useStrings();
   const cycle = (slot: 0 | 1 | 2 | 3) => {
-    const i = CYCLE.indexOf(rack[slot]);
-    seatColumn(slot, CYCLE[(i + 1) % CYCLE.length]);
+    // step to the next tag not seated in another cradle (null is always allowed)
+    let i = CYCLE.indexOf(rack[slot]);
+    for (let n = 0; n < CYCLE.length; n++) {
+      i = (i + 1) % CYCLE.length;
+      const next = CYCLE[i];
+      if (next === null || !rack.some((c, j) => j !== slot && c === next)) {
+        seatColumn(slot, next);
+        return;
+      }
+    }
   };
   const allSeated = rack.every((c) => c !== null);
   return (

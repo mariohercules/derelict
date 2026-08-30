@@ -418,6 +418,10 @@ export function seatColumn(slot: 0 | 1 | 2 | 3, column: ColumnId | null): Action
   const s = gameStore.getState();
   if (s.room !== 'core_vault') return { ok: false, message: 'The memory rack is in the core vault.' };
   if (s.chapter3.kernelSeated) return { ok: false, message: 'The kernel is seated; the rack is locked.' };
+  if (column !== null) {
+    const elsewhere = s.chapter3.rack.findIndex((c, i) => c === column && i !== slot);
+    if (elsewhere !== -1) return { ok: false, message: `Column ${column} is already seated in cradle ${elsewhere + 1}. There is one of each.` };
+  }
   const rack = [...s.chapter3.rack];
   rack[slot] = column;
   patch3({ rack });
