@@ -30,7 +30,7 @@ export function initialState(seed: number = randomSeed()): GameState {
     checkpoint: null,
     chapter2: {
       medbandExamined: false, commandTraced: false, safeOpened: false, recorderPlayed: false,
-      privateLogDecrypted: false, irrigation: [0, 0, 0], irrigationSolved: false, spikeRetrieved: false,
+      privateLogDecrypted: false, irrigation: [0, 0, 0], irrigationSolved: false, lastCycle: null, spikeRetrieved: false,
       craneAt: { row: 0, col: 0 }, crateLifted: false, sampleAnalyzed: false,
     },
     killswitch: 'dormant',
@@ -273,7 +273,7 @@ export function setIrrigation(index: 0 | 1 | 2, value: number): void {
   gameStore.setState((s) => {
     const irrigation = [...s.chapter2.irrigation] as [number, number, number];
     irrigation[index] = v;
-    return { chapter2: { ...s.chapter2, irrigation, irrigationSolved: false } };
+    return { chapter2: { ...s.chapter2, irrigation, irrigationSolved: false, lastCycle: null } };
   });
 }
 
@@ -284,7 +284,7 @@ export function runIrrigation(): ActionResult & { beds: string[]; solved: boolea
   if (r.overBudget) {
     return { ok: false, message: `Pump overload: ${r.total}u requested, ${WATER_BUDGET}u available. The cycle aborts before it starts.`, beds: r.beds, solved: false };
   }
-  patch2({ irrigationSolved: r.solved });
+  patch2({ irrigationSolved: r.solved, lastCycle: r.beds });
   return {
     ok: true,
     message: r.solved

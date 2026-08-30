@@ -1,4 +1,5 @@
-import type { GameState } from './types';
+import type { BedState, GameState } from './types';
+export type { BedState } from './types';
 import { CORRECT_FUSE, DISH_TOLERANCE, DOORS_REQUIRED, ENGINES_REQUIRED, SHIELD_COST, WATER_BUDGET } from './content';
 import { secretsFor } from './secrets';
 
@@ -27,14 +28,16 @@ export function logsAvailable(s: GameState): number {
   return n;
 }
 
-export type BedState = 'dry' | 'ok' | 'flooded';
-
-export function irrigationReport(s: GameState): { beds: BedState[]; total: number; overBudget: boolean; solved: boolean } {
-  const needs = secretsFor(s.seed).waterNeeds;
-  const beds = s.chapter2.irrigation.map((v, i): BedState => (v < needs[i] ? 'dry' : v > needs[i] ? 'flooded' : 'ok'));
-  const total = s.chapter2.irrigation.reduce((a, b) => a + b, 0);
+export function irrigationReportFor(seed: number, irrigation: [number, number, number]): { beds: BedState[]; total: number; overBudget: boolean; solved: boolean } {
+  const needs = secretsFor(seed).waterNeeds;
+  const beds = irrigation.map((v, i): BedState => (v < needs[i] ? 'dry' : v > needs[i] ? 'flooded' : 'ok'));
+  const total = irrigation.reduce((a, b) => a + b, 0);
   const overBudget = total > WATER_BUDGET;
   return { beds, total, overBudget, solved: !overBudget && beds.every((b) => b === 'ok') };
+}
+
+export function irrigationReport(s: GameState): { beds: BedState[]; total: number; overBudget: boolean; solved: boolean } {
+  return irrigationReportFor(s.seed, s.chapter2.irrigation);
 }
 
 export function rackCorrect(s: GameState): boolean {

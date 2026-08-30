@@ -1,5 +1,5 @@
 import { gameStore, initialState } from './store';
-import type { BusId, ColumnId, GameState, RitualId, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
+import type { BedState, BusId, ColumnId, GameState, RitualId, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
 import { CLASSIC_SEED } from './secrets';
 import { ROOM_IDS } from './rooms';
 
@@ -13,6 +13,7 @@ const ENDINGS = ['leave_unknowing', 'leave_knowing', 'restore', 'broadcast'];
 const KILLSWITCH_STATES = ['dormant', 'stirring', 'active', 'contained'];
 const BUS_IDS: BusId[] = ['core', 'nav', 'archive', 'comms'];
 const COLUMN_IDS: ColumnId[] = ['A', 'B', 'C', 'D'];
+const BED_STATES: BedState[] = ['dry', 'ok', 'flooded'];
 const WAVES = ['calm', 'warning', 'active'];
 const CHAPTER3_BOOL_FLAGS = ['kernelSeated', 'cacheRead', 'beaconHeard'] as const;
 
@@ -79,6 +80,7 @@ function validShape(p: Partial<GameState>): boolean {
     if (!Array.isArray(c2.irrigation) || c2.irrigation.length !== 3 || !c2.irrigation.every((v) => isIntInRange(v, 0, 9))) return false;
     const crane = c2.craneAt as Record<string, unknown> | undefined;
     if (!crane || !isIntInRange(crane.row, 0, 2) || !isIntInRange(crane.col, 0, 2)) return false;
+    if (c2.lastCycle !== null && (!Array.isArray(c2.lastCycle) || c2.lastCycle.length !== 3 || !c2.lastCycle.every((b) => BED_STATES.includes(b as BedState)))) return false;
     if (!CHAPTER2_BOOL_FLAGS.every((k) => typeof c2[k] === 'boolean')) return false;
   }
   if (p.chapter3 !== undefined) {
@@ -123,6 +125,9 @@ export function loadSavedState(): GameState | null {
     // Plan A/B saves predate the isolation subsystem (chapter 3).
     const alloc = parsed.powerAllocation as Record<string, unknown> | undefined;
     if (alloc && typeof alloc === 'object' && alloc.isolation === undefined) alloc.isolation = 0;
+    // Plan B/C saves predate lastCycle (Plan D).
+    const c2 = parsed.chapter2 as Record<string, unknown> | undefined;
+    if (c2 && typeof c2 === 'object' && c2.lastCycle === undefined) c2.lastCycle = null;
     if (!validShape(parsed)) return null;
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;

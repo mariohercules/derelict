@@ -3,7 +3,7 @@ import {
   gameStore, resetGame, startInvestigation, examineMedband, dialSafe, playRecorder, setIrrigation, runIrrigation,
   retrieveSpike, moveCrane, liftCrate, traceCommand, decryptPrivateLog, analyzeSample,
 } from './store';
-import { irrigationReport } from './derived';
+import { irrigationReport, irrigationReportFor } from './derived';
 
 function investigating() {
   resetGame(0);
@@ -77,6 +77,24 @@ describe('hydroponics', () => {
     expect(irrigationReport(gameStore.getState()).solved).toBe(true);
     expect(retrieveSpike().ok).toBe(true);
     expect(gameStore.getState().chapter2.spikeRetrieved).toBe(true);
+  });
+
+  it('remembers the last cycle the AI ran and forgets it when a valve moves', () => {
+    investigating();
+    expect(gameStore.getState().chapter2.lastCycle).toBeNull();
+    setIrrigation(0, 2); setIrrigation(1, 3); setIrrigation(2, 5);
+    runIrrigation();
+    expect(gameStore.getState().chapter2.lastCycle).toEqual(['dry', 'ok', 'flooded']);
+    setIrrigation(0, 4);
+    expect(gameStore.getState().chapter2.lastCycle).toBeNull();
+    setIrrigation(0, 9); setIrrigation(1, 9); setIrrigation(2, 9);
+    runIrrigation(); // over budget: aborts before it starts
+    expect(gameStore.getState().chapter2.lastCycle).toBeNull();
+  });
+
+  it('irrigationReportFor needs only the seed and the valves', () => {
+    expect(irrigationReportFor(0, [4, 3, 3]).solved).toBe(true);
+    expect(irrigationReportFor(0, [9, 9, 9]).overBudget).toBe(true);
   });
 });
 

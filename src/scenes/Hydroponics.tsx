@@ -1,7 +1,7 @@
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { retrieveSpike, setIrrigation } from '../game/store';
-import { irrigationReport } from '../game/derived';
+import { irrigationReportFor } from '../game/derived';
 import { secretsFor } from '../game/secrets';
 import { SPIKE_BED, WATER_BUDGET } from '../game/content';
 
@@ -26,10 +26,10 @@ function Beds() {
   const seed = useGame((s) => s.seed);
   const irrigation = useGame((s) => s.chapter2.irrigation);
   const solved = useGame((s) => s.chapter2.irrigationSolved);
-  const state = useGame((s) => s);
+  const lastCycle = useGame((s) => s.chapter2.lastCycle);
   const t = useStrings();
   const needs = secretsFor(seed).waterNeeds;
-  const report = irrigationReport(state);
+  const report = irrigationReportFor(seed, irrigation); // budget meter only — the lamps never read this
   const total = report.total;
   const bedsAria = `${t.hydro.bedsTitle} — ${needs.map((n, i) => `${t.hydro.bed(i + 1)}: ${t.hydro.needTag(n)}`).join('; ')}`;
   return (
@@ -62,8 +62,10 @@ function Beds() {
               <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#6a5630" stroke="var(--brass)" strokeWidth="0.75" />
               <text x={x + 48} y="141" textAnchor="middle" fontSize="7.5" fill="#f0dfb0" letterSpacing="1">{t.hydro.needTag(needs[i])}</text>
               <text x={x + 48} y="50" textAnchor="middle" fontSize="7" fill="var(--dim)" letterSpacing="1">{t.hydro.bed(i + 1)}</text>
-              {/* bed state lamp */}
-              <circle cx={x + 88} cy="62" r="3" fill={report.beds[i] === 'ok' ? 'var(--green)' : report.beds[i] === 'dry' ? '#7a5a28' : '#3a6a8a'} opacity={0.9} />
+              {/* bed state lamp: lit only by the last cycle the AI ran */}
+              <circle cx={x + 88} cy="62" r="3"
+                fill={lastCycle === null ? 'var(--face)' : lastCycle[i] === 'ok' ? 'var(--green)' : lastCycle[i] === 'dry' ? '#7a5a28' : '#3a6a8a'}
+                stroke="var(--steel)" strokeWidth="0.75" opacity={0.9} />
             </g>
           );
         })}
@@ -77,6 +79,7 @@ function Beds() {
           </div>
         ))}
       </div>
+      <p className="status-dim" style={{ fontSize: 12 }}>{t.hydro.lampsHint}</p>
       {/* budget tank meter */}
       <div style={{ marginTop: 12, maxWidth: 360 }}>
         <div className="status-dim" style={{ fontSize: 12 }}>{t.hydro.budget}: {total}/{WATER_BUDGET}u</div>

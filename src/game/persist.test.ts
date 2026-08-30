@@ -186,6 +186,17 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
   });
 
+  it('fills lastCycle for a Plan B/C save and rejects a malformed one', () => {
+    const older = { ...initialState(0), chapter2: { ...initialState(0).chapter2 } } as Record<string, unknown>;
+    delete (older.chapter2 as Record<string, unknown>).lastCycle;
+    storage.set(SAVE_KEY, JSON.stringify(older));
+    expect(loadSavedState()?.chapter2.lastCycle).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2: { ...initialState(0).chapter2, lastCycle: ['wet', 'ok', 'ok'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2: { ...initialState(0).chapter2, lastCycle: ['dry', 'ok', 'flooded'] } }));
+    expect(loadSavedState()?.chapter2.lastCycle).toEqual(['dry', 'ok', 'flooded']);
+  });
+
   it('restarts the cycle from calm on resume', () => {
     const c3 = { ...initialState(0).chapter3, cycleStartedAt: 123456, wave: 'active' as const };
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 3, killswitch: 'active', chapter3: c3 }));

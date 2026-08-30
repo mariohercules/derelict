@@ -111,7 +111,7 @@ export interface UIStrings {
   };
   hydro: {
     title: string; intro: string; bedsTitle: string; bedsDesc: string; bed: (n: number) => string; needTag: (n: number) => string;
-    valveAria: (n: number) => string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
+    valveAria: (n: number) => string; lampsHint: string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
     spikeRevealed: string; pullSpike: string; spikePulled: string;
   };
   cargo: {
@@ -328,6 +328,7 @@ const en: UIStrings = {
     bed: (n) => `BED ${n}`,
     needTag: (n) => `${n}u`,
     valveAria: (n) => `bed ${n} valve`,
+    lampsHint: 'The bed lamps show the last cycle your AI ran. Until then they stay dark: the beds do not grade your guesses.',
     budget: 'Pump budget',
     over: 'OVER BUDGET — the pump will refuse the cycle.',
     cycleHint: 'Ask your AI to run the irrigation cycle. The pump is on the ship\'s side.',
@@ -630,6 +631,7 @@ const ptBR: UIStrings = {
     bed: (n) => `CANTEIRO ${n}`,
     needTag: (n) => `${n}u`,
     valveAria: (n) => `válvula do canteiro ${n}`,
+    lampsHint: 'As lâmpadas dos canteiros mostram o último ciclo que sua IA rodou. Até lá ficam apagadas: os canteiros não corrigem seus palpites.',
     budget: 'Orçamento da bomba',
     over: 'ACIMA DO ORÇAMENTO — a bomba vai recusar o ciclo.',
     cycleHint: 'Peça à sua IA para rodar o ciclo de irrigação. A bomba fica do lado da nave.',

@@ -52,6 +52,8 @@ export interface Chapter3State {
   beaconHeard: boolean;
 }
 
+export type BedState = 'dry' | 'ok' | 'flooded';
+
 export interface Chapter2State {
   medbandExamined: boolean;
   commandTraced: boolean;
@@ -60,6 +62,7 @@ export interface Chapter2State {
   privateLogDecrypted: boolean;
   irrigation: [number, number, number];
   irrigationSolved: boolean;
+  lastCycle: BedState[] | null; // per-bed result of the last cycle the AI ran; null until one runs or a valve moves
   spikeRetrieved: boolean;
   craneAt: { row: number; col: number };
   crateLifted: boolean;
