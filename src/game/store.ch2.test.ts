@@ -110,4 +110,34 @@ describe('cargo bay', () => {
     expect(gameStore.getState().chapter2.sampleAnalyzed).toBe(true);
     expect(gameStore.getState().killswitch).toBe('stirring');
   });
+
+  it('analyzeSample flips sampleAnalyzed and killswitch in a single, atomic update', () => {
+    investigating();
+    gameStore.setState({ room: 'cargo_bay' });
+    moveCrane('down'); moveCrane('down'); moveCrane('right'); liftCrate();
+    const seen: { sampleAnalyzed: boolean; killswitch: string }[] = [];
+    const unsub = gameStore.subscribe((s) => seen.push({ sampleAnalyzed: s.chapter2.sampleAnalyzed, killswitch: s.killswitch }));
+    analyzeSample('7741');
+    unsub();
+    // A subscriber must never observe sampleAnalyzed:true with killswitch still
+    // 'dormant' — that half-updated state is exactly what two sequential
+    // setState calls would let a listener see.
+    expect(seen).toEqual([{ sampleAnalyzed: true, killswitch: 'stirring' }]);
+  });
+});
+
+describe('wrong-room refusals', () => {
+  it('dialSafe refuses outside crew quarters and leaves the safe closed', () => {
+    investigating();
+    gameStore.setState({ room: 'medbay' });
+    expect(dialSafe([9, 4, 1]).ok).toBe(false);
+    expect(gameStore.getState().chapter2.safeOpened).toBe(false);
+  });
+
+  it('liftCrate refuses outside the cargo bay and leaves the crate down', () => {
+    investigating();
+    gameStore.setState({ room: 'hydroponics' });
+    expect(liftCrate().ok).toBe(false);
+    expect(gameStore.getState().chapter2.crateLifted).toBe(false);
+  });
 });

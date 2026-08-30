@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSavedState, startPersisting, migrateV1, SAVE_KEY, LEGACY_SAVE_KEY } from './persist';
 import { gameStore, resetGame, initialState } from './store';
+import { toolAvailability } from '../mcp/tools';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -115,6 +116,41 @@ describe('persistence', () => {
     expect(loadSavedState()?.chapter2.crateLifted).toBe(false);
     expect(loadSavedState()?.killswitch).toBe('dormant');
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), killswitch: 'bogus' }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('round-trips a mid-Chapter-2 save: room, flags, and killswitch, with the right tools online', () => {
+    const stop = startPersisting();
+    gameStore.setState({
+      room: 'hydroponics',
+      chapter: 2,
+      doors: { cryo_exit: true, engineering_exit: true },
+      sealedLogRead: true,
+      chapter2: { ...initialState(0).chapter2, safeOpened: true },
+      killswitch: 'stirring',
+    });
+    stop();
+    const loaded = loadSavedState();
+    expect(loaded?.room).toBe('hydroponics');
+    expect(loaded?.chapter).toBe(2);
+    expect(loaded?.doors).toEqual({ cryo_exit: true, engineering_exit: true });
+    expect(loaded?.chapter2.safeOpened).toBe(true);
+    expect(loaded?.killswitch).toBe('stirring');
+    expect(toolAvailability(loaded!).find((t) => t.name === 'decrypt_private_log')!.online).toBe(true);
+  });
+
+  it('rejects chapter-2 fields that fall outside their valid ranges', () => {
+    storage.set(SAVE_KEY, JSON.stringify({
+      ...initialState(0), chapter2: { ...initialState(0).chapter2, craneAt: { row: 7, col: 0 } },
+    }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({
+      ...initialState(0), chapter2: { ...initialState(0).chapter2, irrigation: [99, 0, 0] },
+    }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({
+      ...initialState(0), chapter2: { ...initialState(0).chapter2, safeOpened: 'yes' },
+    }));
     expect(loadSavedState()).toBeNull();
   });
 });

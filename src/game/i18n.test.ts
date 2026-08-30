@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { detectLocale, getLocale, setLocale, LOCALE_KEY } from './i18n';
 import {
-  getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getPhotoCaption, getSchematics,
+  getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
+  getMaintenanceLog, getPhotoCaption, getSampleAnalysis, getSchematics,
 } from './narrative';
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
 import { secretsFor } from './secrets';
@@ -81,6 +82,14 @@ describe('localized narrative', () => {
     expect(getPhotoCaption(0)).toContain('04 July');
     setLocale('pt-BR');
     expect(getPhotoCaption(0)).toContain('04 de julho');
+  });
+
+  it('keeps chapter-2 machine codes and slot labels intact in pt-BR', () => {
+    setLocale('pt-BR');
+    expect(getCommandTrace()).toContain('MEDBAY-TERM-01');
+    expect(getDataSpike()).toContain('T-00:01:34');
+    expect(getSampleAnalysis()).toContain('ISV KESTREL');
+    expect(getCargoManifest(0)).toContain('C2'); // seed 0's quarantine slot label
   });
 
   it('renders a seeded ship\'s birthday and launch phrase into the narrative', () => {

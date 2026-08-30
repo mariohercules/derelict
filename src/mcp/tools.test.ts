@@ -230,4 +230,30 @@ describe('chapter 2 tools', () => {
     expect(spike.ok).toBe(true);
     expect(spike.telemetry).toMatch(/01:34/);
   });
+
+  it('analyze_sample is offline before liftCrate() and online after; calling it early refuses without touching the killswitch', async () => {
+    investigating();
+    gameStore.setState({ room: 'cargo_bay' });
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'analyze_sample')!.online).toBe(false);
+    const early = await call('analyze_sample', { registry_fragment: '7741' });
+    expect(early.ok).toBe(false);
+    expect(gameStore.getState().killswitch).toBe('dormant');
+    moveCrane('down'); moveCrane('down'); moveCrane('right'); liftCrate();
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'analyze_sample')!.online).toBe(true);
+    const late = await call('analyze_sample', { registry_fragment: '7741' });
+    expect(late.ok).toBe(true);
+    expect(gameStore.getState().killswitch).toBe('stirring');
+  });
+
+  it('get_deck_map reflects chapter-2 room status from the bridge after startInvestigation', async () => {
+    investigating();
+    const out = await call('get_deck_map');
+    const byId = Object.fromEntries(
+      (out.rooms as { id: string; status: string; adjacent: boolean }[]).map((r) => [r.id, r])
+    );
+    expect(byId.hydroponics.status).toBe('open');
+    expect(byId.engineering.status).toBe('locked');
+    expect(byId.medbay).toMatchObject({ status: 'locked', adjacent: false });
+    expect(byId.comms_array.status).toBe('sealed');
+  });
 });
