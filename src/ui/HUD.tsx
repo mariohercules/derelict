@@ -10,6 +10,7 @@ function WaveBanner() {
   const killswitch = useGame((s) => s.killswitch);
   const wave = useGame((s) => s.chapter3.wave);
   const startedAt = useGame((s) => s.chapter3.cycleStartedAt);
+  const won = useGame((s) => s.won);
   const t = useStrings();
   const [now, setNow] = useState(() => Date.now());
   const live = killswitch === 'active' && wave !== 'calm' && startedAt !== null;
@@ -19,6 +20,7 @@ function WaveBanner() {
     const timer = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(timer);
   }, [live]);
+  if (won) return null;
   if (killswitch === 'contained') return <div className="wave-banner status-ok">{t.hud.contained}</div>;
   if (!live) return null;
   const secs = secondsToNextPhase(startedAt!, now);

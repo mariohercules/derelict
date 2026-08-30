@@ -134,6 +134,12 @@ export function loadSavedState(): GameState | null {
       ritual.phase = 'idle';
       ritual.endsAt = null;
     }
+    // A reload must never spend a wave the crew member never saw coming: an
+    // active kill-switch resumes with its cycle restarted from calm, mirroring
+    // the ritual rule above.
+    if (merged.killswitch === 'active') {
+      return { ...merged, ritual, chapter3: { ...merged.chapter3, cycleStartedAt: Date.now(), wave: 'calm' } };
+    }
     return { ...merged, ritual };
   } catch {
     return null;

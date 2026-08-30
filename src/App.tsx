@@ -81,14 +81,15 @@ export default function App() {
   }, []);
 
   // The kill-switch's clock: while it is active, materialize the wave state
-  // every half second so the tool registry and the HUD see it change.
+  // every half second so the tool registry and the HUD see it change. Never
+  // while won — the epilogue should not hear a klaxon for a fight that is over.
   const killswitch = useGame((s) => s.killswitch);
   useEffect(() => {
-    if (killswitch !== 'active') return;
+    if (killswitch !== 'active' || won) return;
     tickKillswitch();
     const timer = setInterval(() => tickKillswitch(), 500);
     return () => clearInterval(timer);
-  }, [killswitch]);
+  }, [killswitch, won]);
 
   const Scene = SCENES[room];
 

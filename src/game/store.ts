@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, BusId, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
+import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, SHIELD_COST, WATER_BUDGET, WAVE_CALM_MS } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
 import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
@@ -126,6 +126,19 @@ export function routePower(from: SubsystemId, to: SubsystemId, amount: number): 
   const alloc = { ...s.powerAllocation };
   if (alloc[from] < amount) {
     return { ok: false, message: `${from} only holds ${alloc[from]}u.` };
+  }
+  if (from === 'isolation') {
+    // Every shielded bus holds SHIELD_COST for good — the breaker does not
+    // give it back, so isolation can never be drawn down below what its
+    // shielded buses are already holding.
+    const held = SHIELD_COST * s.chapter3.shielded.length;
+    if (alloc.isolation - amount < held) {
+      const free = alloc.isolation - held;
+      return {
+        ok: false,
+        message: `Isolation feed is holding ${held}u for ${s.chapter3.shielded.length} shielded bus(es); the breakers do not give it back. ${free}u is free to move.`,
+      };
+    }
   }
   alloc[from] -= amount;
   alloc[to] += amount;
@@ -345,6 +358,15 @@ export function tickKillswitch(now: number = Date.now()): void {
   const s = gameStore.getState();
   if (s.killswitch !== 'active' || s.chapter3.cycleStartedAt === null) return;
   const wave = waveAt(s.chapter3.cycleStartedAt, now);
+  // A throttled tab (backgrounded, laptop asleep) can tick straight from calm
+  // into the active window, skipping the telegraph entirely. Rebase the clock
+  // so the jump always materializes as a warning first — the crew always gets
+  // the ten seconds' notice, even on a stale tick.
+  if (s.chapter3.wave === 'calm' && wave === 'active') {
+    const cycleStartedAt = now - WAVE_CALM_MS;
+    patch3({ wave: 'warning', cycleStartedAt, wavesEndured: wavesEndured(cycleStartedAt, now) });
+    return;
+  }
   const endured = wavesEndured(s.chapter3.cycleStartedAt, now);
   if (wave !== s.chapter3.wave || endured !== s.chapter3.wavesEndured) patch3({ wave, wavesEndured: endured });
 }
