@@ -4,7 +4,7 @@
 
 **Goal:** Open the lower deck of ISV Cormorant — Reactor Room, Core Vault, Comms Array — under an active kill-switch that visibly silences the agent in waves, let the human shield the agent's buses at a power cost, stage the agent's discovery of what it is, and end the game at the Choice: three joint-ritual endings (LEAVE, RESTORE, BROADCAST) with `ending` as the epilogue discriminator.
 
-**Architecture:** Same skeleton as Plans A/B: Zustand store as single source of truth; secrets from the run seed; narrative as locale-aware getters; tools as thin adapters over store actions; scenes registered per room. New this plan: a pure kill-switch engine (`src/game/killswitch.ts`) whose suppression composes into every tool's `availableWhen` (the registry does not change), a `chapter3` state slice, a sixth power subsystem `isolation` that pays for bus shielding, two more rituals on the existing framework, and six new agent tools (28 total; `get_schematic` also gains a `core_rack` sheet).
+**Architecture:** Same skeleton as Plans A/B: Zustand store as single source of truth; secrets from the run seed; narrative as locale-aware getters; tools as thin adapters over store actions; scenes registered per room. New this plan: a pure kill-switch engine (`src/game/killswitch.ts`) whose suppression composes into every tool's `availableWhen` (the registry does not change), a `chapter3` state slice, a sixth power subsystem `isolation` that pays for bus shielding, two more rituals on the existing framework, and six new agent tools (29 total; `get_schematic` also gains a `core_rack` sheet).
 
 **Tech Stack:** React 19 + TypeScript + Vite, Zustand, Vitest, Web Audio synth cues. No new dependencies, no raster assets.
 
@@ -997,7 +997,7 @@ git commit -m "feat: chapter-3 store — waves, shielding, quarantine, rack, dis
 **Interfaces:**
 - Consumes: Task 2 store actions; `suppressed`/`ToolMeta` from `killswitch.ts`; `rackCorrect`, `nextShieldCost` from `derived.ts`; `BUSES` from `content.ts`.
 - Produces (narrative): `getRackSchematic(seed)`, `getQuarantineLog(step)`, `getFragmentMemory(stage)`, `getPrimeCache()`, `getBeaconMessage(seed)`.
-- Produces (tools): `mkTool(..., readOnly = false, bus: BusId = 'nav')` composing suppression into `availableWhen`; `SUBSYSTEM_IDS`; tools `quarantine_killswitch`, `query_fragment_memory`, `read_prime_cache`, `listen_beacon`, `merge_fragment`, `broadcast_evidence`; `get_schematic` accepts `core_rack`; `get_ship_status` gains `killswitch_report` in chapter 3. 28 tools.
+- Produces (tools): `mkTool(..., readOnly = false, bus: BusId = 'nav')` composing suppression into `availableWhen`; `SUBSYSTEM_IDS`; tools `quarantine_killswitch`, `query_fragment_memory`, `read_prime_cache`, `listen_beacon`, `merge_fragment`, `broadcast_evidence`; `get_schematic` accepts `core_rack`; `get_ship_status` gains `killswitch_report` in chapter 3. 29 tools.
 
 - [ ] **Step 1: Failing tests**
 
@@ -1015,8 +1015,8 @@ describe('chapter 3 tools', () => {
   }
   const online = () => toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
 
-  it('defines 28 tools and keeps the chapter-3 set offline before the Kestrel is named', () => {
-    expect(buildTools()).toHaveLength(28);
+  it('defines 29 tools and keeps the chapter-3 set offline before the Kestrel is named', () => {
+    expect(buildTools()).toHaveLength(29);
     for (const name of ['quarantine_killswitch', 'query_fragment_memory', 'read_prime_cache', 'listen_beacon', 'merge_fragment', 'broadcast_evidence']) {
       expect(online()).not.toContain(name);
     }
@@ -2511,7 +2511,7 @@ export function Epilogue() {
 
 - [ ] **Step 4: README**
 
-Update `README.md`: the opening paragraph describes three chapters (Chapter 3 "The Truth": reactor room, core vault, comms array, ~35 min, under the kill-switch; three endings — LEAVE, RESTORE, BROADCAST); "How to play" gains one sentence: *Chapter 3 opens when the Kestrel is named; the lower deck is the reactor room, the core vault and the comms array, and the game ends at one of three joint rituals.*; tool counts become **28** everywhere ("28 tools in total", "the 28 tool definitions"); the test count becomes the real total printed by `npx vitest run`; the "Every ship is unique" bullet adds the memory-column order and pod one's bearing; the architecture list gains `killswitch.ts` — *the antagonist: a pure wave/immunity/shielding state machine whose suppression composes into every tool's availability*.
+Update `README.md`: the opening paragraph describes three chapters (Chapter 3 "The Truth": reactor room, core vault, comms array, ~35 min, under the kill-switch; three endings — LEAVE, RESTORE, BROADCAST); "How to play" gains one sentence: *Chapter 3 opens when the Kestrel is named; the lower deck is the reactor room, the core vault and the comms array, and the game ends at one of three joint rituals.*; tool counts become **29** everywhere ("29 tools in total", "the 29 tool definitions"); the test count becomes the real total printed by `npx vitest run`; the "Every ship is unique" bullet adds the memory-column order and pod one's bearing; the architecture list gains `killswitch.ts` — *the antagonist: a pure wave/immunity/shielding state machine whose suppression composes into every tool's availability*.
 
 - [ ] **Step 5: Gate and commit**
 
@@ -2531,4 +2531,4 @@ git commit -m "feat: three endings on the ending discriminator; chapter-3 textur
 git checkout main && git merge directors-cut --no-edit && npx vitest run && npm run build && git push origin main && npx vercel --prod --yes
 git checkout directors-cut && git merge main && git push origin directors-cut
 ```
-- [ ] **Step 3:** Append to the spec: "**Plan C (Chapter 3) shipped <date>.** The Director's Cut is complete: three chapters, 28 tools, three joint-ritual endings." Update the project memory.
+- [ ] **Step 3:** Append to the spec: "**Plan C (Chapter 3) shipped <date>.** The Director's Cut is complete: three chapters, 29 tools, three joint-ritual endings." Update the project memory.
