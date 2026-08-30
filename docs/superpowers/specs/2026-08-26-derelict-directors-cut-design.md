@@ -98,3 +98,5 @@ Nothing in this document starts before the challenge submission is complete (vid
 - Plan B must add room adjacency (`RoomMeta.adjacent`) and align map geometry with the fiction (engineering below the bridge) before the mid-deck opens; Plan C must make `ending` the epilogue discriminator.
 
 **Plan A (Foundations) shipped Aug 29, 2026** — merged to `main` and deployed (108 tests). Next: Plan B (Chapter 2).
+
+**Plan B (Chapter 2) shipped Aug 30, 2026** — merged to `main` and deployed (137 tests, 23 tools). Deviation recorded: adjacency is an `EDGES` corridor list in `src/game/rooms.ts` (doors live on the corridor, `edgeBetween`/`roomStatus` derive `adjacent`/`door` for the deck map and `get_deck_map`) rather than `RoomMeta.adjacent`; Plan C keeps the edge model. Kill-switch state is `dormant | stirring` texture only; the engine, Chapter 3 rooms and the three-ending `ending` discriminator remain Plan C.
