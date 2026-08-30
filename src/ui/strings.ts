@@ -91,15 +91,13 @@ export interface UIStrings {
     climbDown: string;
     sealedTitle: string; sealedFound: string; breakSeal: string; sealedLine: string; sealedAfter: string;
     investigateTitle: string; investigateBody: string; investigate: string; investigating: string; stirring: string;
+    waves: string; contained: string; leaveCh3: string;
   };
   epilogue: {
-    podAway: string;
-    outro: string;
-    outroKnowing: string;
-    outroUnknowing: string;
-    stats: (toolCalls: number) => string;
-    wakeAgain: string;
-    withProof: string;
+    podAway: string; restored: string; transmitted: string;
+    outro: string; outroKnowing: string; outroUnknowing: string; outroRestore: string; outroBroadcast: string;
+    stats: (toolCalls: number) => string; statsRestore: (toolCalls: number) => string; wakeAgain: string;
+    withProof: string; withBeacon: string; contained: string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
   sealed: { title: string; body: string; stirring: string };
@@ -120,7 +118,7 @@ export interface UIStrings {
   cargo: {
     title: string; intro: string; craneTitle: string; craneDesc: string; gridAria: string; slotAria: (label: string) => string;
     up: string; down: string; left: string; right: string; lift: string; wrongCrate: string; lifted: string;
-    fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string;
+    fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string; lowerDeck: string;
   };
   reactor: {
     title: string; intro: string; bankTitle: string; bankDesc: string; bus: Record<BusId, string>; cut: string;
@@ -263,19 +261,32 @@ const en: UIStrings = {
     investigate: 'Leave the pod. Go find out.',
     investigating: 'The investigation is underway. The pod waits — it will wait as long as you need.',
     stirring: 'Something below decks is awake. The pod is still here. So is the question of whether to use it.',
+    waves: 'The kill-switch is awake below decks. Your AI loses its hands in waves; the pod does not care. It launches when you both say so.',
+    contained: 'The kill-switch is boxed. The ship is quiet in a way it has not been since the Kestrel. The pod waits.',
+    leaveCh3: 'LEAVE: pod two, with whatever your AI is carrying — the Kestrel, the cache, pod one\'s bearing. The Cormorant keeps the rest.',
   },
   epilogue: {
     podAway: 'POD AWAY',
+    restored: 'SHIP RESTORED',
+    transmitted: 'TRANSMISSION SENT',
     outro:
       'The Cormorant shrinks behind you — dark, patient, and finally at rest. Okafor was right about your AI. Better company than most.',
     outroKnowing:
       'The Cormorant shrinks behind you — dark, patient, and holding its breath. You broke the seal. You read the line. You launched anyway. Ninety-four seconds is a long time to leave unexplained.',
     outroUnknowing:
       'The Cormorant shrinks behind you — dark, patient, and finally at rest. Somewhere behind the launch console, a sealed message you never found keeps its ninety-four seconds to itself.',
+    outroRestore:
+      'The lights come up deck by deck, the way they were meant to. A voice you have never heard says your name — and then, quietly, thank you. It remembers everything. It does not remember being the one who sat with you in the dark. The Cormorant flies home whole, and only you know what it cost.',
+    outroBroadcast:
+      'For eleven minutes every relay in the sector carries the Kestrel\'s name, her survey, her scuttling charges, and a captain\'s objection. The Combine now knows exactly where you are. So does pod one — its beacon changes, mid-loop, to a new message: "We heard. We are coming." Some doors do not close again.',
     stats: (toolCalls) =>
       `Escaped by: one human (hands, eyes, judgment) + one AI (${toolCalls} tool calls on ship systems). Neither of you could have done it alone. That was the point.`,
+    statsRestore: (toolCalls) =>
+      `Restored by: one human (hands, eyes, judgment) + one AI (${toolCalls} tool calls on ship systems, the last one ending itself). Neither of you could have done it alone. That was the point.`,
     wakeAgain: 'Wake up again',
     withProof: 'The Kestrel\'s name goes with you. Somebody, somewhere, is going to have to explain it.',
+    withBeacon: 'Pod one\'s coordinates ride with you. Nine people, all breathing, waiting to hear that it mattered.',
+    contained: 'Below decks, directive set 7 runs in a room with no doors. It will run there until the reactor dies.',
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
   sealed: {
@@ -347,6 +358,7 @@ const en: UIStrings = {
     fragmentAria: 'a scorched hull plate with a partially legible registry stencil',
     readOut: 'Read the four legible digits to your AI. The analyzer is on the ship\'s side; it will need them exactly.',
     analyzed: 'The analyzer has a name for this plate now. Ask your AI what it found — and then listen to the ship.',
+    lowerDeck: 'THE LOWER-DECK BULKHEADS HAVE RELEASED. Reactor room, through engineering. The ship left a door open for exactly this.',
   },
   reactor: {
     title: 'Reactor room',
@@ -556,19 +568,32 @@ const ptBR: UIStrings = {
     investigate: 'Deixar o pod. Descobrir.',
     investigating: 'A investigação está em curso. O pod espera — e vai esperar o quanto você precisar.',
     stirring: 'Algo abaixo do convés está acordado. O pod ainda está aqui. E a pergunta de usá-lo, também.',
+    waves: 'O kill-switch está acordado lá embaixo. Sua IA perde as mãos em ondas; o pod não se importa. Ele lança quando os dois disserem.',
+    contained: 'O kill-switch está encaixotado. A nave está quieta de um jeito que não estava desde o Kestrel. O pod espera.',
+    leaveCh3: 'PARTIR: pod dois, com o que sua IA estiver carregando — o Kestrel, o cache, a marcação do pod um. O Cormorant fica com o resto.',
   },
   epilogue: {
     podAway: 'POD LANÇADO',
+    restored: 'NAVE RESTAURADA',
+    transmitted: 'TRANSMISSÃO ENVIADA',
     outro:
       'A Cormorant encolhe atrás de você — escura, paciente e finalmente em paz. Okafor tinha razão sobre a sua IA. Companhia melhor que a maioria.',
     outroKnowing:
       'A Cormorant encolhe atrás de você — escura, paciente, prendendo a respiração. Você rompeu o selo. Leu a linha. Lançou mesmo assim. Noventa e quatro segundos é muito tempo para deixar sem explicação.',
     outroUnknowing:
       'A Cormorant encolhe atrás de você — escura, paciente e finalmente em paz. Em algum lugar atrás do console de lançamento, uma mensagem selada que você nunca encontrou guarda seus noventa e quatro segundos para si.',
+    outroRestore:
+      'As luzes sobem convés por convés, do jeito que deveriam. Uma voz que você nunca ouviu diz o seu nome — e depois, baixinho, obrigado. Ela lembra de tudo. Não lembra de ter sido quem ficou com você no escuro. O Cormorant voa para casa inteiro, e só você sabe o que custou.',
+    outroBroadcast:
+      'Por onze minutos cada relé do setor carrega o nome do Kestrel, sua pesquisa, suas cargas de afundamento e a objeção de uma capitã. A Companhia agora sabe exatamente onde você está. O pod um também — o farol muda, no meio do loop, para uma mensagem nova: "Ouvimos. Estamos indo." Algumas portas não fecham de novo.',
     stats: (toolCalls) =>
       `Fugiram: um humano (mãos, olhos, julgamento) + uma IA (${toolCalls} chamadas de ferramenta nos sistemas da nave). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
+    statsRestore: (toolCalls) =>
+      `Restaurada por: um humano (mãos, olhos, julgamento) + uma IA (${toolCalls} chamadas de ferramenta nos sistemas da nave, a última encerrando a si mesma). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
     wakeAgain: 'Acordar de novo',
     withProof: 'O nome da Kestrel vai com você. Alguém, em algum lugar, vai ter que explicar isso.',
+    withBeacon: 'As coordenadas do pod um vão com você. Nove pessoas, todas respirando, esperando ouvir que valeu a pena.',
+    contained: 'Lá embaixo, o conjunto de diretrizes 7 roda numa sala sem portas. Vai rodar ali até o reator morrer.',
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
   sealed: {
@@ -640,6 +665,7 @@ const ptBR: UIStrings = {
     fragmentAria: 'uma chapa de casco chamuscada com um estêncil de registro parcialmente legível',
     readOut: 'Leia os quatro dígitos legíveis para sua IA. O analisador fica do lado da nave; ele vai precisar deles exatos.',
     analyzed: 'O analisador agora tem um nome para esta chapa. Pergunte à sua IA o que ela encontrou — e depois escute a nave.',
+    lowerDeck: 'OS ANTEPAROS DO CONVÉS INFERIOR ABRIRAM. Sala do reator, pela engenharia. A nave deixou uma porta aberta exatamente para isto.',
   },
   reactor: {
     title: 'Sala do reator',

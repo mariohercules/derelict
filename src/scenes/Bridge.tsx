@@ -139,8 +139,8 @@ function Investigate() {
           <button onClick={() => startInvestigation()}>{t.bridge.investigate}</button>
         </>
       ) : (
-        <p className={killswitch === 'stirring' ? 'status-bad' : 'status-dim'}>
-          {killswitch === 'stirring' ? t.bridge.stirring : t.bridge.investigating}
+        <p className={killswitch === 'stirring' || killswitch === 'active' ? 'status-bad' : killswitch === 'contained' ? 'status-ok' : 'status-dim'}>
+          {killswitch === 'stirring' ? t.bridge.stirring : killswitch === 'active' ? t.bridge.waves : killswitch === 'contained' ? t.bridge.contained : t.bridge.investigating}
         </p>
       )}
     </div>
@@ -151,6 +151,7 @@ function LaunchConsole() {
   const ritual = useGame((s) => s.ritual);
   const armed = ritual.active === 'launch' && ritual.phase === 'armed';
   const trajectorySet = useGame((s) => s.trajectorySet);
+  const chapter = useGame((s) => s.chapter);
   const t = useStrings();
   const [nowTick, setNowTick] = useState(() => Date.now());
 
@@ -169,6 +170,7 @@ function LaunchConsole() {
   return (
     <div className="panel">
       <h2>{t.bridge.consoleTitle}</h2>
+      {chapter >= 3 && <p className="status-dim">{t.bridge.leaveCh3}</p>}
       {!trajectorySet && <p className="status-dim">{t.bridge.trajNotSet}</p>}
       {trajectorySet && ritual.phase === 'idle' && <p className="status-ok">{t.bridge.trajLocked}</p>}
       {armed && (

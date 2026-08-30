@@ -133,6 +133,7 @@ function HullFragment() {
         <path d="M 250 14 L 300 60 L 280 118 L 200 100 Z" fill="url(#cb-scorch)" />
       </svg>
       <p className={analyzed ? 'status-ok' : 'status-dim'} style={{ marginTop: 10 }}>{analyzed ? t.cargo.analyzed : t.cargo.readOut}</p>
+      {analyzed && <p className="status-ok blink">{t.cargo.lowerDeck}</p>}
     </div>
   );
 }

@@ -11,9 +11,13 @@ DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo
 engineering → bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
 Challenge. Chapter 2, "The Investigation" (medbay, crew quarters, hydroponics, cargo bay,
 about 30 minutes more), opens once you've chosen to stay and find out what really happened
-here. This is the Director's Cut — still in progress, with a third chapter still to come.
-There's no lobby, no second player to invite — you bring the teammate you already have.
-Talk to your agent, describe what you see, and let it tell you what it can do about it.
+here. Chapter 3, "The Truth" (reactor room, core vault, comms array, about 35 minutes more),
+opens once the Kestrel is named, and runs under a corporate kill-switch that hunts your AI's
+tools in waves the deeper you go. This is the Director's Cut, complete: three chapters, and
+three endings — LEAVE the ship behind, RESTORE the drowned intelligence that ran it, or
+BROADCAST what it hid. There's no lobby, no second player to invite — you bring the teammate
+you already have. Talk to your agent, describe what you see, and let it tell you what it can
+do about it.
 
 ## How to play
 
@@ -33,19 +37,23 @@ The interface and ship narrative are available in **English and Brazilian Portug
 game auto-detects your browser language, and an EN/PT-BR toggle sits in the corner. Tool
 names and machine codes stay in English in both; ships do not translate codes.
 
-Chapter 2 opens from the bridge once the sealed log is read.
+Chapter 2 opens from the bridge once the sealed log is read. Chapter 3 opens when the
+Kestrel is named; the lower deck is the reactor room, the core vault and the comms array,
+and the game ends at one of three joint rituals.
 
 ## How WebMCP is used
 
 The game registers and revokes tools live, in step with the ship. A subsystem that has no
 power has no tools — the agent starts with just 5 tools online, and when the human restores
 aux power, new tools visibly light up on the in-game **AI LINK** panel, and the agent can
-suddenly act where it couldn't a second ago. Across both chapters the game defines 23
+suddenly act where it couldn't a second ago. Across all three chapters the game defines 29
 tools in total, gated open and closed by ship state: reading the ship's status and logs,
 unlocking doors, routing power, running diagnostics, pulling schematics and sensor data,
-computing a nav fix, and — in the two-operator finale — initiating and then confirming the
-escape pod launch, which requires the human to be physically holding a confirm handle in
-the UI at the same moment the agent calls `confirm_launch`.
+computing a nav fix, shielding data buses against a corporate kill-switch, and — in three
+two-operator finales — initiating and confirming the escape pod launch, seating PRIME's
+kernel, or opening the transmission band, each requiring the human to be physically holding
+a confirm handle in the UI at the same moment the agent calls `confirm_launch`,
+`merge_fragment`, or `broadcast_evidence`.
 
 Two layers of asymmetry make the tools necessary rather than decorative:
 
@@ -58,24 +66,27 @@ Two layers of asymmetry make the tools necessary rather than decorative:
   either side can act.
 - **Every ship is unique:** each run rolls a seed that decides the breaker order, Amara's
   birthday (the door PIN), the gauge pressures, the three star-fix glyphs, and the launch
-  phrase — and, in Chapter 2, the captain's commission number (its last three digits are
-  the safe combination), each hydroponics bed's water needs, the cargo bay's quarantine
-  slot, and the registry fragment stencilled on the hull plate. Nothing is memorizable, and
-  the answers are not sitting in this repository.
+  phrase — in Chapter 2, the captain's commission number (its last three digits are the
+  safe combination), each hydroponics bed's water needs, the cargo bay's quarantine slot,
+  and the registry fragment stencilled on the hull plate — and, in Chapter 3, the core
+  vault's memory-column order and pod one's beacon bearing. Nothing is memorizable, and the
+  answers are not sitting in this repository.
 
 Tool descriptions are written in-fiction — the agent is addressed directly as the ship's
 auxiliary AI — so it plays its role without any prompting from the human. Every tool
 returns structured JSON and reports in-fiction failures as `{ ok: false, message: ... }`
 rather than throwing, so a wrong guess reads as the ship talking back, not an error.
 
-The implementation lives in [`src/mcp/`](src/mcp/):
+The implementation lives mostly in [`src/mcp/`](src/mcp/):
 
 - [`registry.ts`](src/mcp/registry.ts) — subscribes to the game store and reconciles the
   registered tool set against current game state on every change, registering newly
   available tools and revoking (via `AbortController`) tools whose subsystem just lost
   power.
-- [`tools.ts`](src/mcp/tools.ts) — the 23 tool definitions: schemas, in-fiction
+- [`tools.ts`](src/mcp/tools.ts) — the 29 tool definitions: schemas, in-fiction
   descriptions, availability predicates, and handlers that dispatch into the game store.
+- [`killswitch.ts`](src/game/killswitch.ts) — the antagonist: a pure wave/immunity/shielding
+  state machine whose suppression composes into every tool's availability.
 - [`detect.ts`](src/mcp/detect.ts) — detects whether `document.modelContext` exists so the
   game can fall back gracefully when it doesn't.
 
@@ -84,7 +95,7 @@ The implementation lives in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 137 tests)
+npm test       # run the test suite (Vitest, 182 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.
