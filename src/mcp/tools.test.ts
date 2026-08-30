@@ -3,8 +3,9 @@ import { buildTools, toolAvailability } from './tools';
 import {
   gameStore, resetGame, flipBreaker, breakSeal,
   startInvestigation, moveCrane, liftCrate, setIrrigation, retrieveSpike,
+  enterRoom, routePower, cutIsolation, seatColumn, seatKernel, holdHandle, setDish, openBand,
 } from '../game/store';
-import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX } from '../game/content';
+import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
 
 beforeEach(() => resetGame(0));
 
@@ -257,5 +258,144 @@ describe('chapter 2 tools', () => {
     expect(byId.engineering.status).toBe('open');
     expect(byId.medbay).toMatchObject({ status: 'locked', adjacent: false });
     expect(byId.comms_array.status).toBe('sealed');
+  });
+});
+
+describe('chapter 3 tools', () => {
+  const T0 = 9_000_000;
+  function lowerDeck() {
+    resetGame(0);
+    gameStore.setState({ room: 'bridge', act: 3, trajectorySet: true, sealedLogRead: true, doors: { cryo_exit: true, engineering_exit: true } });
+    startInvestigation();
+    gameStore.setState({ room: 'cargo_bay' });
+    moveCrane('down'); moveCrane('down'); moveCrane('right'); liftCrate();
+    return call('analyze_sample', { registry_fragment: '7741' });
+  }
+  const online = () => toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
+
+  it('defines 29 tools and keeps the chapter-3 set offline before the Kestrel is named', () => {
+    expect(buildTools()).toHaveLength(29);
+    for (const name of ['quarantine_killswitch', 'query_fragment_memory', 'read_prime_cache', 'listen_beacon', 'merge_fragment', 'broadcast_evidence']) {
+      expect(online()).not.toContain(name);
+    }
+  });
+
+  it('analyze_sample now opens the lower deck and its message sends the human to the reactor room', async () => {
+    const out = await lowerDeck();
+    expect(out.ok).toBe(true);
+    expect(out.message).toMatch(/reactor room/i);
+    expect(gameStore.getState().chapter).toBe(3);
+    expect(online()).toEqual(expect.arrayContaining(['query_fragment_memory', 'listen_beacon']));
+    expect(online()).not.toContain('quarantine_killswitch'); // not awake yet
+    expect(online()).not.toContain('read_prime_cache'); // rack not seated
+  });
+
+  it('an active wave drops mutating tools on unshielded buses and spares read and immune tools', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
+    const during = online();
+    expect(during).not.toContain('route_power');
+    expect(during).not.toContain('quarantine_killswitch');
+    expect(during).toContain('get_ship_status');
+    expect(during).toContain('read_crew_logs');
+    expect(during).toContain('query_fragment_memory');
+    // shield NAV by hand → route_power survives the next wave
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'calm' } }));
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('nav').ok).toBe(true);
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
+    expect(online()).toContain('route_power');
+    expect(online()).not.toContain('quarantine_killswitch'); // CORE still bare
+  });
+
+  it('get_ship_status carries a kill-switch report in chapter 3', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    const status = await call('get_ship_status');
+    expect(status.killswitch_report).toMatchObject({ state: 'active', wave: 'calm', shielded_buses: [], quarantine: '0/4', isolation_power: 0, next_breaker_needs: SHIELD_COST });
+    expect(status.killswitch_report.hint).toMatch(/route_power/);
+  });
+
+  it('get_schematic core_rack reads the classic order and is refused before chapter 3', async () => {
+    const early = await call('get_schematic', { system: 'core_rack' });
+    expect(early.ok).toBe(false);
+    await lowerDeck();
+    const out = await call('get_schematic', { system: 'core_rack' });
+    expect(out.ok).toBe(true);
+    expect(out.schematic).toContain('C · A · D · B');
+  });
+
+  it('quarantine_killswitch narrates each segment and boxes the directive set at four', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    routePower('comms', 'isolation', 10); routePower('medbay', 'isolation', 5); routePower('life_support', 'isolation', 5);
+    cutIsolation('core');
+    const one = await call('quarantine_killswitch');
+    expect(one).toMatchObject({ ok: true, step: 1, of: 4 });
+    expect(one.log).toMatch(/1\/4/);
+    const stalled = await call('quarantine_killswitch');
+    expect(stalled.ok).toBe(false);
+    cutIsolation('nav'); cutIsolation('archive'); cutIsolation('comms');
+    await call('quarantine_killswitch'); await call('quarantine_killswitch');
+    const last = await call('quarantine_killswitch');
+    expect(last.step).toBe(4);
+    expect(gameStore.getState().killswitch).toBe('contained');
+  });
+
+  it('full agent-side run to RESTORE: rack, three memory segments, kernel, lever, merge', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    enterRoom('core_vault', T0 + 1000);
+    expect((await call('query_fragment_memory')).ok).toBe(false); // rack not seated
+    seatColumn(0, 'C'); seatColumn(1, 'A'); seatColumn(2, 'D'); seatColumn(3, 'B');
+    expect(online()).toContain('read_prime_cache');
+    const cache = await call('read_prime_cache');
+    expect(cache.cache).toMatch(/KESTREL/);
+    const s1 = await call('query_fragment_memory');
+    expect(s1).toMatchObject({ ok: true, stage: 1, of: 3 });
+    await call('query_fragment_memory');
+    const s3 = await call('query_fragment_memory');
+    expect(s3.record).toMatch(/MEDBAY-TERM-01/);
+    expect(online()).not.toContain('merge_fragment');
+    // seatKernel arms the ritual on the real wall clock (its own now defaults to Date.now(),
+    // matching merge_fragment's confirmMerge() below) — a synthetic T0 here would arm a
+    // window the tool's real-time confirm could never land inside.
+    seatKernel();
+    expect(online()).toContain('merge_fragment');
+    expect((await call('merge_fragment')).ok).toBe(false); // lever not held
+    holdHandle(true);
+    const merged = await call('merge_fragment');
+    expect(merged.ok).toBe(true);
+    expect(gameStore.getState().ending).toBe('restore');
+  });
+
+  it('full agent-side run to BROADCAST: dish, beacon, band, lock, transmit', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    enterRoom('core_vault', T0 + 1000);
+    seatColumn(0, 'C'); seatColumn(1, 'A'); seatColumn(2, 'D'); seatColumn(3, 'B');
+    await call('read_prime_cache');
+    gameStore.setState({ room: 'bridge' });
+    enterRoom('comms_array', T0 + 2000);
+    const carrier = await call('listen_beacon');
+    expect(carrier.ok).toBe(false);
+    expect(carrier.carrier_bearing).toBe('AZ 217 / EL 34'); // the numbers the human needs, from the agent
+    setDish('az', 217); setDish('el', 34);
+    const beacon = await call('listen_beacon');
+    expect(beacon.beacon).toMatch(/AZ 217/);
+    expect(online()).not.toContain('broadcast_evidence');
+    // Same reasoning as seatKernel above: openBand arms on the real wall clock so
+    // broadcast_evidence's confirmBroadcast() (also real-time) can land inside the window.
+    expect(openBand().ok).toBe(true);
+    expect(online()).toContain('broadcast_evidence');
+    holdHandle(true);
+    expect((await call('broadcast_evidence')).ok).toBe(true);
+    expect(gameStore.getState().ending).toBe('broadcast');
   });
 });

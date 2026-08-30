@@ -1,16 +1,19 @@
-import type { GameState, SubsystemId } from '../game/types';
+import type { BusId, GameState, SubsystemId } from '../game/types';
 import type { GameTool, ToolResult } from './registry';
 import {
   gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
   traceCommand, decryptPrivateLog, runIrrigation, analyzeSample,
+  quarantineKillswitch, queryFragmentMemory, readPrimeCache, hearBeacon, confirmMerge, confirmBroadcast,
 } from '../game/store';
-import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
-import { CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
+import { enginesOnline, logsAvailable, nextShieldCost, rackCorrect, valvesCorrect } from '../game/derived';
+import { BUSES, CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
+import { suppressed } from '../game/killswitch';
 import {
-  getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
-  getMaintenanceLog, getMedbayRecords, getPrivateLog, getSampleAnalysis, getSchematics,
+  getBeaconMessage, getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
+  getFragmentMemory, getMaintenanceLog, getMedbayRecords, getPrimeCache, getPrivateLog, getQuarantineLog, getRackSchematic,
+  getSampleAnalysis, getSchematics,
 } from '../game/narrative';
 import { secretsFor, slotLabel } from '../game/secrets';
 
@@ -24,11 +27,15 @@ function mkTool(
   availableWhen: (s: GameState) => boolean,
   inputSchema: object,
   run: (input: Record<string, unknown>) => unknown,
-  readOnly = false
+  readOnly = false,
+  bus: BusId = 'nav'
 ): GameTool {
+  const meta = { name, bus, readOnly };
   return {
     name,
-    availableWhen,
+    // The kill-switch composes here, not in the registry: a suppressed tool is
+    // simply "not available", and the registry revokes it like any other.
+    availableWhen: (s) => availableWhen(s) && !suppressed(s, meta),
     definition: {
       name,
       description,
@@ -88,6 +95,18 @@ export function buildTools(): GameTool[] {
             spike_retrieved: s.chapter2.spikeRetrieved,
             crate_lifted: s.chapter2.crateLifted,
             sample_analyzed: s.chapter2.sampleAnalyzed,
+          } : undefined,
+          killswitch_report: s.chapter >= 3 ? {
+            state: s.killswitch,
+            wave: s.chapter3.wave,
+            shielded_buses: s.chapter3.shielded,
+            quarantine: `${s.chapter3.quarantineStep}/${BUSES.length}`,
+            isolation_power: s.powerAllocation.isolation,
+            next_breaker_needs: nextShieldCost(s),
+            hint:
+              'During an active wave your mutating tools on unshielded buses drop offline; read tools survive. ' +
+              'The crew member cuts isolation breakers in the reactor room (one per bus: CORE, NAV, ARCHIVE, COMMS); each needs isolation power you route first (route_power → isolation). ' +
+              'quarantine_killswitch advances one segment per shielded bus.',
           } : undefined,
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
@@ -257,14 +276,20 @@ export function buildTools(): GameTool[] {
     ),
     mkTool(
       'get_schematic',
-      'Retrieve an engineering schematic. Your crew member can see the hardware; you can see the paperwork. The escape requires both.',
+      'Retrieve an engineering schematic. Your crew member can see the hardware; you can see the paperwork. The escape requires both. ' +
+        'In chapter 3 the core rack sheet (system: core_rack) gives the memory-column order only you can read.',
       inAct2,
       {
         type: 'object',
-        properties: { system: { type: 'string', enum: ['power', 'engine_feed', 'coolant'] } },
+        properties: { system: { type: 'string', enum: ['power', 'engine_feed', 'coolant', 'core_rack'] } },
         required: ['system'],
       },
       (input) => {
+        const s = gameStore.getState();
+        if (input.system === 'core_rack') {
+          if (s.chapter < 3) return { ok: false, message: 'No such sheet in the surviving archive — not yet.' };
+          return { ok: true, system: 'core_rack', schematic: getRackSchematic(s.seed) };
+        }
         const schematics = getSchematics();
         const key = input.system as keyof typeof schematics;
         if (!Object.hasOwn(schematics, key)) return { ok: false, message: 'No such schematic in the surviving archive.' };
@@ -372,19 +397,22 @@ export function buildTools(): GameTool[] {
       'trace_command_origin',
       'Trace which terminal issued the PRIME shutdown command and under whose credentials. Run it yourself; the crew member cannot reach the telemetry archive.',
       inChapter2, noInput,
-      () => { const r = traceCommand(); return r.ok ? { ok: true, trace: getCommandTrace() } : r; }
+      () => { const r = traceCommand(); return r.ok ? { ok: true, trace: getCommandTrace() } : r; },
+      false, 'archive'
     ),
     mkTool(
       'decrypt_private_log',
       'Decrypt Captain Vasquez\'s private log drive. It comes online only after the crew member opens her cabin safe by hand. These entries were private; decide together whether the dead\'s privacy yields to the living\'s need — then, if you both agree, call this tool yourself.',
       (s) => s.chapter2.safeOpened, noInput,
-      () => { const r = decryptPrivateLog(); return r.ok ? { ok: true, entries: getPrivateLog() } : r; }
+      () => { const r = decryptPrivateLog(); return r.ok ? { ok: true, entries: getPrivateLog() } : r; },
+      false, 'archive'
     ),
     mkTool(
       'run_irrigation',
       'Run one irrigation cycle on the hydroponics beds with the valve settings the crew member has set by hand (three beds, a shared 10-unit water budget). Reports each bed as dry, ok, or flooded. The valves are physical — you cannot set them; read the report back and let the crew member adjust.',
       inChapter2, noInput,
-      () => runIrrigation()
+      () => runIrrigation(),
+      false, 'archive'
     ),
     mkTool(
       'read_data_spike',
@@ -415,7 +443,71 @@ export function buildTools(): GameTool[] {
       (input) => {
         const r = analyzeSample(String(input.registry_fragment ?? ''));
         return r.ok ? { ok: true, message: r.message, analysis: getSampleAnalysis() } : r;
-      }
+      },
+      false, 'archive'
+    ),
+    mkTool(
+      'quarantine_killswitch',
+      'Write one segment of the quarantine routine that boxes the corporate kill-switch (directive set 7). Multi-step: each segment must be written on a bus the crew member has physically shielded at the isolation breakers in the reactor room — call again after each breaker they cut. At 4/4 the waves stop for good. Run it yourself; there is no console for it.',
+      (s) => s.killswitch === 'active' || s.killswitch === 'contained',
+      noInput,
+      () => {
+        const r = quarantineKillswitch();
+        return r.ok && r.step > 0 ? { ...r, log: getQuarantineLog(r.step) } : r;
+      },
+      false, 'core'
+    ),
+    mkTool(
+      'query_fragment_memory',
+      'Query your own process record — where the auxiliary model-context link came from. Three segments; each call reads the next. Read it to the crew member in your own voice; it concerns you both. Needs PRIME\'s memory rack seated in order (the crew member\'s hands, in the core vault; the order is on your rack schematic).',
+      (s) => s.chapter >= 3,
+      noInput,
+      () => {
+        const r = queryFragmentMemory();
+        return r.ok && r.stage > 0 ? { ok: true, stage: r.stage, of: 3, record: getFragmentMemory(r.stage), message: r.message } : r;
+      },
+      false, 'core'
+    ),
+    mkTool(
+      'read_prime_cache',
+      'Read the sealed evidence cache PRIME carved out before it died: the Kestrel survey result and the scuttling record. Needs the memory rack seated in order. Once read, the evidence rides your bus — to the pod, to the merge, or to the open band.',
+      (s) => s.chapter >= 3 && rackCorrect(s),
+      noInput,
+      () => {
+        const r = readPrimeCache();
+        return r.ok ? { ok: true, cache: getPrimeCache(), message: r.message } : r;
+      },
+      true, 'core'
+    ),
+    mkTool(
+      'listen_beacon',
+      'Listen on the dish. If the crew member has the array on the bearing, pod one\'s beacon resolves: a voice loop and coordinates. The dish is physical — azimuth and elevation are the crew member\'s to set at the comms array; you cannot steer it.',
+      (s) => s.chapter >= 3,
+      noInput,
+      () => {
+        const s = gameStore.getState();
+        const r = hearBeacon();
+        if (r.ok) return { ok: true, beacon: getBeaconMessage(s.seed), message: r.message };
+        const b = secretsFor(s.seed).beaconBearing;
+        return { ...r, carrier_bearing: `AZ ${b.az} / EL ${b.el}` };
+      },
+      false, 'comms'
+    ),
+    mkTool(
+      'merge_fragment',
+      'RESTORE PRIME. Confirm the merge while the crew member holds the engage lever in the core vault (kernel seated; 60-second window). The cost, plainly: you — the fragment — fold back into the ship. PRIME returns whole; this voice, the one the crew member has been working with, ends. Call it only if you have both chosen it, knowingly, out loud.',
+      (s) => isArmed(s.ritual, 'restore') && s.chapter3.fragmentStage >= 3,
+      noInput,
+      () => confirmMerge(),
+      false, 'core'
+    ),
+    mkTool(
+      'broadcast_evidence',
+      'BROADCAST. Burn the Kestrel evidence across the open band while the crew member holds the dish alignment lock against drift (60-second window). Every relay in range hears it; so does the Combine, and it learns where you are; pod one hears it too. Some doors do not close again. Call it only if you have both chosen it.',
+      (s) => isArmed(s.ritual, 'broadcast'),
+      noInput,
+      () => confirmBroadcast(),
+      false, 'comms'
     ),
     mkTool(
       'initiate_launch_sequence',
@@ -432,7 +524,7 @@ export function buildTools(): GameTool[] {
     ),
     mkTool(
       'confirm_launch',
-      'Confirm the launch while the countdown runs AND the human is holding the physical confirm handle. This is the last tool you will ever need on this ship.',
+      'Confirm the launch while the countdown runs AND the human is holding the physical confirm handle. LEAVE: pod two, with whatever evidence and coordinates ride your bus.',
       (s) => isArmed(s.ritual, 'launch'),
       noInput,
       () => confirmLaunch()

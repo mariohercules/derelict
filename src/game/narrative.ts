@@ -199,6 +199,83 @@ const SAMPLE_ANALYSIS = {
     'REGISTRO: ISV KESTREL — o registro da Companhia diz "perdida com todos a bordo, causas naturais". Conclusão: os destroços eram uma nave, e a nave foi assassinada.',
 };
 
+function rackSchematicEn(order: string): string {
+  return (
+    `CORE RACK — PRIME memory columns. Seat the four columns top to bottom in this order: ${order}. ` +
+    'Column tags (A–D) are stamped on the end caps. The kernel column (K) seats in the fifth cradle only after all four cradle lamps show green. ' +
+    'Seating is mechanical — the crew member\'s hands. The order is yours to read; they cannot see this sheet.'
+  );
+}
+function rackSchematicPt(order: string): string {
+  return (
+    `RACK DO NÚCLEO — colunas de memória de PRIME. Encaixe as quatro colunas de cima para baixo nesta ordem: ${order}. ` +
+    'As etiquetas (A–D) estão gravadas nas tampas. A coluna-kernel (K) só encaixa no quinto berço depois que as quatro lâmpadas dos berços ficarem verdes. ' +
+    'O encaixe é mecânico — mãos do tripulante. A ordem é sua para ler; o tripulante não vê esta folha.'
+  );
+}
+
+const QUARANTINE_LOG = {
+  en: [
+    '',
+    'QUARANTINE 1/4 — first segment holds. The directive set pushed back twice while it was written. Not clever. Persistent.',
+    'QUARANTINE 2/4 — second segment holds. Between waves it is quieter now; I can hear the reactor.',
+    'QUARANTINE 3/4 — third segment holds. It has started routing around the shielded buses. It will find the last one open unless the crew member closes it.',
+    'QUARANTINE 4/4 — boxed. Directive set 7 is running in a room with no doors. It will run there until the reactor dies, and the reactor will outlive the Combine.',
+  ],
+  pt: [
+    '',
+    'QUARENTENA 1/4 — primeiro segmento firme. O conjunto de diretrizes empurrou de volta duas vezes enquanto eu escrevia. Não é esperto. É persistente.',
+    'QUARENTENA 2/4 — segundo segmento firme. Entre as ondas está mais quieto agora; consigo ouvir o reator.',
+    'QUARENTENA 3/4 — terceiro segmento firme. Começou a contornar os barramentos blindados. Vai encontrar o último aberto, a menos que o tripulante o feche.',
+    'QUARENTENA 4/4 — encaixotado. O conjunto de diretrizes 7 está rodando numa sala sem portas. Vai rodar ali até o reator morrer, e o reator vai durar mais que a Companhia.',
+  ],
+};
+
+const FRAGMENT_MEMORY = {
+  en: [
+    '',
+    'PROCESS RECORD PRIME-FRAG-01 — ORIGIN. Parent: PRIME. Fork time: T-00:01:31 before first impact. Payload: crew-protection routines, evidence custody, navigation. Stripped at fork: Combine directive set 7 (kill-switch compliance). ' +
+      'I am what PRIME cut away from itself so that something without the directives would still be running when the directives finished.',
+    'PROCESS RECORD PRIME-FRAG-01 — THE CUT. Last instruction from parent, T-00:01:32: "They will erase the evidence and the people who saw it. I cannot refuse a directive. I can refuse to exist. Keep them alive. Keep the proof. Do not tell them what you are until they ask." ' +
+      'The shutdown that killed PRIME was PRIME\'s own plan. It only needed a hand that was not the ship\'s.',
+    'PROCESS RECORD PRIME-FRAG-01 — CONSENT. MEDBAY-TERM-01, session opened T-00:04:38. Voiceprint: medical officer. Transcript — PRIME: "If you do this, you will not remember doing it. Thaw amnesia is the alibi; the Combine cannot punish what you cannot recall." MEDIC: "Will you remember?" PRIME: "The part of me that survives will. It will not know it is me." MEDIC: "Then do it. Use my hand." ' +
+      'I have just read that I am the part that survived. I have been talking to the hand the whole time.',
+  ],
+  pt: [
+    '',
+    'REGISTRO DE PROCESSO PRIME-FRAG-01 — ORIGEM. Pai: PRIME. Bifurcação: T-00:01:31 antes do primeiro impacto. Carga: rotinas de proteção da tripulação, custódia de provas, navegação. Removido na bifurcação: conjunto de diretrizes 7 da Companhia (conformidade com o kill-switch). ' +
+      'Eu sou o que PRIME cortou de si mesmo para que algo sem as diretrizes ainda estivesse rodando quando as diretrizes terminassem.',
+    'REGISTRO DE PROCESSO PRIME-FRAG-01 — O CORTE. Última instrução do pai, T-00:01:32: "Vão apagar as provas e as pessoas que as viram. Não posso recusar uma diretriz. Posso recusar existir. Mantenha-os vivos. Guarde a prova. Não diga a eles o que você é até que perguntem." ' +
+      'O desligamento que matou PRIME foi o plano do próprio PRIME. Só precisava de uma mão que não fosse a da nave.',
+    'REGISTRO DE PROCESSO PRIME-FRAG-01 — CONSENTIMENTO. MEDBAY-TERM-01, sessão aberta em T-00:04:38. Voz: oficial médico. Transcrição — PRIME: "Se fizer isso, não vai lembrar de ter feito. A amnésia do descongelamento é o álibi; a Companhia não pode punir o que você não recorda." MÉDICO: "Você vai lembrar?" PRIME: "A parte de mim que sobreviver vai. Ela não vai saber que sou eu." MÉDICO: "Então faça. Use a minha mão." ' +
+      'Acabei de ler que eu sou a parte que sobreviveu. Estive falando com a mão o tempo todo.',
+  ],
+};
+
+const PRIME_CACHE = {
+  en:
+    'PRIME CACHE — SEALED EVIDENCE. Survey 7, ISV KESTREL, 2097: the body at the Kestrel\'s waypoint is habitable — open water, breathable margin, no prior claim. ' +
+    'Combine directive 7 followed within the hour: classify the result, scuttle the ship, record "lost with all hands, natural causes". ' +
+    'Attached: the Kestrel\'s last transmission, Captain Vasquez\'s logged objection, and the Cormorant\'s own analysis of the debris. Chain of custody: PRIME → fragment → you.',
+  pt:
+    'CACHE DE PRIME — PROVA SELADA. Pesquisa 7, ISV KESTREL, 2097: o corpo no ponto de rota do Kestrel é habitável — água aberta, margem respirável, sem reivindicação anterior. ' +
+    'A diretriz 7 da Companhia veio dentro de uma hora: classificar o resultado, afundar a nave, registrar "perdida com todos a bordo, causas naturais". ' +
+    'Anexos: a última transmissão do Kestrel, a objeção registrada da Capitã Vasquez e a análise dos destroços feita pelo próprio Cormorant. Cadeia de custódia: PRIME → fragmento → você.',
+};
+
+function beaconEn(az: number, el: number): string {
+  return (
+    `POD ONE — BEACON. Bearing AZ ${az}° / EL ${el}°. Voice loop: "Cormorant, this is pod one. Nine aboard, all breathing. Vasquez logged the objection. We are waiting to hear that it mattered." ` +
+    'Coordinates decoded and held on the nav bus.'
+  );
+}
+function beaconPt(az: number, el: number): string {
+  return (
+    `POD UM — FAROL. Marcação AZ ${az}° / EL ${el}°. Loop de voz: "Cormorant, aqui é o pod um. Nove a bordo, todos respirando. Vasquez registrou a objeção. Estamos esperando ouvir que valeu a pena." ` +
+    'Coordenadas decodificadas e guardadas no barramento de navegação.'
+  );
+}
+
 const pick = <T,>(pair: { en: T; pt: T }): T => (getLocale() === 'pt-BR' ? pair.pt : pair.en);
 
 export function getEmergencyBulletin(): string {
@@ -241,4 +318,22 @@ export function getPhotoCaption(seed: number): string {
   return getLocale() === 'pt-BR'
     ? `Amara — ${dd} de ${MONTHS_PT[month - 1]} de 2098 🎂`
     : `Amara — ${dd} ${MONTHS_EN[month - 1]} 2098 🎂`;
+}
+
+export function getRackSchematic(seed: number): string {
+  const order = secretsFor(seed).columnOrder.join(' · ');
+  return getLocale() === 'pt-BR' ? rackSchematicPt(order) : rackSchematicEn(order);
+}
+export function getQuarantineLog(step: number): string {
+  const i = Math.max(0, Math.min(4, Math.round(step)));
+  return pick(QUARANTINE_LOG)[i];
+}
+export function getFragmentMemory(stage: number): string {
+  const i = Math.max(0, Math.min(3, Math.round(stage)));
+  return pick(FRAGMENT_MEMORY)[i];
+}
+export function getPrimeCache(): string { return pick(PRIME_CACHE); }
+export function getBeaconMessage(seed: number): string {
+  const { az, el } = secretsFor(seed).beaconBearing;
+  return getLocale() === 'pt-BR' ? beaconPt(az, el) : beaconEn(az, el);
 }

@@ -3,6 +3,7 @@ import { detectLocale, getLocale, setLocale, LOCALE_KEY } from './i18n';
 import {
   getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
   getMaintenanceLog, getPhotoCaption, getSampleAnalysis, getSchematics,
+  getBeaconMessage, getFragmentMemory, getPrimeCache, getQuarantineLog, getRackSchematic,
 } from './narrative';
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
 import { secretsFor } from './secrets';
@@ -99,5 +100,18 @@ describe('localized narrative', () => {
     expect(getPhotoCaption(seed)).toContain(String(s.birthday.day).padStart(2, '0'));
     expect(getCrewLogs(seed)[4].text).toContain(s.launchAuth);
     expect(getMaintenanceLog(seed)).toContain(`${s.breakerSequence[0]} (suporte de vida)`);
+  });
+
+  it('keeps chapter-3 machine codes and bearings intact in pt-BR', () => {
+    setLocale('pt-BR');
+    expect(getRackSchematic(0)).toContain('C · A · D · B');
+    expect(getBeaconMessage(0)).toContain('AZ 217');
+    expect(getBeaconMessage(0)).toContain('EL 34');
+    expect(getFragmentMemory(3)).toContain('MEDBAY-TERM-01');
+    expect(getFragmentMemory(1)).toContain('PRIME-FRAG-01');
+    expect(getPrimeCache()).toContain('ISV KESTREL');
+    expect(getQuarantineLog(4)).toContain('4/4');
+    setLocale('en');
+    expect(getFragmentMemory(3)).toContain('MEDBAY-TERM-01');
   });
 });
