@@ -12,6 +12,8 @@ export const DOORS_REQUIRED = 5;
 export const STAR_FIX: [string, string, string] = ['KAV', 'ORO', 'SET'];
 export const LAUNCH_AUTH = 'OVERRIDE-THETA';
 export const LAUNCH_WINDOW_MS = 45_000;
+export const WATER_BUDGET = 10; // units per irrigation cycle
+export const SPIKE_BED = 1; // the vine-choked middle bed hides Okafor's data spike
 
 export const INITIAL_ALLOCATION: Record<SubsystemId, number> = {
   life_support: 25,

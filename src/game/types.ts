@@ -30,6 +30,22 @@ export interface Checkpoint {
   room: RoomId;
 }
 
+export type KillswitchState = 'dormant' | 'stirring';
+
+export interface Chapter2State {
+  medbandExamined: boolean;
+  commandTraced: boolean;
+  safeOpened: boolean;
+  recorderPlayed: boolean;
+  privateLogDecrypted: boolean;
+  irrigation: [number, number, number];
+  irrigationSolved: boolean;
+  spikeRetrieved: boolean;
+  craneAt: { row: number; col: number };
+  crateLifted: boolean;
+  sampleAnalyzed: boolean;
+}
+
 export interface GameState {
   seed: number;
   act: 1 | 2 | 3;
@@ -50,4 +66,6 @@ export interface GameState {
   sealedLogRead: boolean;
   ending: EndingId | null;
   checkpoint: Checkpoint | null;
+  chapter2: Chapter2State;
+  killswitch: KillswitchState;
 }

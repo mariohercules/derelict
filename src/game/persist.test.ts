@@ -106,6 +106,17 @@ describe('persistence', () => {
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ending: 'leave_knowing', won: true }));
     expect(loadSavedState()?.ending).toBe('leave_knowing');
   });
+
+  it('fills chapter-2 defaults for a Plan A save and rejects a bogus kill-switch state', () => {
+    const planA = { ...initialState(0) } as Record<string, unknown>;
+    delete planA.chapter2;
+    delete planA.killswitch;
+    storage.set(SAVE_KEY, JSON.stringify(planA));
+    expect(loadSavedState()?.chapter2.crateLifted).toBe(false);
+    expect(loadSavedState()?.killswitch).toBe('dormant');
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), killswitch: 'bogus' }));
+    expect(loadSavedState()).toBeNull();
+  });
 });
 
 describe('v1 → v2 migration', () => {

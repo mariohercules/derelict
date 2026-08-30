@@ -54,6 +54,14 @@ function validShape(p: Partial<GameState>): boolean {
     const c = p.checkpoint as unknown as Record<string, unknown>;
     if (![1, 2, 3].includes(c.chapter as number) || !ROOM_IDS.includes(c.room as RoomId)) return false;
   }
+  if (p.killswitch !== undefined && !['dormant', 'stirring'].includes(p.killswitch as string)) return false;
+  if (p.chapter2 !== undefined) {
+    const c2 = p.chapter2 as unknown as Record<string, unknown>;
+    if (!c2 || typeof c2 !== 'object') return false;
+    if (!Array.isArray(c2.irrigation) || c2.irrigation.length !== 3 || !c2.irrigation.every(isFiniteNumber)) return false;
+    const crane = c2.craneAt as Record<string, unknown> | undefined;
+    if (!crane || !isFiniteNumber(crane.row) || !isFiniteNumber(crane.col)) return false;
+  }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
   if (!SUBSYSTEMS.every((k) => isFiniteNumber(alloc[k]))) return false;

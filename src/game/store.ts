@@ -1,9 +1,10 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN } from './content';
+import type { ActionResult, BreakerId, Chapter2State, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import { DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
 import { edgeBetween, roomStatus } from './rooms';
+import { irrigationReport } from './derived';
 
 export function initialState(seed: number = randomSeed()): GameState {
   return {
@@ -26,6 +27,12 @@ export function initialState(seed: number = randomSeed()): GameState {
     sealedLogRead: false,
     ending: null,
     checkpoint: null,
+    chapter2: {
+      medbandExamined: false, commandTraced: false, safeOpened: false, recorderPlayed: false,
+      privateLogDecrypted: false, irrigation: [0, 0, 0], irrigationSolved: false, spikeRetrieved: false,
+      craneAt: { row: 0, col: 0 }, crateLifted: false, sampleAnalyzed: false,
+    },
+    killswitch: 'dormant',
   };
 }
 
@@ -189,4 +196,117 @@ export function confirmLaunch(now: number = Date.now()): ActionResult {
   }
   gameStore.setState({ ritual: next, won: true, ending: s.sealedLogRead ? 'leave_knowing' : 'leave_unknowing' });
   return { ok: true, message: 'Pod two away. Nice flying — both of you.' };
+}
+
+function patch2(p: Partial<Chapter2State>): void {
+  gameStore.setState((s) => ({ chapter2: { ...s.chapter2, ...p } }));
+}
+
+export function startInvestigation(): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'bridge') return { ok: false, message: 'The decision to stay is made on the bridge, in front of the pod.' };
+  if (!s.sealedLogRead) return { ok: false, message: 'Nothing has given you a reason to stay. Yet.' };
+  if (s.chapter >= 2) return { ok: true, message: 'The investigation is already underway.' };
+  gameStore.setState({ chapter: 2, checkpoint: { chapter: 2, room: 'bridge' } });
+  return { ok: true, message: 'Pod two stays docked. Somewhere below, the mid-deck bulkheads release.' };
+}
+
+export function examineMedband(): void {
+  patch2({ medbandExamined: true });
+}
+
+export function traceCommand(): ActionResult {
+  const s = gameStore.getState();
+  if (s.chapter < 2) return { ok: false, message: 'Telemetry archives are sealed until the investigation is underway.' };
+  patch2({ commandTraced: true });
+  return { ok: true, message: 'Command trace complete.' };
+}
+
+export function dialSafe(combo: [number, number, number]): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'crew_quarters') return { ok: false, message: 'The safe is in Vasquez\'s cabin.' };
+  if (s.chapter2.safeOpened) return { ok: true, message: 'The safe is already open.' };
+  const target = secretsFor(s.seed).safeCombo;
+  if (combo.join('') !== target.join('')) return { ok: false, message: 'The dial clicks past. Nothing gives.' };
+  patch2({ safeOpened: true });
+  return { ok: true, message: 'The bolt slides. Inside: a private log drive, encrypted.' };
+}
+
+export function decryptPrivateLog(): ActionResult {
+  const s = gameStore.getState();
+  if (!s.chapter2.safeOpened) return { ok: false, message: 'No private log drive is on the bus. It is still inside a safe only the crew member can open.' };
+  patch2({ privateLogDecrypted: true });
+  return { ok: true, message: 'Private log decrypted.' };
+}
+
+export function playRecorder(): void {
+  patch2({ recorderPlayed: true });
+}
+
+export function setIrrigation(index: 0 | 1 | 2, value: number): void {
+  const v = Math.max(0, Math.min(9, Math.round(value)));
+  gameStore.setState((s) => {
+    const irrigation = [...s.chapter2.irrigation] as [number, number, number];
+    irrigation[index] = v;
+    return { chapter2: { ...s.chapter2, irrigation, irrigationSolved: false } };
+  });
+}
+
+export function runIrrigation(): ActionResult & { beds: string[]; solved: boolean } {
+  const s = gameStore.getState();
+  if (s.chapter < 2) return { ok: false, message: 'Hydroponics is off the bus.', beds: [], solved: false };
+  const r = irrigationReport(s);
+  if (r.overBudget) {
+    return { ok: false, message: `Pump overload: ${r.total}u requested, ${WATER_BUDGET}u available. The cycle aborts before it starts.`, beds: r.beds, solved: false };
+  }
+  patch2({ irrigationSolved: r.solved });
+  return {
+    ok: true,
+    message: r.solved
+      ? 'Cycle complete. Every bed drinks exactly what it needs — and the middle bed drains low enough to show what the vine was hiding.'
+      : 'Cycle complete. Some beds are wrong; the crew member sets the valves by hand — read them the bed states.',
+    beds: r.beds,
+    solved: r.solved,
+  };
+}
+
+export function retrieveSpike(): ActionResult {
+  const s = gameStore.getState();
+  if (!s.chapter2.irrigationSolved) return { ok: false, message: 'The vine is still swollen with water. Whatever is under it stays under it.' };
+  patch2({ spikeRetrieved: true });
+  return { ok: true, message: 'A data spike, wrapped in a ration bag. Okafor\'s handwriting on the tape.' };
+}
+
+export function moveCrane(dir: 'up' | 'down' | 'left' | 'right'): void {
+  gameStore.setState((s) => {
+    const { row, col } = s.chapter2.craneAt;
+    const next = {
+      row: Math.max(0, Math.min(2, row + (dir === 'down' ? 1 : dir === 'up' ? -1 : 0))),
+      col: Math.max(0, Math.min(2, col + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0))),
+    };
+    return { chapter2: { ...s.chapter2, craneAt: next } };
+  });
+}
+
+export function liftCrate(): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'cargo_bay') return { ok: false, message: 'The crane controls are in the cargo bay.' };
+  const slot = secretsFor(s.seed).quarantineSlot;
+  if (s.chapter2.craneAt.row !== slot.row || s.chapter2.craneAt.col !== slot.col) {
+    return { ok: false, message: 'The crane lifts an ordinary crate. Ration bars. Someone\'s spare boots. Not this one.' };
+  }
+  patch2({ crateLifted: true });
+  return { ok: true, message: 'The quarantine container comes up. Inside: a slab of hull plate with a stencilled registry, half burned away.' };
+}
+
+export function analyzeSample(fragment: string): ActionResult {
+  const s = gameStore.getState();
+  if (!s.chapter2.crateLifted) return { ok: false, message: 'No sample is in the analyzer. The quarantine container is still in the bay stack — the crew member has to lift it.' };
+  const given = String(fragment).replace(/\D/g, '').padStart(4, '0');
+  if (given !== secretsFor(s.seed).registryFragment) {
+    return { ok: false, message: 'Registry cross-check failed: that fragment matches no Combine hull. Have the crew member read the stencil again, digit by digit.' };
+  }
+  patch2({ sampleAnalyzed: true });
+  gameStore.setState({ killswitch: 'stirring' });
+  return { ok: true, message: 'Registry confirmed. ISV KESTREL. And something below decks just changed its breathing.' };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLASSIC_SEED, randomSeed, secretsFor } from './secrets';
+import { CLASSIC_SEED, randomSeed, secretsFor, slotLabel } from './secrets';
 import {
   AUTH_CODE, BREAKER_SEQUENCE, GAUGE_PRESSURES, LAUNCH_AUTH, STAR_FIX, VALVE_TARGETS,
 } from './content';
@@ -53,6 +53,31 @@ describe('secretsFor', () => {
       const seed = randomSeed();
       expect(Number.isInteger(seed)).toBe(true);
       expect(seed).not.toBe(CLASSIC_SEED);
+    }
+  });
+
+  it('seed 0 carries the classic chapter-2 secrets', () => {
+    const s = secretsFor(0);
+    expect(s.commissionNumber).toBe('2263941');
+    expect(s.safeCombo).toEqual([9, 4, 1]);
+    expect(s.waterNeeds).toEqual([4, 3, 3]);
+    expect(s.quarantineSlot).toEqual({ row: 2, col: 1 });
+    expect(slotLabel(s.quarantineSlot)).toBe('C2');
+    expect(s.registryFragment).toBe('7741');
+  });
+
+  it('keeps chapter-2 secrets inside their puzzle rules across many seeds', () => {
+    for (let seed = 1; seed <= 400; seed++) {
+      const s = secretsFor(seed);
+      expect(s.commissionNumber).toMatch(/^\d{7}$/);
+      expect(s.safeCombo).toEqual(s.commissionNumber.slice(-3).split('').map(Number));
+      expect(s.waterNeeds.every((w) => w >= 1 && w <= 5)).toBe(true);
+      expect(s.waterNeeds[0] + s.waterNeeds[1] + s.waterNeeds[2]).toBeLessThanOrEqual(10);
+      expect(s.quarantineSlot.row).toBeGreaterThanOrEqual(0);
+      expect(s.quarantineSlot.row).toBeLessThanOrEqual(2);
+      expect(s.quarantineSlot.col).toBeGreaterThanOrEqual(0);
+      expect(s.quarantineSlot.col).toBeLessThanOrEqual(2);
+      expect(s.registryFragment).toMatch(/^\d{4}$/);
     }
   });
 });
