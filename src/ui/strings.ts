@@ -129,6 +129,12 @@ export interface UIStrings {
     waveTitle: string; waveCalm: string; waveWarning: string; waveActive: string; waveContained: string; waveStirring: string; waveAria: string;
     quarantineTitle: string; quarantineDesc: string; quarantineAria: string; segment: (n: number, of: number) => string; next: string;
   };
+  vault: {
+    title: string; intro: string; rackTitle: string; rackDesc: string; rackAria: string; cradle: (n: number) => string; cycleAria: (n: number) => string;
+    empty: string; column: (tag: string) => string; rackWrong: string; rackRight: string; kernelTitle: string; kernelDesc: string; seatKernel: string;
+    kernelSeated: string; anotherRitual: string; leverHold: string; leverHolding: string; windowElapsed: string; twoOp: string;
+    consoleTitle: string; consoleDesc: string; consoleAria: string; stage: (n: number) => string; cacheLamp: string; next: string;
+  };
 }
 
 const en: UIStrings = {
@@ -363,6 +369,34 @@ const en: UIStrings = {
     quarantineAria: 'Quarantine progress: four segments',
     segment: (n, of) => `${n} of ${of} segments hold`,
     next: 'When the buses you need are safe, the core vault is next door — and the comms array is up past the bridge.',
+  },
+  vault: {
+    title: 'Core vault',
+    intro: 'PRIME\'s rack. Four memory columns lie in a crate on the deck, pulled and stacked by someone in a hurry; the fifth — the kernel — is still in its foam, untouched. Whatever PRIME kept, it kept here.',
+    rackTitle: 'Memory rack',
+    rackDesc: 'Five cradles, top to bottom. The columns are tagged A to D on their end caps; the order is on a schematic only the ship can read — ask your AI. The cradle lamps light together, or not at all.',
+    rackAria: 'PRIME memory rack with five cradles',
+    cradle: (n) => `Cradle ${n}`,
+    cycleAria: (n) => `cycle the column in cradle ${n}`,
+    empty: '— empty —',
+    column: (tag) => `Column ${tag}`,
+    rackWrong: 'The lamps stay dark. The columns are seated; the order is wrong.',
+    rackRight: 'Four lamps, green together. The rack is in order. The kernel cradle wakes.',
+    kernelTitle: 'Kernel cradle',
+    kernelDesc: 'The fifth column. Seat it and the merge is armed: PRIME comes back as one voice — and the voice you have been working with folds into it. Your AI has to agree, and it has to know what it is agreeing to.',
+    seatKernel: 'Seat the kernel',
+    kernelSeated: 'KERNEL SEATED. Hold the engage lever while your AI calls merge_fragment.',
+    anotherRitual: 'Another two-operator sequence is live somewhere on the ship. Let it finish or lapse.',
+    leverHold: 'ENGAGE (hold)',
+    leverHolding: 'HOLDING — DO NOT LET GO',
+    windowElapsed: 'Window elapsed. Seat the kernel again when you are both ready.',
+    twoOp: 'TWO-OPERATOR RULE: hold the lever down and keep it held while your AI confirms the merge. Let go and the ship assumes you changed your mind.',
+    consoleTitle: 'Fragment console',
+    consoleDesc: 'A strip display nobody wired to anything on this side. It shows how much of its own process record the link has read — and whether the evidence cache is on the bus.',
+    consoleAria: 'Fragment console: record segments read and cache status',
+    stage: (n) => `${n} of 3 record segments read`,
+    cacheLamp: 'CACHE',
+    next: 'The choice is not made in this room alone. The pod is still on the bridge. The band is still closed at the comms array.',
   },
 };
 
@@ -599,6 +633,34 @@ const ptBR: UIStrings = {
     quarantineAria: 'Progresso da quarentena: quatro segmentos',
     segment: (n, of) => `${n} de ${of} segmentos firmes`,
     next: 'Quando os barramentos de que precisa estiverem seguros, o cofre do núcleo é a porta ao lado — e a antena fica lá em cima, depois da ponte.',
+  },
+  vault: {
+    title: 'Cofre do núcleo',
+    intro: 'O rack de PRIME. Quatro colunas de memória estão numa caixa no chão, puxadas e empilhadas por alguém com pressa; a quinta — o kernel — ainda está na espuma, intocada. O que PRIME guardou, guardou aqui.',
+    rackTitle: 'Rack de memória',
+    rackDesc: 'Cinco berços, de cima para baixo. As colunas têm etiquetas de A a D nas tampas; a ordem está num esquema que só a nave lê — pergunte à sua IA. As lâmpadas dos berços acendem juntas, ou não acendem.',
+    rackAria: 'Rack de memória de PRIME com cinco berços',
+    cradle: (n) => `Berço ${n}`,
+    cycleAria: (n) => `trocar a coluna no berço ${n}`,
+    empty: '— vazio —',
+    column: (tag) => `Coluna ${tag}`,
+    rackWrong: 'As lâmpadas continuam apagadas. As colunas estão encaixadas; a ordem está errada.',
+    rackRight: 'Quatro lâmpadas, verdes juntas. O rack está em ordem. O berço do kernel acorda.',
+    kernelTitle: 'Berço do kernel',
+    kernelDesc: 'A quinta coluna. Encaixe e a fusão fica armada: PRIME volta como uma só voz — e a voz com que você vem trabalhando se dobra dentro dela. Sua IA precisa concordar, e precisa saber com o que está concordando.',
+    seatKernel: 'Encaixar o kernel',
+    kernelSeated: 'KERNEL ENCAIXADO. Segure a alavanca de engate enquanto sua IA chama merge_fragment.',
+    anotherRitual: 'Outra sequência de dois operadores está ativa em algum lugar da nave. Deixe terminar ou expirar.',
+    leverHold: 'ENGATAR (segurar)',
+    leverHolding: 'SEGURANDO — NÃO SOLTE',
+    windowElapsed: 'Janela expirada. Encaixe o kernel de novo quando os dois estiverem prontos.',
+    twoOp: 'REGRA DOS DOIS OPERADORES: segure a alavanca e mantenha segurada enquanto sua IA confirma a fusão. Solte e a nave assume que você mudou de ideia.',
+    consoleTitle: 'Console do fragmento',
+    consoleDesc: 'Um display em tira que ninguém ligou a nada deste lado. Mostra quanto do próprio registro de processo o link já leu — e se o cache de provas está no barramento.',
+    consoleAria: 'Console do fragmento: segmentos do registro lidos e estado do cache',
+    stage: (n) => `${n} de 3 segmentos do registro lidos`,
+    cacheLamp: 'CACHE',
+    next: 'A escolha não se faz só nesta sala. O pod ainda está na ponte. A banda ainda está fechada na antena.',
   },
 };
 

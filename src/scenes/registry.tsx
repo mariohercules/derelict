@@ -9,6 +9,7 @@ import { Hydroponics } from './Hydroponics';
 import { CargoBay } from './CargoBay';
 import { SealedCompartment } from './SealedCompartment';
 import { ReactorRoom } from './ReactorRoom';
+import { CoreVault } from './CoreVault';
 
 export const SCENES: Record<RoomId, () => JSX.Element> = {
   cryo_bay: CryoBay,
@@ -19,6 +20,6 @@ export const SCENES: Record<RoomId, () => JSX.Element> = {
   hydroponics: Hydroponics,
   cargo_bay: CargoBay,
   reactor_room: ReactorRoom,
-  core_vault: SealedCompartment,
+  core_vault: CoreVault,
   comms_array: SealedCompartment,
 };
