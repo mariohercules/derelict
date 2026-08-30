@@ -39,7 +39,10 @@ function StripChart({ examined, aria }: { examined: boolean; aria: string }) {
       ))}
       {/* induction band */}
       <rect x="240" y="10" width="70" height="70" fill="url(#mb-hatch)" opacity="0.7" />
-      <text x="275" y="76" textAnchor="middle" fontSize="6" fill="var(--dim)" letterSpacing="1">CRYO</text>
+      <text textAnchor="middle" fontSize="5.5" fill="var(--dim)" letterSpacing="1">
+        <tspan x="275" y="69">CRYO</tspan>
+        <tspan x="275" y="76">INDUCTION</tspan>
+      </text>
       {/* trace */}
       <path d={tracePath()} fill="none" stroke="var(--green)" strokeWidth="1.4" opacity="0.9" />
       <path d="M 240 46 L 310 46" stroke="var(--green)" strokeWidth="1" opacity="0.35" strokeDasharray="2 2" />
@@ -51,6 +54,8 @@ function StripChart({ examined, aria }: { examined: boolean; aria: string }) {
           <text x="150" y="20" textAnchor="middle" fontSize="6.5" fill="var(--red)" letterSpacing="1">CONSCIOUS · T-06:12</text>
         </g>
       )}
+      {/* engraved label plate */}
+      <rect x="8" y="79" width="140" height="9" rx="1" fill="var(--hull)" stroke="var(--line)" />
       <text x="14" y="86" fontSize="5.5" fill="var(--dim)">MED-BAND 07 · STRIP 4/4</text>
     </svg>
   );
@@ -103,7 +108,7 @@ export function Medbay() {
       <div className="panel">
         <h2>{t.medbay.terminalTitle}</h2>
         <p className="status-dim">{t.medbay.terminalDesc}</p>
-        <BurnedTerminal burnIn={t.medbay.burnIn} aria={t.medbay.terminalTitle} />
+        <BurnedTerminal burnIn={t.medbay.burnIn} aria={`${t.medbay.terminalTitle}: ${t.medbay.burnIn}`} />
         <p className="status-dim" style={{ marginTop: 10 }}>{t.medbay.next}</p>
       </div>
     </div>

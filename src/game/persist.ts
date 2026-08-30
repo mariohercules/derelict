@@ -13,6 +13,17 @@ function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
 
+function isIntInRange(v: unknown, min: number, max: number): v is number {
+  return typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max;
+}
+
+// Every Chapter2State field is a boolean flag except irrigation and craneAt,
+// which get their own range checks below.
+const CHAPTER2_BOOL_FLAGS = [
+  'medbandExamined', 'commandTraced', 'safeOpened', 'recorderPlayed', 'privateLogDecrypted',
+  'irrigationSolved', 'spikeRetrieved', 'crateLifted', 'sampleAnalyzed',
+] as const;
+
 // v1 saves (the challenge build) carried a `launch` countdown and no chapter data.
 export function migrateV1(raw: Record<string, unknown>): Partial<GameState> {
   const { launch, ...rest } = raw;
@@ -58,9 +69,10 @@ function validShape(p: Partial<GameState>): boolean {
   if (p.chapter2 !== undefined) {
     const c2 = p.chapter2 as unknown as Record<string, unknown>;
     if (!c2 || typeof c2 !== 'object') return false;
-    if (!Array.isArray(c2.irrigation) || c2.irrigation.length !== 3 || !c2.irrigation.every(isFiniteNumber)) return false;
+    if (!Array.isArray(c2.irrigation) || c2.irrigation.length !== 3 || !c2.irrigation.every((v) => isIntInRange(v, 0, 9))) return false;
     const crane = c2.craneAt as Record<string, unknown> | undefined;
-    if (!crane || !isFiniteNumber(crane.row) || !isFiniteNumber(crane.col)) return false;
+    if (!crane || !isIntInRange(crane.row, 0, 2) || !isIntInRange(crane.col, 0, 2)) return false;
+    if (!CHAPTER2_BOOL_FLAGS.every((k) => typeof c2[k] === 'boolean')) return false;
   }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;

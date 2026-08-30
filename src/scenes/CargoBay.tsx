@@ -19,7 +19,8 @@ function CraneDeck() {
     <div className="panel">
       <h2>{t.cargo.craneTitle}</h2>
       <p className="status-dim">{t.cargo.craneDesc}</p>
-      <svg viewBox="0 0 320 270" width="100%" style={{ maxWidth: 440, display: 'block' }} role="img" aria-label={t.cargo.gridAria}>
+      <svg viewBox="0 0 320 270" width="100%" style={{ maxWidth: 440, display: 'block' }} role="img"
+        aria-label={`${t.cargo.gridAria} — ${t.cargo.slotAria(slotLabel(craneAt))}`}>
         <defs>
           <linearGradient id="cb-steel" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#2c3630" />

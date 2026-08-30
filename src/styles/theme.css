@@ -143,3 +143,10 @@ button:focus-visible {
 @keyframes reel-spin { to { transform: rotate(360deg); } }
 .reel-spinning { animation: reel-spin 2.2s linear infinite; transform-origin: center; transform-box: fill-box; }
 @media (prefers-reduced-motion: reduce) { .reel-spinning { animation: none; } }
+
+/* Inline style={{ transition }} sites (Hydroponics, CrewQuarters, CargoBay,
+   Bridge, Engineering) don't read this preference themselves — this global
+   rule collapses their transition duration instead. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}

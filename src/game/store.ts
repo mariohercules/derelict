@@ -263,7 +263,8 @@ export function runIrrigation(): ActionResult & { beds: string[]; solved: boolea
   return {
     ok: true,
     message: r.solved
-      ? 'Cycle complete. Every bed drinks exactly what it needs — and the middle bed drains low enough to show what the vine was hiding.'
+      ? 'Cycle complete. Every bed drinks exactly what it needs — and the middle bed drains low enough to show what the vine was hiding. ' +
+        'Tell the crew member to pull the data spike from the middle bed by hand — it is exposed now.'
       : 'Cycle complete. Some beds are wrong; the crew member sets the valves by hand — read them the bed states.',
     beds: r.beds,
     solved: r.solved,
@@ -306,7 +307,6 @@ export function analyzeSample(fragment: string): ActionResult {
   if (given !== secretsFor(s.seed).registryFragment) {
     return { ok: false, message: 'Registry cross-check failed: that fragment matches no Combine hull. Have the crew member read the stencil again, digit by digit.' };
   }
-  patch2({ sampleAnalyzed: true });
-  gameStore.setState({ killswitch: 'stirring' });
+  gameStore.setState((s) => ({ chapter2: { ...s.chapter2, sampleAnalyzed: true }, killswitch: 'stirring' }));
   return { ok: true, message: 'Registry confirmed. ISV KESTREL. And something below decks just changed its breathing.' };
 }

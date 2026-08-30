@@ -371,15 +371,13 @@ export function buildTools(): GameTool[] {
       'trace_command_origin',
       'Trace which terminal issued the PRIME shutdown command and under whose credentials. Run it yourself; the crew member cannot reach the telemetry archive.',
       inChapter2, noInput,
-      () => { const r = traceCommand(); return r.ok ? { ok: true, trace: getCommandTrace() } : r; },
-      true
+      () => { const r = traceCommand(); return r.ok ? { ok: true, trace: getCommandTrace() } : r; }
     ),
     mkTool(
       'decrypt_private_log',
       'Decrypt Captain Vasquez\'s private log drive. It comes online only after the crew member opens her cabin safe by hand. These entries were private; decide together whether the dead\'s privacy yields to the living\'s need — then, if you both agree, call this tool yourself.',
       (s) => s.chapter2.safeOpened, noInput,
-      () => { const r = decryptPrivateLog(); return r.ok ? { ok: true, entries: getPrivateLog() } : r; },
-      true
+      () => { const r = decryptPrivateLog(); return r.ok ? { ok: true, entries: getPrivateLog() } : r; }
     ),
     mkTool(
       'run_irrigation',
