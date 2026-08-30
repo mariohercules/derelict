@@ -107,6 +107,11 @@ export interface UIStrings {
     safeOpen: string; safeShut: string; driveNote: string; recorderTitle: string; recorderDesc: string; play: string; playing: string;
     transcriptLabel: string; noSpeech: string; wallTitle: string; wallDesc: string;
   };
+  hydro: {
+    title: string; intro: string; bedsTitle: string; bedsDesc: string; bed: (n: number) => string; needTag: (n: number) => string;
+    valveAria: (n: number) => string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
+    spikeRevealed: string; pullSpike: string; spikePulled: string;
+  };
 }
 
 const en: UIStrings = {
@@ -269,6 +274,23 @@ const en: UIStrings = {
     noSpeech: 'This browser has no voice. The transcript will have to do.',
     wallTitle: 'The wall',
     wallDesc: 'Drawings. A ship with too many windows. A man with a very large moustache. A birthday cake, every year, the candles counted carefully.',
+  },
+  hydro: {
+    title: 'Hydroponics',
+    intro: 'Green, somehow. Nine weeks of one man\'s stubbornness, growing in trays under lights that should have been shed load. The middle bed has gone feral — a vine has swallowed its own planter.',
+    bedsTitle: 'Irrigation manifold',
+    bedsDesc: 'Three beds, three valves, one pump with a 10-unit budget per cycle. Each bed\'s brass tag says what it needs. Your AI runs the cycle and reports how each bed took it — you turn the valves.',
+    bed: (n) => `BED ${n}`,
+    needTag: (n) => `${n}u`,
+    valveAria: (n) => `bed ${n} valve`,
+    budget: 'Pump budget',
+    over: 'OVER BUDGET — the pump will refuse the cycle.',
+    cycleHint: 'Ask your AI to run the irrigation cycle. The pump is on the ship\'s side.',
+    spikeTitle: 'The middle bed',
+    spikeHidden: 'The vine is swollen with water, roots wrapped around something that is not a root.',
+    spikeRevealed: 'The bed drains. In the mud, a ration bag taped shut — and inside it, a data spike.',
+    pullSpike: 'Pull the spike out',
+    spikePulled: 'Okafor\'s handwriting on the tape: "For the medic\'s AI." Your AI can read it now.',
   },
 };
 
@@ -433,6 +455,23 @@ const ptBR: UIStrings = {
     noSpeech: 'Este navegador não tem voz. A transcrição vai ter que servir.',
     wallTitle: 'A parede',
     wallDesc: 'Desenhos. Uma nave com janelas demais. Um homem com um bigode enorme. Um bolo de aniversário, todo ano, as velas contadas com cuidado.',
+  },
+  hydro: {
+    title: 'Hidroponia',
+    intro: 'Verde, de algum jeito. Nove semanas da teimosia de um homem, crescendo em bandejas sob luzes que deviam ser carga descartável. O canteiro do meio virou mato — uma trepadeira engoliu o próprio vaso.',
+    bedsTitle: 'Coletor de irrigação',
+    bedsDesc: 'Três canteiros, três válvulas, uma bomba com orçamento de 10 unidades por ciclo. A placa de latão de cada canteiro diz o que ele precisa. Sua IA roda o ciclo e relata como cada canteiro reagiu — você gira as válvulas.',
+    bed: (n) => `CANTEIRO ${n}`,
+    needTag: (n) => `${n}u`,
+    valveAria: (n) => `válvula do canteiro ${n}`,
+    budget: 'Orçamento da bomba',
+    over: 'ACIMA DO ORÇAMENTO — a bomba vai recusar o ciclo.',
+    cycleHint: 'Peça à sua IA para rodar o ciclo de irrigação. A bomba fica do lado da nave.',
+    spikeTitle: 'O canteiro do meio',
+    spikeHidden: 'A trepadeira está inchada de água, raízes enroladas em algo que não é raiz.',
+    spikeRevealed: 'O canteiro drena. Na lama, um saco de ração fechado com fita — e dentro, um data spike.',
+    pullSpike: 'Puxar o spike',
+    spikePulled: 'A letra de Okafor na fita: "Para a IA do médico." Sua IA consegue ler agora.',
   },
 };
 
