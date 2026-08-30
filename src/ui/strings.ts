@@ -100,7 +100,6 @@ export interface UIStrings {
     withProof: string; withBeacon: string; contained: string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
-  sealed: { title: string; body: string; stirring: string };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -289,11 +288,6 @@ const en: UIStrings = {
     contained: 'Below decks, directive set 7 runs in a room with no doors. It will run there until the reactor dies.',
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
-  sealed: {
-    title: 'Sealed bulkhead',
-    body: 'The door here is welded from the other side, and the ship has no opinion about it yet. Whatever this compartment holds belongs to a later chapter.',
-    stirring: 'Beyond this bulkhead something has started to breathe. It was not breathing an hour ago.',
-  },
   medbay: {
     title: 'Medbay',
     intro: 'Your own bay. The pod you thawed in is here, lid up, and the terminal beside it has been dark since before you woke.',
@@ -596,11 +590,6 @@ const ptBR: UIStrings = {
     contained: 'Lá embaixo, o conjunto de diretrizes 7 roda numa sala sem portas. Vai rodar ali até o reator morrer.',
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
-  sealed: {
-    title: 'Anteparo selado',
-    body: 'A porta aqui foi soldada do outro lado, e a nave ainda não tem opinião sobre isso. O que este compartimento guarda pertence a um capítulo posterior.',
-    stirring: 'Além deste anteparo, algo começou a respirar. Não estava respirando uma hora atrás.',
-  },
   medbay: {
     title: 'Enfermaria',
     intro: 'A sua própria baia. O pod em que você descongelou está aqui, tampa aberta, e o terminal ao lado está apagado desde antes de você acordar.',

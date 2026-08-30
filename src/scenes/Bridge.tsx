@@ -166,6 +166,7 @@ function LaunchConsole() {
     armed && ritual.endsAt
       ? Math.max(0, Math.ceil((ritual.endsAt - nowTick) / 1000))
       : null;
+  const elapsed = armed && secondsLeft === 0;
 
   return (
     <div className="panel">
@@ -200,10 +201,10 @@ function LaunchConsole() {
           if (e.key === ' ' || e.key === 'Enter') holdHandle(false);
         }}
         onBlur={() => holdHandle(false)}
-        disabled={!armed}
+        disabled={!armed || elapsed}
         style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch' }}
       >
-        {ritual.held ? t.bridge.holding : t.bridge.confirmHold}
+        {ritual.held && armed && !elapsed ? t.bridge.holding : t.bridge.confirmHold}
       </button>
     </div>
   );

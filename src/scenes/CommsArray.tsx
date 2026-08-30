@@ -31,10 +31,12 @@ function Dish() {
     return () => clearInterval(timer);
   }, [transmitting]);
   const elapsed = transmitting && ritual.endsAt !== null && now >= ritual.endsAt;
+  const reducedMotion =
+    typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   // Deterministic drift while the band is open, unexpired, and the lock is not
   // held: the pointer wanders; the store's `held` flag, not this wobble, is the
-  // truth.
-  const drift = transmitting && !elapsed && !ritual.held ? Math.sin(tick / 3) * 6 : 0;
+  // truth. The hold still matters under reduced motion — only the wobble stills.
+  const drift = transmitting && !elapsed && !ritual.held && !reducedMotion ? Math.sin(tick / 3) * 6 : 0;
   const [ax, ay] = polar(58, dish.az + drift);
   const elRad = (dish.el * Math.PI) / 180;
   const ex = 230 + 60 * Math.cos(elRad);

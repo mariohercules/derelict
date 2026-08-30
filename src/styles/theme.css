@@ -154,6 +154,6 @@ button:focus-visible {
 /* Kill-switch klaxon lamp (reactor room) and HUD wave banner */
 @keyframes klaxon { 50% { opacity: 0.25; } }
 .klaxon-lamp { animation: klaxon 0.7s step-end infinite; }
-.lever { transition: transform 0.35s ease; transform-box: fill-box; transform-origin: 8px 50%; }
+.lever { transition: transform 0.35s ease; }
 .wave-banner { padding: 6px 16px; font-size: 12px; letter-spacing: 0.1em; border-bottom: 1px solid var(--line); text-align: center; }
 @media (prefers-reduced-motion: reduce) { .klaxon-lamp { animation: none; } }

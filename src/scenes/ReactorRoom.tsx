@@ -70,7 +70,7 @@ function IsolationBank() {
           );
         })}
       </div>
-      {refused && !shielded.includes(refused) && (
+      {refused && !shielded.includes(refused) && isolation < need && (
         <p className="status-bad" style={{ marginTop: 10 }}>{t.reactor.needPower(isolation, need)}</p>
       )}
     </div>
@@ -92,7 +92,7 @@ function IsolationFeed() {
         <rect x="12" y="12" width={356 * Math.min(1, isolation / REACTOR_OUTPUT)} height="20" rx="3" fill="var(--amber)" opacity="0.75" style={{ transition: 'width 0.3s' }} />
         {/* demand hairline */}
         <line x1={12 + 356 * Math.min(1, need / REACTOR_OUTPUT)} y1="8" x2={12 + 356 * Math.min(1, need / REACTOR_OUTPUT)} y2="36" stroke="var(--red)" strokeWidth="1.5" />
-        {Array.from({ length: 9 }, (_, i) => (i + 1) * (SHIELD_COST - 1)).map((u) => (
+        {Array.from({ length: REACTOR_OUTPUT / SHIELD_COST }, (_, i) => (i + 1) * SHIELD_COST).map((u) => (
           <line key={u} x1={12 + 356 * (u / REACTOR_OUTPUT)} y1="12" x2={12 + 356 * (u / REACTOR_OUTPUT)} y2="16" stroke="#4a5a50" strokeWidth="1" />
         ))}
       </svg>
