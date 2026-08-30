@@ -30,4 +30,4 @@ then paste the English or Portuguese line above. For pt-BR, ask for a Brazilian 
 - `okafor-en.mp3` and `okafor-pt.mp3` — mono, 44.1/48 kHz, 64–96 kbps, ≤ 400 KB each; 0.3 s of silence at the head and tail.
 - Optional: `.ogg` versions for smaller size (the player will prefer `.ogg` when the browser supports it).
 
-Drop them in `src/assets/` and say so — the integration plan wires them into the Recorder with `speechSynthesis` as the fallback when a file is missing or fails to play.
+**Status: delivered (Aug 30, 2026).** edge-tts drafts (en-US-ChristopherNeural / pt-BR-AntonioNeural, rate −8%) approved and integrated: `src/assets/okafor-{en,pt}.mp3`, played by the Recorder with `speechSynthesis` as the fallback. To upgrade to an ElevenLabs or recorded performance later, replace the two files — same names, same lines, word for word.

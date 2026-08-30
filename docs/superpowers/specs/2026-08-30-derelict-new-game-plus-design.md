@@ -102,3 +102,5 @@ All keyed on `ngPlus` and `getMemory()`; every line in EN and pt-BR; machine cod
 ## 10. Sequencing
 
 Ship as one plan (E) on `directors-cut`, merged to `main` + prod after Mario's preview playthrough — a full NG+ run to STAY on a fresh meta (three endings first, then the fourth).
+
+**Shipped Aug 30, 2026** — 230 tests, 31 tools. Okafor's recorder also gained its recorded EN/pt-BR performance (edge-tts drafts approved by Mario; `src/assets/okafor-{en,pt}.mp3`; speechSynthesis stays as the fallback) — spec §7.6 of the Director's Cut design, closed.

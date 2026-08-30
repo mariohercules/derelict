@@ -7,8 +7,8 @@ the fuses, the photo pinned above the bunk. Your agent can act on it: unlock doo
 power, read the logs and schematics you can't reach. Neither of you has the whole picture,
 and neither of you can escape alone.
 
-DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo bay →
-engineering → bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
+DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo bay â
+engineering â bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
 Challenge. Chapter 2, "The Investigation" (medbay, crew quarters, hydroponics, cargo bay,
 about 30 minutes more), opens once you've chosen to stay and find out what really happened
 here. Chapter 3, "The Truth" (reactor room, core vault, comms array, about 35 minutes more),
@@ -39,14 +39,21 @@ names and machine codes stay in English in both; ships do not translate codes.
 
 Chapter 2 opens from the bridge once the sealed log is read. Chapter 3 opens when the
 Kestrel is named; the lower deck is the reactor room, the core vault and the comms array,
-and the game ends at one of three joint rituals.
+and the game ends at one of the joint rituals.
+
+Finish a run and the epilogue offers **New Game+**: a fresh ship on a tighter clock — shorter
+ritual windows, faster kill-switch waves that wake the moment the Kestrel is named, costlier
+bus shielding — and a ship that remembers the run you do not: the bulletin, the sealed log,
+the fragment's own memory and pod one's beacon all acknowledge it. A crew that has already
+left, restored and broadcast finds a fourth ending waiting: STAY — hold the docking clamps
+open and bring pod one home.
 
 ## How WebMCP is used
 
 The game registers and revokes tools live, in step with the ship. A subsystem that has no
 power has no tools — the agent starts with just 5 tools online, and when the human restores
 aux power, new tools visibly light up on the in-game **AI LINK** panel, and the agent can
-suddenly act where it couldn't a second ago. Across all three chapters the game defines 29
+suddenly act where it couldn't a second ago. Across all three chapters the game defines 31
 tools in total, gated open and closed by ship state: reading the ship's status and logs,
 unlocking doors, routing power, running diagnostics, pulling schematics and sensor data,
 computing a nav fix, shielding data buses against a corporate kill-switch, and — in three
@@ -83,7 +90,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
   registered tool set against current game state on every change, registering newly
   available tools and revoking (via `AbortController`) tools whose subsystem just lost
   power.
-- [`tools.ts`](src/mcp/tools.ts) — the 29 tool definitions: schemas, in-fiction
+- [`tools.ts`](src/mcp/tools.ts) — the 31 tool definitions: schemas, in-fiction
   descriptions, availability predicates, and handlers that dispatch into the game store.
 - [`killswitch.ts`](src/game/killswitch.ts) — the antagonist: a pure wave/immunity/shielding
   state machine whose suppression composes into every tool's availability.
@@ -95,7 +102,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 198 tests)
+npm test       # run the test suite (Vitest, 230 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.
