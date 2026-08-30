@@ -71,7 +71,7 @@ describe('localized narrative', () => {
     expect(getMaintenanceLog(0)).toMatch(/C.*A.*B/);
     expect(getSchematics().coolant).toContain('12');
     expect(getSchematics().engine_feed).toContain('10A');
-    expect(getCrewManifest()).toContain('DDMM');
+    expect(getCrewManifest(0)).toContain('DDMM');
   });
 
   it('keeps the photo date consistent with the auth code in both locales', () => {

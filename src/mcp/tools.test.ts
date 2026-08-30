@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { buildTools, toolAvailability } from './tools';
-import { gameStore, resetGame, flipBreaker, breakSeal } from '../game/store';
+import {
+  gameStore, resetGame, flipBreaker, breakSeal,
+  startInvestigation, moveCrane, liftCrate, setIrrigation, retrieveSpike,
+} from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX } from '../game/content';
 
 beforeEach(() => resetGame(0));
@@ -173,5 +176,58 @@ describe('tool handlers', () => {
     expect(byId.cryo_bay).toBe('current');
     expect(byId.engineering).toBe('locked');
     expect(byId.core_vault).toBe('sealed');
+  });
+});
+
+describe('chapter 2 tools', () => {
+  function investigating() {
+    resetGame(0);
+    gameStore.setState({ room: 'bridge', act: 3, trajectorySet: true, sealedLogRead: true });
+    startInvestigation();
+  }
+
+  it('the seven tools are offline in chapter 1 and gated correctly in chapter 2', async () => {
+    const offline = ['read_medbay_records', 'trace_command_origin', 'decrypt_private_log', 'run_irrigation', 'read_data_spike', 'query_manifest', 'analyze_sample'];
+    const before = toolAvailability(gameStore.getState()).filter((t) => offline.includes(t.name));
+    expect(before.every((t) => !t.online)).toBe(true);
+    investigating();
+    const online = toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
+    expect(online).toEqual(expect.arrayContaining(['read_medbay_records', 'trace_command_origin', 'run_irrigation', 'query_manifest']));
+    expect(online).not.toContain('decrypt_private_log');
+    expect(online).not.toContain('read_data_spike');
+    expect(online).not.toContain('analyze_sample');
+  });
+
+  it('the manifest now carries Vasquez\'s commission number', async () => {
+    gameStore.setState({ auxPower: true });
+    const out = await call('access_crew_manifest');
+    expect(out.manifest).toContain('2263941');
+  });
+
+  it('query_manifest names the quarantine slot and analyze_sample closes the chapter', async () => {
+    investigating();
+    const m = await call('query_manifest');
+    expect(m.quarantine_slot).toBe('C2');
+    gameStore.setState({ room: 'cargo_bay' });
+    moveCrane('down'); moveCrane('down'); moveCrane('right'); liftCrate();
+    const bad = await call('analyze_sample', { registry_fragment: 1234 });
+    expect(bad.ok).toBe(false);
+    const good = await call('analyze_sample', { registry_fragment: '7741' });
+    expect(good.ok).toBe(true);
+    expect(good.analysis).toMatch(/KESTREL/);
+    const status = await call('get_ship_status');
+    expect(status.killswitch).toBe('stirring');
+  });
+
+  it('run_irrigation reports bed states and read_data_spike unlocks after retrieval', async () => {
+    investigating();
+    setIrrigation(0, 4); setIrrigation(1, 3); setIrrigation(2, 3);
+    const r = await call('run_irrigation');
+    expect(r.beds).toEqual(['ok', 'ok', 'ok']);
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'read_data_spike')!.online).toBe(false);
+    retrieveSpike();
+    const spike = await call('read_data_spike');
+    expect(spike.ok).toBe(true);
+    expect(spike.telemetry).toMatch(/01:34/);
   });
 });

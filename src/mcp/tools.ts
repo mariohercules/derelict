@@ -2,14 +2,17 @@ import type { GameState, SubsystemId } from '../game/types';
 import type { GameTool, ToolResult } from './registry';
 import {
   gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
+  traceCommand, decryptPrivateLog, runIrrigation, analyzeSample,
 } from '../game/store';
 import { enginesOnline, logsAvailable, valvesCorrect } from '../game/derived';
 import { CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
 import {
-  getCrewLogs, getCrewManifest, getEmergencyBulletin, getMaintenanceLog, getSchematics,
+  getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
+  getMaintenanceLog, getMedbayRecords, getPrivateLog, getSampleAnalysis, getSchematics,
 } from '../game/narrative';
+import { secretsFor, slotLabel } from '../game/secrets';
 
 function result(data: unknown): ToolResult {
   return { content: [{ type: 'text', text: JSON.stringify(data) }] };
@@ -46,6 +49,7 @@ function mkTool(
 const noInput = { type: 'object', properties: {}, required: [] };
 const inAct2 = (s: GameState) => s.act >= 2;
 const onBridge = (s: GameState) => s.room === 'bridge';
+const inChapter2 = (s: GameState) => s.chapter >= 2;
 
 export function buildTools(): GameTool[] {
   return [
@@ -72,6 +76,18 @@ export function buildTools(): GameTool[] {
             ? { sealed_log_hint: 'The crew member breaks the seal by hand at the launch console; you cannot open it.' }
             : {}),
           ritual: { active: s.ritual.active, phase: s.ritual.phase },
+          killswitch: s.killswitch,
+          investigation: s.chapter >= 2 ? {
+            medband_examined: s.chapter2.medbandExamined,
+            command_traced: s.chapter2.commandTraced,
+            safe_opened: s.chapter2.safeOpened,
+            private_log_decrypted: s.chapter2.privateLogDecrypted,
+            recorder_played: s.chapter2.recorderPlayed,
+            irrigation_solved: s.chapter2.irrigationSolved,
+            spike_retrieved: s.chapter2.spikeRetrieved,
+            crate_lifted: s.chapter2.crateLifted,
+            sample_analyzed: s.chapter2.sampleAnalyzed,
+          } : undefined,
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
             'You act ONLY by calling tools yourself; the crew member acts only by touching the ship. ' +
@@ -141,7 +157,7 @@ export function buildTools(): GameTool[] {
       'Access the surviving crew manifest, including door-authorization notes.',
       (s) => s.auxPower,
       noInput,
-      () => ({ ok: true, manifest: getCrewManifest() }),
+      () => ({ ok: true, manifest: getCrewManifest(gameStore.getState().seed) }),
       true
     ),
     mkTool(
@@ -343,6 +359,64 @@ export function buildTools(): GameTool[] {
         note: 'This changes nothing about the launch. It changes everything about the ship. Decide together whether to leave now.',
       }),
       true
+    ),
+    mkTool(
+      'read_medbay_records',
+      'Read the surviving crew medical records. The medical officer\'s own file is mostly redacted — read what is left carefully.',
+      inChapter2, noInput,
+      () => ({ ok: true, records: getMedbayRecords() }),
+      true
+    ),
+    mkTool(
+      'trace_command_origin',
+      'Trace which terminal issued the PRIME shutdown command and under whose credentials. Run it yourself; the crew member cannot reach the telemetry archive.',
+      inChapter2, noInput,
+      () => { const r = traceCommand(); return r.ok ? { ok: true, trace: getCommandTrace() } : r; },
+      true
+    ),
+    mkTool(
+      'decrypt_private_log',
+      'Decrypt Captain Vasquez\'s private log drive. It comes online only after the crew member opens her cabin safe by hand. These entries were private; decide together whether the dead\'s privacy yields to the living\'s need — then, if you both agree, call this tool yourself.',
+      (s) => s.chapter2.safeOpened, noInput,
+      () => { const r = decryptPrivateLog(); return r.ok ? { ok: true, entries: getPrivateLog() } : r; },
+      true
+    ),
+    mkTool(
+      'run_irrigation',
+      'Run one irrigation cycle on the hydroponics beds with the valve settings the crew member has set by hand (three beds, a shared 10-unit water budget). Reports each bed as dry, ok, or flooded. The valves are physical — you cannot set them; read the report back and let the crew member adjust.',
+      inChapter2, noInput,
+      () => runIrrigation()
+    ),
+    mkTool(
+      'read_data_spike',
+      'Read the data spike the crew member pulled from the hydroponics bed — engineering telemetry Okafor preserved off the corporate bus.',
+      (s) => s.chapter2.spikeRetrieved, noInput,
+      () => ({ ok: true, telemetry: getDataSpike() }),
+      true
+    ),
+    mkTool(
+      'query_manifest',
+      'Query the cargo manifest: what is in the bay stack and which slot holds the quarantined container. The crane that lifts it is physical — the crew member drives it.',
+      inChapter2, noInput,
+      () => {
+        const s = gameStore.getState();
+        return { ok: true, manifest: getCargoManifest(s.seed), quarantine_slot: slotLabel(secretsFor(s.seed).quarantineSlot) };
+      },
+      true
+    ),
+    mkTool(
+      'analyze_sample',
+      'Run the hull fragment from the quarantine container through the analyzer. Needs the four-digit registry fragment the crew member reads off the stencil (send it as a string). There is no field on the page to type it; when they read you the digits, call this tool yourself.',
+      (s) => s.chapter2.crateLifted,
+      {
+        type: 'object',
+        properties: { registry_fragment: { type: ['string', 'number'], description: 'The four digits stencilled on the hull plate.' } },
+        required: ['registry_fragment'],
+      },
+      (input) => {
+        const r = analyzeSample(String(input.registry_fragment ?? ''));
+        return r.ok ? { ok: true, message: r.message, analysis: getSampleAnalysis() } : r;
+      }
     ),
     mkTool(
       'initiate_launch_sequence',
