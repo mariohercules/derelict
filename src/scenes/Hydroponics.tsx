@@ -31,11 +31,12 @@ function Beds() {
   const needs = secretsFor(seed).waterNeeds;
   const report = irrigationReport(state);
   const total = report.total;
+  const bedsAria = `${t.hydro.bedsTitle} — ${needs.map((n, i) => `${t.hydro.bed(i + 1)}: ${t.hydro.needTag(n)}`).join('; ')}`;
   return (
     <div className="panel">
       <h2>{t.hydro.bedsTitle}</h2>
       <p className="status-dim">{t.hydro.bedsDesc}</p>
-      <svg viewBox="0 0 360 150" width="100%" style={{ maxWidth: 540, display: 'block' }} aria-hidden="true">
+      <svg viewBox="0 0 360 150" width="100%" style={{ maxWidth: 540, display: 'block' }} role="img" aria-label={bedsAria}>
         <defs>
           <linearGradient id="hy-soil" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3a2a1a" />
