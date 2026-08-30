@@ -4,6 +4,7 @@ import { CryoBay } from './CryoBay';
 import { Engineering } from './Engineering';
 import { Bridge } from './Bridge';
 import { Medbay } from './Medbay';
+import { CrewQuarters } from './CrewQuarters';
 import { SealedCompartment } from './SealedCompartment';
 
 export const SCENES: Record<RoomId, () => JSX.Element> = {
@@ -11,7 +12,7 @@ export const SCENES: Record<RoomId, () => JSX.Element> = {
   engineering: Engineering,
   bridge: Bridge,
   medbay: Medbay,
-  crew_quarters: SealedCompartment,
+  crew_quarters: CrewQuarters,
   hydroponics: SealedCompartment,
   cargo_bay: SealedCompartment,
   reactor_room: SealedCompartment,

@@ -102,6 +102,11 @@ export interface UIStrings {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
   };
+  quarters: {
+    title: string; intro: string; safeTitle: string; safeDesc: string; wheelAria: (n: number) => string; tryHandle: string;
+    safeOpen: string; safeShut: string; driveNote: string; recorderTitle: string; recorderDesc: string; play: string; playing: string;
+    transcriptLabel: string; noSpeech: string; wallTitle: string; wallDesc: string;
+  };
 }
 
 const en: UIStrings = {
@@ -245,6 +250,25 @@ const en: UIStrings = {
     terminalDesc: 'Dead screen. But the phosphor remembers the last thing it displayed for too long.',
     burnIn: 'SHUTDOWN PRIME —',
     next: 'Your AI can trace which terminal gave the order. Ask it. Then ask yourself why you are afraid of the answer.',
+  },
+  quarters: {
+    title: 'Crew quarters',
+    intro: 'Two cabins with their doors wedged open. One is tidy the way people are tidy when they expect to be judged. The other is covered in a child\'s drawings.',
+    safeTitle: 'Vasquez\'s cabin — desk safe',
+    safeDesc: 'Three wheels, brass, worn to a shine on the digits she used. The combination is nowhere in this room; it is somewhere in the ship\'s records.',
+    wheelAria: (n) => `combination wheel ${n}`,
+    tryHandle: 'Try the handle',
+    safeOpen: 'The bolt slides. Inside: a private log drive, encrypted, labeled in her hand: "for whoever is left".',
+    safeShut: 'The dial clicks past. Nothing gives.',
+    driveNote: 'Your AI can decrypt the drive. It will want to talk about whether it should.',
+    recorderTitle: 'Okafor\'s cabin — voice recorder',
+    recorderDesc: 'A reel-to-reel, because he never trusted anything without moving parts. One reel is nearly spent. The label reads AMARA.',
+    play: 'Play the tape',
+    playing: 'Playing…',
+    transcriptLabel: 'What you hear (your AI cannot):',
+    noSpeech: 'This browser has no voice. The transcript will have to do.',
+    wallTitle: 'The wall',
+    wallDesc: 'Drawings. A ship with too many windows. A man with a very large moustache. A birthday cake, every year, the candles counted carefully.',
   },
 };
 
@@ -390,6 +414,25 @@ const ptBR: UIStrings = {
     terminalDesc: 'Tela morta. Mas o fósforo lembra da última coisa que exibiu por tempo demais.',
     burnIn: 'SHUTDOWN PRIME —',
     next: 'Sua IA consegue rastrear qual terminal deu a ordem. Peça a ela. Depois pergunte a si mesmo por que a resposta te assusta.',
+  },
+  quarters: {
+    title: 'Cabines',
+    intro: 'Duas cabines com as portas travadas abertas. Uma é arrumada do jeito que gente arruma quando espera ser julgada. A outra está coberta de desenhos de criança.',
+    safeTitle: 'Cabine de Vasquez — cofre da mesa',
+    safeDesc: 'Três rodas, latão, gastas até o brilho nos dígitos que ela usava. A combinação não está nesta sala; está em algum lugar nos registros da nave.',
+    wheelAria: (n) => `roda de combinação ${n}`,
+    tryHandle: 'Girar a maçaneta',
+    safeOpen: 'O ferrolho desliza. Dentro: um drive de log privado, criptografado, etiquetado na letra dela: "para quem sobrar".',
+    safeShut: 'O dial passa clicando. Nada cede.',
+    driveNote: 'Sua IA consegue descriptografar o drive. Ela vai querer conversar sobre se deveria.',
+    recorderTitle: 'Cabine de Okafor — gravador de voz',
+    recorderDesc: 'Um rolo-a-rolo, porque ele nunca confiou em nada sem peças móveis. Um dos rolos está quase no fim. A etiqueta diz AMARA.',
+    play: 'Tocar a fita',
+    playing: 'Tocando…',
+    transcriptLabel: 'O que você ouve (sua IA não consegue):',
+    noSpeech: 'Este navegador não tem voz. A transcrição vai ter que servir.',
+    wallTitle: 'A parede',
+    wallDesc: 'Desenhos. Uma nave com janelas demais. Um homem com um bigode enorme. Um bolo de aniversário, todo ano, as velas contadas com cuidado.',
   },
 };
 
