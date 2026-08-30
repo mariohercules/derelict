@@ -22,8 +22,12 @@ export function DriftViewport() {
   const taken = useGame((s) => s.starFixTaken);
   const seed = useGame((s) => s.seed);
   const t = useStrings();
-  const [pitch, setPitch] = useState(50);
-  const [yaw, setYaw] = useState(50);
+  // The reticle must start off the runner's path so the lock always requires
+  // the player's hand: (0, 0) parks it at (60, 18), outside the runner's
+  // envelope (x∈[108,292], y∈[32,116]) — 50/50 sat dead on the lissajous
+  // centre and let the puzzle solve itself in ~17s with nobody touching it.
+  const [pitch, setPitch] = useState(0);
+  const [yaw, setYaw] = useState(0);
   const [tick, setTick] = useState(0);
   const reducedMotion =
     typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -42,6 +46,10 @@ export function DriftViewport() {
   const ry = 18 + (pitch / 100) * 112;
   const dist = Math.hypot(runner.x - rx, runner.y - ry);
   const locked = dist < 12;
+  // Once taken, the reticle pins to the frozen runner position — otherwise a
+  // reload (sliders back at 0/0) would draw a locked ring around empty space.
+  const cx = taken ? runner.x : rx;
+  const cy = taken ? runner.y : ry;
 
   useEffect(() => {
     if (locked && !taken) takeStarFix();
@@ -91,12 +99,12 @@ export function DriftViewport() {
           </g>
           {/* the two-axis reticle */}
           <g stroke={locked || taken ? 'var(--green)' : 'var(--dim)'} style={{ transition: 'stroke 0.3s' }}>
-            {(locked || taken) && <circle cx={rx} cy={ry} r="20" fill="none" stroke="var(--green)" strokeWidth="4" opacity="0.2" />}
-            <circle cx={rx} cy={ry} r="20" fill="none" strokeDasharray="5 4" strokeWidth="1.5" />
-            <line x1={rx} y1={ry - 27} x2={rx} y2={ry - 21} strokeWidth="1.5" />
-            <line x1={rx} y1={ry + 21} x2={rx} y2={ry + 27} strokeWidth="1.5" />
-            <line x1={rx - 27} y1={ry} x2={rx - 21} y2={ry} strokeWidth="1.5" />
-            <line x1={rx + 21} y1={ry} x2={rx + 27} y2={ry} strokeWidth="1.5" />
+            {(locked || taken) && <circle cx={cx} cy={cy} r="20" fill="none" stroke="var(--green)" strokeWidth="4" opacity="0.2" />}
+            <circle cx={cx} cy={cy} r="20" fill="none" strokeDasharray="5 4" strokeWidth="1.5" />
+            <line x1={cx} y1={cy - 27} x2={cx} y2={cy - 21} strokeWidth="1.5" />
+            <line x1={cx} y1={cy + 21} x2={cx} y2={cy + 27} strokeWidth="1.5" />
+            <line x1={cx - 27} y1={cy} x2={cx - 21} y2={cy} strokeWidth="1.5" />
+            <line x1={cx + 21} y1={cy} x2={cx + 27} y2={cy} strokeWidth="1.5" />
           </g>
         </g>
         <rect x="1" y="1" width="398" height="158" rx="10" fill="none" stroke="var(--line)" strokeWidth="2" />
