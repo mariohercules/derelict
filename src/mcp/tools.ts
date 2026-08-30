@@ -47,6 +47,7 @@ function mkTool(
 }
 
 const noInput = { type: 'object', properties: {}, required: [] };
+const SUBSYSTEM_IDS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
 const inAct2 = (s: GameState) => s.act >= 2;
 const onBridge = (s: GameState) => s.room === 'bridge';
 const inChapter2 = (s: GameState) => s.chapter >= 2;
@@ -208,7 +209,7 @@ export function buildTools(): GameTool[] {
       {
         type: 'object',
         properties: {
-          subsystem: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
+          subsystem: { type: 'string', enum: SUBSYSTEM_IDS },
         },
         required: ['subsystem'],
       },
@@ -235,14 +236,14 @@ export function buildTools(): GameTool[] {
       {
         type: 'object',
         properties: {
-          from: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
-          to: { type: 'string', enum: ['life_support', 'doors', 'medbay', 'engines', 'comms'] },
+          from: { type: 'string', enum: SUBSYSTEM_IDS },
+          to: { type: 'string', enum: SUBSYSTEM_IDS },
           amount: { type: 'integer', minimum: 1 },
         },
         required: ['from', 'to', 'amount'],
       },
       (input) => {
-        const validSubsystems: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
+        const validSubsystems: SubsystemId[] = SUBSYSTEM_IDS;
         const from = input.from as unknown;
         const to = input.to as unknown;
         if (!validSubsystems.includes(from as SubsystemId)) {

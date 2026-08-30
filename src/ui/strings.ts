@@ -185,6 +185,7 @@ const en: UIStrings = {
       medbay: 'medbay',
       engines: 'engines',
       comms: 'comms',
+      isolation: 'isolation feed',
     },
     fuseTitle: 'Engine feed — fuse socket',
     fuseDesc:
@@ -389,6 +390,7 @@ const ptBR: UIStrings = {
       medbay: 'enfermaria',
       engines: 'motores',
       comms: 'comunicações',
+      isolation: 'alimentação de isolamento',
     },
     fuseTitle: 'Alimentação dos motores — soquete de fusível',
     fuseDesc:

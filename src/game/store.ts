@@ -33,6 +33,11 @@ export function initialState(seed: number = randomSeed()): GameState {
       craneAt: { row: 0, col: 0 }, crateLifted: false, sampleAnalyzed: false,
     },
     killswitch: 'dormant',
+    chapter3: {
+      shielded: [], quarantineStep: 0, cycleStartedAt: null, wave: 'calm', wavesEndured: 0,
+      rack: [null, null, null, null], kernelSeated: false, fragmentStage: 0, cacheRead: false,
+      dish: { az: 0, el: 0 }, beaconHeard: false,
+    },
   };
 }
 

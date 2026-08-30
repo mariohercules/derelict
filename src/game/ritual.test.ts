@@ -66,3 +66,17 @@ describe('helpers', () => {
     expect(ritualExpired(armed, T0 + W + 1)).toBe(true);
   });
 });
+
+describe('three rituals', () => {
+  it('restore and broadcast have 60-second windows and their own confirm tools', () => {
+    expect(RITUALS.restore).toEqual({ id: 'restore', tool: 'merge_fragment', windowMs: 60_000 });
+    expect(RITUALS.broadcast).toEqual({ id: 'broadcast', tool: 'broadcast_evidence', windowMs: 60_000 });
+  });
+
+  it('only one ritual can be armed at a time', () => {
+    const armed = armRitual(IDLE_RITUAL, 'restore', T0).next;
+    expect(armRitual(armed, 'broadcast', T0 + 1000).result.ok).toBe(false);
+    expect(confirmRitual(armed, 'broadcast', T0 + 1000).result.ok).toBe(false);
+    expect(isArmed(armed, 'restore')).toBe(true);
+  });
+});

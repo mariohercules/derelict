@@ -153,6 +153,44 @@ describe('persistence', () => {
     }));
     expect(loadSavedState()).toBeNull();
   });
+
+  it('fills the isolation subsystem and chapter-3 defaults for a Plan B save', () => {
+    const planB = { ...initialState(0) } as Record<string, unknown>;
+    delete planB.chapter3;
+    planB.powerAllocation = { life_support: 25, medbay: 5, comms: 10, doors: 0, engines: 0 };
+    storage.set(SAVE_KEY, JSON.stringify(planB));
+    const loaded = loadSavedState();
+    expect(loaded?.powerAllocation.isolation).toBe(0);
+    expect(loaded?.chapter3.shielded).toEqual([]);
+    expect(loaded?.chapter3.wave).toBe('calm');
+  });
+
+  it('accepts the chapter-3 kill-switch states, rituals and endings, and rejects bogus ones', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), killswitch: 'contained', ending: 'restore' }));
+    expect(loadSavedState()?.killswitch).toBe('contained');
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ritual: { active: 'broadcast', phase: 'done', endsAt: null, held: false } }));
+    expect(loadSavedState()?.ritual.active).toBe('broadcast');
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ending: 'ascend' }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('rejects a malformed chapter-3 slice', () => {
+    const c3 = initialState(0).chapter3;
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter3: { ...c3, shielded: ['warp'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter3: { ...c3, rack: ['A', 'B'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter3: { ...c3, dish: { az: 400, el: 0 } } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter3: { ...c3, quarantineStep: 9 } }));
+    expect(loadSavedState()).toBeNull();
+  });
+
+  it('resumes an active kill-switch with its cycle clock intact', () => {
+    const c3 = { ...initialState(0).chapter3, cycleStartedAt: 123456, wave: 'active' as const };
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 3, killswitch: 'active', chapter3: c3 }));
+    expect(loadSavedState()?.chapter3.cycleStartedAt).toBe(123456);
+  });
 });
 
 describe('v1 → v2 migration', () => {

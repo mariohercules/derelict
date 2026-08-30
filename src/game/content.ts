@@ -1,4 +1,4 @@
-import type { BreakerId, FuseRating, SubsystemId } from './types';
+import type { BreakerId, BusId, ColumnId, FuseRating, SubsystemId } from './types';
 
 export const BREAKER_SEQUENCE: BreakerId[] = ['C', 'A', 'B'];
 export const AUTH_CODE = '0407';
@@ -21,6 +21,7 @@ export const INITIAL_ALLOCATION: Record<SubsystemId, number> = {
   comms: 10,
   doors: 0,
   engines: 0,
+  isolation: 0,
 };
 
 export const EMERGENCY_BULLETIN =
@@ -50,4 +51,17 @@ export interface CrewLogEntry {
   author: string;
   text: string;
 }
+
+// Chapter 3 — the kill-switch and the lower deck
+export const SHIELD_COST = 5; // isolation power per shielded bus
+export const BUSES: BusId[] = ['core', 'nav', 'archive', 'comms'];
+export const WAVE_CALM_MS = 30_000;
+export const WAVE_WARNING_MS = 10_000;
+export const WAVE_ACTIVE_MS = 20_000;
+export const WAVE_CYCLE_MS = WAVE_CALM_MS + WAVE_WARNING_MS + WAVE_ACTIVE_MS;
+export const RESTORE_WINDOW_MS = 60_000;
+export const BROADCAST_WINDOW_MS = 60_000;
+export const DISH_TOLERANCE = 3; // degrees, each axis
+export const COLUMN_ORDER: ColumnId[] = ['C', 'A', 'D', 'B']; // classic ship rack order, top to bottom
+export const BEACON_BEARING = { az: 217, el: 34 }; // classic ship: pod one's beacon
 

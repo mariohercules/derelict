@@ -177,7 +177,7 @@ function CoolantManifold() {
 function PowerBoard() {
   const alloc = useGame((s) => s.powerAllocation);
   const t = useStrings();
-  const order: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
+  const order: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
   return (
     <div className="panel">
       <h2>{t.eng.powerBoard}</h2>

@@ -1,13 +1,20 @@
 import { gameStore, initialState } from './store';
-import type { GameState, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
+import type { BusId, ColumnId, GameState, RitualId, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
 import { CLASSIC_SEED } from './secrets';
 import { ROOM_IDS } from './rooms';
 
 export const SAVE_KEY = 'derelict-save-v2';
 export const LEGACY_SAVE_KEY = 'derelict-save-v1';
 
-const SUBSYSTEMS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms'];
+const SUBSYSTEMS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
 const PHASES: RitualPhase[] = ['idle', 'armed', 'done'];
+const RITUAL_IDS: RitualId[] = ['launch', 'restore', 'broadcast'];
+const ENDINGS = ['leave_unknowing', 'leave_knowing', 'restore', 'broadcast'];
+const KILLSWITCH_STATES = ['dormant', 'stirring', 'active', 'contained'];
+const BUS_IDS: BusId[] = ['core', 'nav', 'archive', 'comms'];
+const COLUMN_IDS: ColumnId[] = ['A', 'B', 'C', 'D'];
+const WAVES = ['calm', 'warning', 'active'];
+const CHAPTER3_BOOL_FLAGS = ['kernelSeated', 'cacheRead', 'beaconHeard'] as const;
 
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
@@ -58,14 +65,14 @@ function validShape(p: Partial<GameState>): boolean {
   if (!p.ritual || typeof p.ritual !== 'object') return false;
   const ritual = p.ritual as unknown as Record<string, unknown>;
   if (!PHASES.includes(ritual.phase as RitualPhase)) return false;
-  if (ritual.active !== null && ritual.active !== 'launch') return false;
+  if (ritual.active !== null && !RITUAL_IDS.includes(ritual.active as RitualId)) return false;
   if (ritual.endsAt !== null && !isFiniteNumber(ritual.endsAt)) return false;
-  if (p.ending !== undefined && p.ending !== null && !['leave_unknowing', 'leave_knowing'].includes(p.ending)) return false;
+  if (p.ending !== undefined && p.ending !== null && !ENDINGS.includes(p.ending)) return false;
   if (p.checkpoint !== undefined && p.checkpoint !== null) {
     const c = p.checkpoint as unknown as Record<string, unknown>;
     if (![1, 2, 3].includes(c.chapter as number) || !ROOM_IDS.includes(c.room as RoomId)) return false;
   }
-  if (p.killswitch !== undefined && !['dormant', 'stirring'].includes(p.killswitch as string)) return false;
+  if (p.killswitch !== undefined && !KILLSWITCH_STATES.includes(p.killswitch as string)) return false;
   if (p.chapter2 !== undefined) {
     const c2 = p.chapter2 as unknown as Record<string, unknown>;
     if (!c2 || typeof c2 !== 'object') return false;
@@ -73,6 +80,20 @@ function validShape(p: Partial<GameState>): boolean {
     const crane = c2.craneAt as Record<string, unknown> | undefined;
     if (!crane || !isIntInRange(crane.row, 0, 2) || !isIntInRange(crane.col, 0, 2)) return false;
     if (!CHAPTER2_BOOL_FLAGS.every((k) => typeof c2[k] === 'boolean')) return false;
+  }
+  if (p.chapter3 !== undefined) {
+    const c3 = p.chapter3 as unknown as Record<string, unknown>;
+    if (!c3 || typeof c3 !== 'object') return false;
+    if (!Array.isArray(c3.shielded) || !c3.shielded.every((b) => BUS_IDS.includes(b as BusId))) return false;
+    if (!isIntInRange(c3.quarantineStep, 0, 4)) return false;
+    if (c3.cycleStartedAt !== null && !isFiniteNumber(c3.cycleStartedAt)) return false;
+    if (!WAVES.includes(c3.wave as string)) return false;
+    if (!isIntInRange(c3.wavesEndured, 0, Number.MAX_SAFE_INTEGER)) return false;
+    if (!Array.isArray(c3.rack) || c3.rack.length !== 4 || !c3.rack.every((c) => c === null || COLUMN_IDS.includes(c as ColumnId))) return false;
+    if (!isIntInRange(c3.fragmentStage, 0, 3)) return false;
+    const dish = c3.dish as Record<string, unknown> | undefined;
+    if (!dish || !isIntInRange(dish.az, 0, 359) || !isIntInRange(dish.el, 0, 90)) return false;
+    if (!CHAPTER3_BOOL_FLAGS.every((k) => typeof c3[k] === 'boolean')) return false;
   }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
@@ -99,6 +120,9 @@ export function loadSavedState(): GameState | null {
     }
     if (!parsed) return null;
     if (parsed.seed === undefined) parsed.seed = CLASSIC_SEED;
+    // Plan A/B saves predate the isolation subsystem (chapter 3).
+    const alloc = parsed.powerAllocation as Record<string, unknown> | undefined;
+    if (alloc && typeof alloc === 'object' && alloc.isolation === undefined) alloc.isolation = 0;
     if (!validShape(parsed)) return null;
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;

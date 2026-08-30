@@ -2,7 +2,7 @@
 // tool, the human holds a physical control, and the agent confirms while the
 // hold is live and the window is open. One ritual can be armed at a time.
 import type { ActionResult, RitualId, RitualState } from './types';
-import { LAUNCH_WINDOW_MS } from './content';
+import { BROADCAST_WINDOW_MS, LAUNCH_WINDOW_MS, RESTORE_WINDOW_MS } from './content';
 
 export interface RitualDef {
   id: RitualId;
@@ -12,6 +12,8 @@ export interface RitualDef {
 
 export const RITUALS: Record<RitualId, RitualDef> = {
   launch: { id: 'launch', tool: 'confirm_launch', windowMs: LAUNCH_WINDOW_MS },
+  restore: { id: 'restore', tool: 'merge_fragment', windowMs: RESTORE_WINDOW_MS },
+  broadcast: { id: 'broadcast', tool: 'broadcast_evidence', windowMs: BROADCAST_WINDOW_MS },
 };
 
 export const IDLE_RITUAL: RitualState = { active: null, phase: 'idle', endsAt: null, held: false };

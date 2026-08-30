@@ -2,9 +2,9 @@
 // one integer seed stored in the save, through a deterministic PRNG.
 // Seed 0 is the classic ship — the original hand-authored answers — which
 // keeps legacy saves valid and the test suite's expectations stable.
-import type { BreakerId } from './types';
+import type { BreakerId, ColumnId } from './types';
 import {
-  AUTH_CODE, BREAKER_SEQUENCE, GAUGE_PRESSURES, LAUNCH_AUTH, STAR_FIX, VALVE_TARGETS,
+  AUTH_CODE, BEACON_BEARING, BREAKER_SEQUENCE, COLUMN_ORDER, GAUGE_PRESSURES, LAUNCH_AUTH, STAR_FIX, VALVE_TARGETS,
 } from './content';
 
 export interface Secrets {
@@ -20,6 +20,8 @@ export interface Secrets {
   waterNeeds: [number, number, number]; // per bed, 1–5, sum ≤ WATER_BUDGET
   quarantineSlot: { row: number; col: number }; // 0–2 each
   registryFragment: string; // 4 digits stencilled on the hull fragment
+  columnOrder: [ColumnId, ColumnId, ColumnId, ColumnId]; // core vault rack, top to bottom
+  beaconBearing: { az: number; el: number }; // pod one, degrees
 }
 
 export const CLASSIC_SEED = 0;
@@ -65,6 +67,8 @@ export function secretsFor(seed: number): Secrets {
       waterNeeds: [4, 3, 3],
       quarantineSlot: { row: 2, col: 1 },
       registryFragment: '7741',
+      columnOrder: [...COLUMN_ORDER] as [ColumnId, ColumnId, ColumnId, ColumnId],
+      beaconBearing: { ...BEACON_BEARING },
     };
   }
   const rnd = prng(seed);
@@ -85,6 +89,8 @@ export function secretsFor(seed: number): Secrets {
   while (waterNeeds[0] + waterNeeds[1] + waterNeeds[2] > 10) waterNeeds = [int(1, 5), int(1, 5), int(1, 5)];
   const quarantineSlot = { row: int(0, 2), col: int(0, 2) };
   const registryFragment = String(int(0, 9999)).padStart(4, '0');
+  const columnOrder = shuffle<ColumnId>(['A', 'B', 'C', 'D'], rnd) as [ColumnId, ColumnId, ColumnId, ColumnId];
+  const beaconBearing = { az: int(0, 359), el: int(5, 75) };
 
   return {
     birthday,
@@ -99,6 +105,8 @@ export function secretsFor(seed: number): Secrets {
     waterNeeds,
     quarantineSlot,
     registryFragment,
+    columnOrder,
+    beaconBearing,
   };
 }
 

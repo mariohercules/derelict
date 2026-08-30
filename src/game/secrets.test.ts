@@ -4,6 +4,20 @@ import {
   AUTH_CODE, BREAKER_SEQUENCE, GAUGE_PRESSURES, LAUNCH_AUTH, STAR_FIX, VALVE_TARGETS,
 } from './content';
 
+// Frozen from the Plan B build (secretsFor(1234) before Plan C touched secrets.ts).
+// Captured by running the nine Plan A/B fields once before any chapter-3 draw was added.
+const FROZEN_1234 = {
+  authCode: '0309',
+  breakerSequence: ['A', 'C', 'B'],
+  gaugePressures: [102, 108, 23],
+  starFix: ['ISK', 'RUH', 'ZAN'],
+  launchAuth: 'OVERRIDE-OMEGA',
+  commissionNumber: '2615689',
+  waterNeeds: [2, 1, 3],
+  quarantineSlot: { row: 0, col: 2 },
+  registryFragment: '9768',
+};
+
 describe('secretsFor', () => {
   it('seed 0 is the classic ship — every original answer, unchanged', () => {
     const s = secretsFor(CLASSIC_SEED);
@@ -79,5 +93,35 @@ describe('secretsFor', () => {
       expect(s.quarantineSlot.col).toBeLessThanOrEqual(2);
       expect(s.registryFragment).toMatch(/^\d{4}$/);
     }
+  });
+});
+
+describe('chapter 3 secrets', () => {
+  it('the classic ship seats its columns C-A-D-B and finds pod one at AZ 217 / EL 34', () => {
+    const s = secretsFor(0);
+    expect(s.columnOrder).toEqual(['C', 'A', 'D', 'B']);
+    expect(s.beaconBearing).toEqual({ az: 217, el: 34 });
+  });
+
+  it('seeded ships draw a full permutation and a bearing inside the dish limits', () => {
+    for (let seed = 1; seed <= 400; seed++) {
+      const s = secretsFor(seed);
+      expect([...s.columnOrder].sort()).toEqual(['A', 'B', 'C', 'D']);
+      expect(s.beaconBearing.az).toBeGreaterThanOrEqual(0);
+      expect(s.beaconBearing.az).toBeLessThanOrEqual(359);
+      expect(s.beaconBearing.el).toBeGreaterThanOrEqual(5);
+      expect(s.beaconBearing.el).toBeLessThanOrEqual(75);
+    }
+  });
+
+  it('keeps every Plan A and Plan B secret of a seeded ship unchanged', () => {
+    // Frozen from the Plan B build (secretsFor(1234) before this plan). If this
+    // fails, a new draw landed before an existing one — move it after.
+    const s = secretsFor(1234);
+    expect({
+      authCode: s.authCode, breakerSequence: s.breakerSequence, gaugePressures: s.gaugePressures,
+      starFix: s.starFix, launchAuth: s.launchAuth, commissionNumber: s.commissionNumber,
+      waterNeeds: s.waterNeeds, quarantineSlot: s.quarantineSlot, registryFragment: s.registryFragment,
+    }).toEqual(FROZEN_1234);
   });
 });
