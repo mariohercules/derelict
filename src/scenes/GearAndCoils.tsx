@@ -56,8 +56,13 @@ export function GearAndCoils() {
   const online = useGame((s) => enginesOnline(s));
   const t = useStrings();
   const v = variantSecretsFor(seed);
-  const tray = [v.gearTeeth.target, ...v.gearTeeth.decoys];
-  // the engraved plates lie: each gear wears a neighbour's count
+  const base = [v.gearTeeth.target, ...v.gearTeeth.decoys];
+  // Deterministic display rotation: the target's on-screen slot varies per ship,
+  // so position never tells. Correctness stays keyed on the tooth count.
+  const k = seed % 3;
+  const tray = [0, 1, 2].map((i) => base[(i + k) % 3]);
+  // the engraved plates lie RELATIVE TO THE DISPLAYED order (still a derangement:
+  // the three counts are distinct, and a 3-cycle has no fixed points)
   const plates = [tray[1], tray[2], tray[0]];
   return (
     <>
@@ -76,6 +81,9 @@ export function GearAndCoils() {
             </linearGradient>
           </defs>
           <rect x="4" y="4" width="312" height="102" rx="6" fill="var(--face)" stroke="var(--steel)" strokeWidth="3" />
+          {/* coupling cradle lamp: lit while a gear is seated, dim otherwise — seatedness only, never correctness */}
+          <circle cx="296" cy="18" r="7" fill="var(--face)" stroke="var(--steel)" strokeWidth="1.5" />
+          <circle cx="296" cy="18" r="4" fill={gear !== null ? 'var(--amber)' : 'var(--face)'} opacity={gear !== null ? 0.9 : 0.35} />
           {tray.map((teeth, i) => (
             <g key={teeth}>
               <GearGlyph cx={62 + i * 98} cy={48} r={24} teeth={teeth} seated={gear === teeth} />
