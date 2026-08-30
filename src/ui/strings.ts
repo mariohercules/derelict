@@ -98,6 +98,10 @@ export interface UIStrings {
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
   sealed: { title: string; body: string };
+  medbay: {
+    title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
+    terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
+  };
 }
 
 const en: UIStrings = {
@@ -228,6 +232,19 @@ const en: UIStrings = {
   sealed: {
     title: 'Sealed bulkhead',
     body: 'The door here is welded from the other side, and the ship has no opinion about it yet. Whatever this compartment holds belongs to a later chapter.',
+  },
+  medbay: {
+    title: 'Medbay',
+    intro: 'Your own bay. The pod you thawed in is here, lid up, and the terminal beside it has been dark since before you woke.',
+    bandTitle: 'Med-band — your own',
+    bandDesc: 'The band that monitored your induction is still in the tray, strip chart intact. The ship kept the paper even after it lost the computer.',
+    examine: 'Examine the strip',
+    bandReading: 'Conscious at T-06:12 before induction. Induction authorized by: you. You signed yourself into the ice six minutes after… something.',
+    bandAria: 'Vital-signs strip chart with a marker six minutes before cryo induction',
+    terminalTitle: 'MEDBAY-TERM-01',
+    terminalDesc: 'Dead screen. But the phosphor remembers the last thing it displayed for too long.',
+    burnIn: 'SHUTDOWN PRIME —',
+    next: 'Your AI can trace which terminal gave the order. Ask it. Then ask yourself why you are afraid of the answer.',
   },
 };
 
@@ -360,6 +377,19 @@ const ptBR: UIStrings = {
   sealed: {
     title: 'Anteparo selado',
     body: 'A porta aqui foi soldada do outro lado, e a nave ainda não tem opinião sobre isso. O que este compartimento guarda pertence a um capítulo posterior.',
+  },
+  medbay: {
+    title: 'Enfermaria',
+    intro: 'A sua própria baia. O pod em que você descongelou está aqui, tampa aberta, e o terminal ao lado está apagado desde antes de você acordar.',
+    bandTitle: 'Pulseira médica — a sua',
+    bandDesc: 'A pulseira que monitorou sua indução ainda está na bandeja, com a fita intacta. A nave guardou o papel mesmo depois de perder o computador.',
+    examine: 'Examinar a fita',
+    bandReading: 'Consciente em T-06:12 antes da indução. Indução autorizada por: você. Você se assinou para dentro do gelo seis minutos depois de… alguma coisa.',
+    bandAria: 'Fita de sinais vitais com um marcador seis minutos antes da indução criogênica',
+    terminalTitle: 'MEDBAY-TERM-01',
+    terminalDesc: 'Tela morta. Mas o fósforo lembra da última coisa que exibiu por tempo demais.',
+    burnIn: 'SHUTDOWN PRIME —',
+    next: 'Sua IA consegue rastrear qual terminal deu a ordem. Peça a ela. Depois pergunte a si mesmo por que a resposta te assusta.',
   },
 };
 
