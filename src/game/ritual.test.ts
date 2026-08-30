@@ -80,3 +80,14 @@ describe('three rituals', () => {
     expect(isArmed(armed, 'restore')).toBe(true);
   });
 });
+
+describe('four rituals and profile windows', () => {
+  it('stay confirms with dock_pod_one on a 60-second classic window', () => {
+    expect(RITUALS.stay).toEqual({ id: 'stay', tool: 'dock_pod_one', windowMs: 60_000 });
+  });
+
+  it('armRitual takes an explicit window and falls back to the ritual default', () => {
+    expect(armRitual(IDLE_RITUAL, 'launch', T0, 30_000).next.endsAt).toBe(T0 + 30_000);
+    expect(armRitual(IDLE_RITUAL, 'stay', T0).next.endsAt).toBe(T0 + 60_000);
+  });
+});

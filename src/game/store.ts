@@ -7,7 +7,7 @@ import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
 import { dishAligned, irrigationReport, nextShieldCost, rackCorrect } from './derived';
 import { waveAt } from './killswitch';
 
-export function initialState(seed: number = randomSeed()): GameState {
+export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
     seed,
     act: 1,
@@ -39,13 +39,14 @@ export function initialState(seed: number = randomSeed()): GameState {
       rack: [null, null, null, null], kernelSeated: false, fragmentStage: 0, cacheRead: false,
       dish: { az: 0, el: 0 }, beaconHeard: false,
     },
+    ngPlus,
   };
 }
 
 export const gameStore = createStore<GameState>(() => initialState());
 
-export function resetGame(seed?: number): void {
-  gameStore.setState(initialState(seed), true);
+export function resetGame(seed?: number, opts: { ngPlus?: boolean } = {}): void {
+  gameStore.setState(initialState(seed, opts.ngPlus ?? false), true);
 }
 
 export function bumpToolCalls(): void {

@@ -13,9 +13,9 @@ export interface ActionResult {
 }
 
 export type ChapterId = 1 | 2 | 3;
-export type EndingId = 'leave_unknowing' | 'leave_knowing' | 'restore' | 'broadcast';
+export type EndingId = 'leave_unknowing' | 'leave_knowing' | 'restore' | 'broadcast' | 'stay';
 
-export type RitualId = 'launch' | 'restore' | 'broadcast';
+export type RitualId = 'launch' | 'restore' | 'broadcast' | 'stay';
 export type RitualPhase = 'idle' | 'armed' | 'done';
 
 export interface RitualState {
@@ -92,4 +92,5 @@ export interface GameState {
   chapter2: Chapter2State;
   killswitch: KillswitchState;
   chapter3: Chapter3State;
+  ngPlus: boolean; // New Game+: the plus rules profile and a ship that remembers
 }

@@ -213,6 +213,20 @@ describe('persistence', () => {
     expect(loaded?.chapter3.wave).toBe('calm');
     expect(loaded?.chapter3.wavesEndured).toBe(3);
   });
+
+  it('fills ngPlus for an older save, validates it, and accepts the stay ending and ritual', () => {
+    const older = { ...initialState(0) } as Record<string, unknown>;
+    delete older.ngPlus;
+    storage.set(SAVE_KEY, JSON.stringify(older));
+    expect(loadSavedState()?.ngPlus).toBe(false);
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ngPlus: 'yes' }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0, true), ending: 'stay', won: true, ritual: { active: 'stay', phase: 'done', endsAt: null, held: false } }));
+    const loaded = loadSavedState();
+    expect(loaded?.ngPlus).toBe(true);
+    expect(loaded?.ending).toBe('stay');
+    expect(loaded?.ritual.active).toBe('stay');
+  });
 });
 
 describe('v1 → v2 migration', () => {

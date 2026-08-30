@@ -8,8 +8,8 @@ export const LEGACY_SAVE_KEY = 'derelict-save-v1';
 
 const SUBSYSTEMS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
 const PHASES: RitualPhase[] = ['idle', 'armed', 'done'];
-const RITUAL_IDS: RitualId[] = ['launch', 'restore', 'broadcast'];
-const ENDINGS = ['leave_unknowing', 'leave_knowing', 'restore', 'broadcast'];
+const RITUAL_IDS: RitualId[] = ['launch', 'restore', 'broadcast', 'stay'];
+const ENDINGS = ['leave_unknowing', 'leave_knowing', 'restore', 'broadcast', 'stay'];
 const KILLSWITCH_STATES = ['dormant', 'stirring', 'active', 'contained'];
 const BUS_IDS: BusId[] = ['core', 'nav', 'archive', 'comms'];
 const COLUMN_IDS: ColumnId[] = ['A', 'B', 'C', 'D'];
@@ -61,6 +61,7 @@ function validShape(p: Partial<GameState>): boolean {
   if (!isFiniteNumber(p.seed)) return false;
   if (typeof p.act !== 'number' || ![1, 2, 3].includes(p.act)) return false;
   if (p.chapter !== undefined && ![1, 2, 3].includes(p.chapter as number)) return false;
+  if (typeof p.ngPlus !== 'boolean') return false;
   if (typeof p.room !== 'string' || !ROOM_IDS.includes(p.room as RoomId)) return false;
   if (!p.doors || typeof p.doors !== 'object') return false;
   if (!p.ritual || typeof p.ritual !== 'object') return false;
@@ -122,6 +123,8 @@ export function loadSavedState(): GameState | null {
     }
     if (!parsed) return null;
     if (parsed.seed === undefined) parsed.seed = CLASSIC_SEED;
+    // Saves from before New Game+ (Plan E).
+    if (parsed.ngPlus === undefined) parsed.ngPlus = false;
     // Plan A/B saves predate the isolation subsystem (chapter 3).
     const alloc = parsed.powerAllocation as Record<string, unknown> | undefined;
     if (alloc && typeof alloc === 'object' && alloc.isolation === undefined) alloc.isolation = 0;

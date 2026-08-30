@@ -61,6 +61,7 @@ export const WAVE_ACTIVE_MS = 20_000;
 export const WAVE_CYCLE_MS = WAVE_CALM_MS + WAVE_WARNING_MS + WAVE_ACTIVE_MS;
 export const RESTORE_WINDOW_MS = 60_000;
 export const BROADCAST_WINDOW_MS = 60_000;
+export const STAY_WINDOW_MS = 60_000;
 export const DISH_TOLERANCE = 3; // degrees, each axis
 export const COLUMN_ORDER: ColumnId[] = ['C', 'A', 'D', 'B']; // classic ship rack order, top to bottom
 export const BEACON_BEARING = { az: 217, el: 34 }; // classic ship: pod one's beacon

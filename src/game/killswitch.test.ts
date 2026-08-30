@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { IMMUNE_TOOLS, secondsToNextPhase, shieldCost, suppressed, waveAt } from './killswitch';
 import { initialState } from './store';
 import { SHIELD_COST, WAVE_ACTIVE_MS, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
+import { PLUS_RULES } from './rules';
 import type { GameState } from './types';
 
 const T0 = 1_000_000;
@@ -74,5 +75,17 @@ describe('suppressed', () => {
   it('prices shielding linearly', () => {
     expect(shieldCost(1)).toBe(SHIELD_COST);
     expect(shieldCost(4)).toBe(4 * SHIELD_COST);
+  });
+});
+
+describe('profile cycles', () => {
+  it('waveAt and secondsToNextPhase follow the plus cycle when given', () => {
+    const c = PLUS_RULES.cycle; // 20 / 8 / 25
+    expect(waveAt(T0, T0 + 19_999, c)).toBe('calm');
+    expect(waveAt(T0, T0 + 20_000, c)).toBe('warning');
+    expect(waveAt(T0, T0 + 28_000, c)).toBe('active');
+    expect(waveAt(T0, T0 + 53_000, c)).toBe('calm');
+    expect(secondsToNextPhase(T0, T0 + 20_000, c)).toBe(8);
+    expect(shieldCost(3, 6)).toBe(18);
   });
 });
