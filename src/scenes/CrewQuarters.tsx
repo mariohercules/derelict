@@ -97,40 +97,65 @@ function Recorder() {
   const [noSpeech, setNoSpeech] = useState(false);
   const transcript = getRecorderTranscript();
   const bars = Array.from({ length: 24 }, (_, i) => 4 + ((transcript.charCodeAt(i * 7 % transcript.length) * 7) % 18));
-  // Bounded, deterministic fallback: some browsers (Chrome, notably) drop the
-  // utterance's `end` event on long reads or after tab backgrounding, which
-  // would otherwise leave the reels spinning and the button disabled forever.
-  const fallbackMs = Math.min(90_000, 3_000 + transcript.length * 60);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Two independent failsafes, because a stock voice's actual read time varies
+  // with rate and browser and can run well past a length-based guess:
+  // - idle timer: re-armed on every word boundary (and on start), so it only
+  //   fires when speech has genuinely gone silent — dropped `end` event,
+  //   tab backgrounding, Chrome's GC-mid-utterance bug — not when it's just a
+  //   long line.
+  // - hard cap: armed once at play() start as a backstop in case boundary
+  //   events never arrive at all.
+  const IDLE_MS = 10_000;
+  const hardCapMs = Math.min(120_000, 3_000 + transcript.length * 150);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hardCapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Held for the duration of playback: Chrome can garbage-collect an utterance
+  // mid-speech if nothing keeps a reference to it, silently killing the audio
+  // and dropping `end` along with it.
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const clearTimer = () => {
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
+  const clearIdleTimer = () => {
+    if (idleTimerRef.current !== null) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  };
+  const clearHardCapTimer = () => {
+    if (hardCapTimerRef.current !== null) {
+      clearTimeout(hardCapTimerRef.current);
+      hardCapTimerRef.current = null;
     }
   };
 
+  const stop = () => {
+    clearIdleTimer();
+    clearHardCapTimer();
+    utteranceRef.current = null;
+    setPlaying(false);
+  };
+
   useEffect(() => () => {
-    clearTimer();
+    stop();
     try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
   }, []);
 
-  const stop = () => {
-    clearTimer();
-    setPlaying(false);
+  const armIdleTimer = () => {
+    clearIdleTimer();
+    idleTimerRef.current = setTimeout(() => {
+      try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
+      stop();
+    }, IDLE_MS);
   };
 
   const play = () => {
     playRecorder();
-    clearTimer();
     setPlaying(true);
-    // Armed unconditionally: it also covers the no-speech branch below, so the
-    // reels run for a short deterministic stretch and then stop on their own.
-    timerRef.current = setTimeout(() => {
+    armIdleTimer();
+    clearHardCapTimer();
+    hardCapTimerRef.current = setTimeout(() => {
       try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
-      timerRef.current = null;
-      setPlaying(false);
-    }, fallbackMs);
+      stop();
+    }, hardCapMs);
     try {
       const synth = window.speechSynthesis;
       if (!synth) throw new Error('no speech');
@@ -138,12 +163,15 @@ function Recorder() {
       const u = new SpeechSynthesisUtterance(transcript);
       u.lang = locale === 'pt-BR' ? 'pt-BR' : 'en-US';
       u.rate = 0.92;
+      u.onstart = () => armIdleTimer();
+      u.onboundary = () => armIdleTimer();
       u.onend = () => stop();
       u.onerror = () => stop();
+      utteranceRef.current = u;
       synth.speak(u);
     } catch {
       setNoSpeech(true);
-      // playing stays true; the armed fallback timer above stops it.
+      // playing stays true; the idle timer armed above stops it deterministically.
     }
   };
 
