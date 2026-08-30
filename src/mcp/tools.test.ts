@@ -8,6 +8,7 @@ import {
 } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
 import { EMPTY_META, metaStore } from '../game/meta';
+import { variantFor, variantSecretsFor } from '../game/variants';
 
 beforeEach(() => resetGame(0));
 
@@ -517,5 +518,50 @@ describe('New Game+ tools', () => {
     resetGame(0);
     const plain = await call('read_emergency_bulletin');
     expect(plain.bulletin).not.toMatch(/PRIOR SESSION/);
+  });
+});
+
+describe('remixed ships — the surface follows the ship', () => {
+  function findSeed(pred: (seed: number) => boolean): number {
+    for (let seed = 1; seed < 5000; seed++) if (pred(seed)) return seed;
+    throw new Error('no seed found');
+  }
+  const S_PB = findSeed((s) => variantFor(s, 'cryo_bay') === 1);
+  const S_GC = findSeed((s) => variantFor(s, 'engineering') === 1);
+
+  it('the maintenance log describes the patch bay on a patch-bay ship, breakers otherwise', async () => {
+    resetGame(S_PB);
+    const log = await call('read_maintenance_log');
+    expect(log.log).toContain('P-7B');
+    expect(log.log).toContain(`bus ${variantSecretsFor(S_PB).cableBuses[0]}`);
+    resetGame(0);
+    const classic = await call('read_maintenance_log');
+    expect(classic.log).toContain('LOAD ORDER');
+  });
+
+  it('the engine schematic and diagnostics speak coil-drive on a coil ship', async () => {
+    resetGame(S_GC);
+    gameStore.setState({ room: 'engineering', act: 2 });
+    const v = variantSecretsFor(S_GC);
+    const sch = await call('get_schematic', { system: 'engine_feed' });
+    expect(sch.schematic).toContain(`${v.gearTeeth.target} teeth`);
+    expect(sch.schematic).toContain('COIL DRIVE');
+    const coolant = await call('get_schematic', { system: 'coolant' });
+    expect(coolant.schematic).toContain('SELF-REGULATING');
+    const diag = await call('run_diagnostics', { subsystem: 'engines' });
+    expect(diag.faults.join(' ')).toMatch(/coupling gear not seated/);
+    expect(diag.faults.join(' ')).not.toMatch(/fuse/);
+    const sensors = await call('read_sensors', { system: 'coolant' });
+    expect(JSON.stringify(sensors)).not.toContain('FAULT');
+  });
+
+  it('the classic ship\'s surface is untouched, and the tool contract never changes', async () => {
+    resetGame(0);
+    gameStore.setState({ room: 'engineering', act: 2 });
+    const diag = await call('run_diagnostics', { subsystem: 'engines' });
+    expect(diag.faults.join(' ')).toMatch(/fuse not seated/);
+    const sensors = await call('read_sensors', { system: 'coolant' });
+    expect(JSON.stringify(sensors)).toContain('FAULT');
+    expect(buildTools()).toHaveLength(31);
   });
 });

@@ -6,13 +6,14 @@ import {
   quarantineKillswitch, queryFragmentMemory, readPrimeCache, hearBeacon, confirmMerge, confirmBroadcast,
   hailPodOne, confirmDock,
 } from '../game/store';
-import { enginesOnline, logsAvailable, nextShieldCost, rackCorrect, stayAvailable, stayBlocker, valvesCorrect } from '../game/derived';
+import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, nextShieldCost, rackCorrect, stayAvailable, stayBlocker, valvesCorrect } from '../game/derived';
 import type { StayBlocker } from '../game/derived';
 import { BUSES, CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
 import { suppressed } from '../game/killswitch';
 import { getMemory } from '../game/meta';
+import { variantFor } from '../game/variants';
 import {
   getBeaconMessage, getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
   getFragmentMemory, getMaintenanceLog, getMedbayRecords, getPrimeCache, getPrivateLog, getQuarantineLog, getRackSchematic,
@@ -253,9 +254,15 @@ export function buildTools(): GameTool[] {
         if (sub === 'engines') {
           const faults: string[] = [];
           if (s.powerAllocation.engines < ENGINES_REQUIRED) faults.push(`insufficient start power (needs ${ENGINES_REQUIRED}u)`);
-          if (s.fuseInstalled === null) faults.push('engine feed fuse not seated - physical replacement required');
-          else if (s.fuseInstalled !== CORRECT_FUSE) faults.push('engine feed fuse seated but wrong rating - carries no start current');
-          if (!valvesCorrect(s)) faults.push('coolant valve settings out of spec - see coolant schematic');
+          if (variantFor(s.seed, 'engineering') === 1) {
+            if (s.chapter1v.gear === null) faults.push('coupling gear not seated - physical selection required');
+            else if (!gearCorrect(s)) faults.push('coupling gear seated but wrong tooth count - carries no torque');
+            if (!coilsCorrect(s)) faults.push('coil phase out of alignment - see the engine feed schematic');
+          } else {
+            if (s.fuseInstalled === null) faults.push('engine feed fuse not seated - physical replacement required');
+            else if (s.fuseInstalled !== CORRECT_FUSE) faults.push('engine feed fuse seated but wrong rating - carries no start current');
+            if (!valvesCorrect(s)) faults.push('coolant valve settings out of spec - see coolant schematic');
+          }
           return { ok: true, subsystem: sub, online: enginesOnline(s), faults };
         }
         return { ok: true, subsystem: sub, power_units: s.powerAllocation[sub], faults: [] };
@@ -304,7 +311,7 @@ export function buildTools(): GameTool[] {
           if (s.chapter < 3) return { ok: false, message: 'No such sheet in the surviving archive — not yet.' };
           return { ok: true, system: 'core_rack', schematic: getRackSchematic(s.seed) };
         }
-        const schematics = getSchematics();
+        const schematics = getSchematics(s.seed);
         const key = input.system as keyof typeof schematics;
         if (!Object.hasOwn(schematics, key)) return { ok: false, message: 'No such schematic in the surviving archive.' };
         return { ok: true, system: key, schematic: schematics[key] };
@@ -323,6 +330,16 @@ export function buildTools(): GameTool[] {
       (input) => {
         const s = gameStore.getState();
         if (input.system === 'coolant') {
+          if (variantFor(s.seed, 'engineering') === 1) {
+            return {
+              ok: true,
+              system: 'coolant',
+              channels: [
+                { channel: 'manifold', reading: 'self-regulating', status: 'OK' },
+                { channel: 'coolant_temp', reading: '311K', status: 'OK' },
+              ],
+            };
+          }
           return {
             ok: true,
             system: 'coolant',

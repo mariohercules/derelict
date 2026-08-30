@@ -8,6 +8,7 @@ import {
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
 import { secretsFor } from './secrets';
 import { EMPTY_META } from './meta';
+import { variantFor, variantSecretsFor } from './variants';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -72,8 +73,8 @@ describe('localized narrative', () => {
     setLocale('pt-BR');
     expect(getCrewLogs(0)[4].text).toContain(LAUNCH_AUTH);
     expect(getMaintenanceLog(0)).toMatch(/C.*A.*B/);
-    expect(getSchematics().coolant).toContain('12');
-    expect(getSchematics().engine_feed).toContain('10A');
+    expect(getSchematics(0).coolant).toContain('12');
+    expect(getSchematics(0).engine_feed).toContain('10A');
     expect(getCrewManifest(0)).toContain('DDMM');
   });
 
@@ -95,7 +96,7 @@ describe('localized narrative', () => {
   });
 
   it('renders a seeded ship\'s birthday and launch phrase into the narrative', () => {
-    const seed = 777;
+    const seed = 700; // a classic-cryo_bay (variant 0) seed, so the breaker-order log applies
     const s = secretsFor(seed);
     setLocale('pt-BR');
     expect(getPhotoCaption(seed)).toContain(String(s.birthday.day).padStart(2, '0'));
@@ -126,5 +127,15 @@ describe('localized narrative', () => {
     expect(getBeaconMessage(0, true)).toContain('AZ 217');
     expect(getBeaconMessage(0, true)).toContain('garras');
     expect(endingLabel('stay')).toBe('STAY');
+  });
+
+  it('variant sheets keep their machine codes in pt-BR', () => {
+    const S_PB = (() => { for (let s = 1; s < 5000; s++) if (variantFor(s, 'cryo_bay') === 1) return s; throw new Error('none'); })();
+    const S_GC = (() => { for (let s = 1; s < 5000; s++) if (variantFor(s, 'engineering') === 1) return s; throw new Error('none'); })();
+    setLocale('pt-BR');
+    expect(getMaintenanceLog(S_PB)).toContain('P-7B');
+    expect(getMaintenanceLog(S_PB)).toContain(String(variantSecretsFor(S_PB).cableBuses[2]));
+    expect(getSchematics(S_GC).engine_feed).toContain(String(variantSecretsFor(S_GC).gearTeeth.target));
+    setLocale('en');
   });
 });

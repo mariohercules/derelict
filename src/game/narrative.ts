@@ -8,6 +8,7 @@ import { EMERGENCY_BULLETIN, SCHEMATICS } from './content';
 import { getLocale } from './i18n';
 import { secretsFor, slotLabel } from './secrets';
 import type { Meta } from './meta';
+import { variantFor, variantSecretsFor } from './variants';
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHS_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -39,6 +40,19 @@ function maintenanceLogPt([a, b, c]: BreakerId[]): string {
   return (
     `PAINEL DE ENERGIA AUXILIAR P-7 — religar os disjuntores em ORDEM DE CARGA: ${a} (suporte de vida), ${b} (barramento principal), ${c} (iluminação). ` +
     'Qualquer outra ordem derruba o relé mestre e reseta o painel. Sim, alguém etiquetou fora de ordem. Não, nunca descobrimos quem.'
+  );
+}
+
+function patchBayLogEn([r, g, b]: [number, number, number]): string {
+  return (
+    `PATCH BAY P-7B — aux power routes through three patched lines. RED → bus ${r}, GREEN → bus ${g}, BLUE → bus ${b}. ` +
+    'Seat all three, then ENERGIZE. The panel forgives nothing and remembers less.'
+  );
+}
+function patchBayLogPt([r, g, b]: [number, number, number]): string {
+  return (
+    `PAINEL DE REMENDOS P-7B — a energia auxiliar passa por três linhas remendadas. VERMELHO → barramento ${r}, VERDE → barramento ${g}, AZUL → barramento ${b}. ` +
+    'Encaixe os três e depois ENERGIZE. O painel não perdoa nada e lembra menos ainda.'
   );
 }
 
@@ -331,11 +345,39 @@ export function getCargoManifest(seed: number): string {
 }
 export function getSampleAnalysis(): string { return pick(SAMPLE_ANALYSIS); }
 
-export function getSchematics(): Record<'power' | 'engine_feed' | 'coolant', string> {
-  return getLocale() === 'pt-BR' ? SCHEMATICS_PT : SCHEMATICS;
+function coilDriveSheets(seed: number): { engine_feed: string; coolant: string } {
+  const v = variantSecretsFor(seed);
+  const [a, b, c] = v.coilPhases;
+  return getLocale() === 'pt-BR'
+    ? {
+        engine_feed:
+          `ALIMENTAÇÃO DOS MOTORES — COIL DRIVE. Engrenagem de acoplamento: ${v.gearTeeth.target} dentes; duas iscas dividem a bandeja — conte os dentes, as plaquetas mentem. ` +
+          `Fases das bobinas nos dials de 12 marcas: A ${a}, B ${b}, C ${c}.`,
+        coolant:
+          'REFRIGERAÇÃO — COLETOR AUTORREGULADO. Esta nave não tem válvulas a ajustar; o circuito se equilibra sozinho. Pela primeira vez, o barramento de sensores é honesto.',
+      }
+    : {
+        engine_feed:
+          `ENGINE FEED — COIL DRIVE. Coupling gear: ${v.gearTeeth.target} teeth; two decoys share the tray — count the teeth, the plates lie. ` +
+          `Coil phases on the 12-mark dials: A ${a}, B ${b}, C ${c}.`,
+        coolant:
+          'COOLANT — SELF-REGULATING MANIFOLD. No valves to set on this ship; the loop balances itself. For once, the sensor bus is honest.',
+      };
+}
+
+export function getSchematics(seed: number): Record<'power' | 'engine_feed' | 'coolant', string> {
+  const base = getLocale() === 'pt-BR' ? SCHEMATICS_PT : SCHEMATICS;
+  if (variantFor(seed, 'engineering') === 1) {
+    return { ...base, ...coilDriveSheets(seed) };
+  }
+  return base;
 }
 
 export function getMaintenanceLog(seed: number): string {
+  if (variantFor(seed, 'cryo_bay') === 1) {
+    const buses = variantSecretsFor(seed).cableBuses;
+    return getLocale() === 'pt-BR' ? patchBayLogPt(buses) : patchBayLogEn(buses);
+  }
   const order = secretsFor(seed).breakerSequence;
   return getLocale() === 'pt-BR' ? maintenanceLogPt(order) : maintenanceLogEn(order);
 }
