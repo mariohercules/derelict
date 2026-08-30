@@ -3,6 +3,8 @@ export type { BedState } from './types';
 import { CORRECT_FUSE, DISH_TOLERANCE, DOORS_REQUIRED, ENGINES_REQUIRED, WATER_BUDGET } from './content';
 import { secretsFor } from './secrets';
 import { rulesFor } from './rules';
+import { hasSeenAllRoads } from './meta';
+import type { Meta } from './meta';
 
 export function valvesCorrect(s: GameState): boolean {
   const targets = secretsFor(s.seed).valveTargets;
@@ -55,4 +57,21 @@ export function dishAligned(s: GameState): boolean {
 // Isolation power the next breaker will demand: the profile's cost per shielded bus, cumulative.
 export function nextShieldCost(s: GameState): number {
   return rulesFor(s).shieldCost * (s.chapter3.shielded.length + 1);
+}
+
+export type StayBlocker = 'not_plus' | 'roads' | 'contained' | 'beacon';
+
+// The fourth ending exists only for a New Game+ crew that has walked the other
+// three roads, boxed the kill-switch and found pod one. Checked in this order so
+// the refusal always names the next thing to do.
+export function stayBlocker(s: Pick<GameState, 'ngPlus' | 'killswitch' | 'chapter3'>, memory: Meta): StayBlocker | null {
+  if (!s.ngPlus) return 'not_plus';
+  if (!hasSeenAllRoads(memory)) return 'roads';
+  if (s.killswitch !== 'contained') return 'contained';
+  if (!s.chapter3.beaconHeard) return 'beacon';
+  return null;
+}
+
+export function stayAvailable(s: Pick<GameState, 'ngPlus' | 'killswitch' | 'chapter3'>, memory: Meta): boolean {
+  return stayBlocker(s, memory) === null;
 }

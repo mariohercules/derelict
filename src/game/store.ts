@@ -4,9 +4,11 @@ import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDG
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
 import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
-import { dishAligned, irrigationReport, nextShieldCost, rackCorrect } from './derived';
+import { dishAligned, irrigationReport, nextShieldCost, rackCorrect, stayBlocker } from './derived';
+import type { StayBlocker } from './derived';
 import { waveAt } from './killswitch';
 import { rulesFor } from './rules';
+import { getMemory } from './meta';
 
 export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
@@ -518,4 +520,42 @@ export function confirmBroadcast(now: number = Date.now()): ActionResult {
   }
   gameStore.setState({ ritual: next, won: true, ending: 'broadcast' });
   return { ok: true, message: 'Transmitting on the open band. Every relay in range is hearing this. Some doors do not close again.' };
+}
+
+// ---------------------------------------------------------------- STAY (New Game+)
+
+const STAY_REFUSALS: Record<StayBlocker, string> = {
+  not_plus: 'Pod one is not coming to this ship. Not this time.',
+  roads: 'Pod one answers a crew that has already left, restored and broadcast — and chose none of them. The link has not walked every road yet.',
+  contained: 'The directive set is still loose below decks; pod one will not dock with a kill-switch on the bus. Contain it first: the crew member cuts the isolation breakers, you call quarantine_killswitch to 4/4.',
+  beacon: 'Pod one has not been found. The crew member steers the dish at the comms array to the carrier bearing; then call listen_beacon.',
+};
+
+export function hailPodOne(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  const blocker = stayBlocker(s, getMemory());
+  if (blocker) return { ok: false, message: STAY_REFUSALS[blocker] };
+  if (s.room !== 'engineering') {
+    return { ok: false, message: 'Two-operator rule: the crew member must be in engineering, hands on the docking clamps, before pod one commits to an approach. Hail refused.' };
+  }
+  if (s.ritual.phase === 'done') return { ok: false, message: 'This ship has already chosen.' };
+  const window = rulesFor(s).windows.stay;
+  const { next, result } = armRitual(s.ritual, 'stay', now, window);
+  if (!result.ok) return { ok: false, message: 'Another two-operator sequence is live. Let it finish or lapse.' };
+  gameStore.setState({ ritual: next });
+  return {
+    ok: true,
+    message: `Pod one answers: "Cormorant, we see you. Coming in." Approach in progress — the crew member must HOLD the docking clamps open; then call dock_pod_one within ${window / 1000}s.`,
+  };
+}
+
+export function confirmDock(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  const { next, result } = confirmRitual(s.ritual, 'stay', now);
+  if (!result.ok) {
+    gameStore.setState({ ritual: next });
+    return result;
+  }
+  gameStore.setState({ ritual: next, won: true, ending: 'stay' });
+  return { ok: true, message: 'Clamps engaged. Pod one is docked. Nine people are coming through the hatch, and nobody on this ship has to choose anything tonight.' };
 }
