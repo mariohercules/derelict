@@ -1,11 +1,12 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, BusId, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, SHIELD_COST, WATER_BUDGET, WAVE_CALM_MS } from './content';
+import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor } from './secrets';
-import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
+import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
 import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
 import { dishAligned, irrigationReport, nextShieldCost, rackCorrect } from './derived';
 import { waveAt } from './killswitch';
+import { rulesFor } from './rules';
 
 export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
@@ -129,10 +130,10 @@ export function routePower(from: SubsystemId, to: SubsystemId, amount: number): 
     return { ok: false, message: `${from} only holds ${alloc[from]}u.` };
   }
   if (from === 'isolation') {
-    // Every shielded bus holds SHIELD_COST for good — the breaker does not
-    // give it back, so isolation can never be drawn down below what its
-    // shielded buses are already holding.
-    const held = SHIELD_COST * s.chapter3.shielded.length;
+    // Every shielded bus holds the profile's shield cost for good — the
+    // breaker does not give it back, so isolation can never be drawn down
+    // below what its shielded buses are already holding.
+    const held = rulesFor(s).shieldCost * s.chapter3.shielded.length;
     if (alloc.isolation - amount < held) {
       const free = alloc.isolation - held;
       return {
@@ -204,12 +205,13 @@ export function initiateLaunch(auth: string, now: number = Date.now()): ActionRe
     return { ok: false, message: 'Launch authorization rejected.' };
   }
   if (s.ritual.phase === 'done') return { ok: false, message: 'Pod two is already away.' };
-  const { next, result } = armRitual(s.ritual, 'launch', now);
+  const window = rulesFor(s).windows.launch;
+  const { next, result } = armRitual(s.ritual, 'launch', now, window);
   if (!result.ok) return { ok: false, message: 'Launch sequence already in progress.' };
   gameStore.setState({ ritual: next });
   return {
     ok: true,
-    message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${RITUALS.launch.windowMs / 1000}s.`,
+    message: `Sequence initiated. Two-operator rule in effect: the human must HOLD the confirm handle; then call confirm_launch within ${window / 1000}s.`,
   };
 }
 
@@ -326,24 +328,29 @@ export function liftCrate(): ActionResult {
   return { ok: true, message: 'The quarantine container comes up. Inside: a slab of hull plate with a stencilled registry, half burned away.' };
 }
 
-export function analyzeSample(fragment: string): ActionResult {
+export function analyzeSample(fragment: string, now: number = Date.now()): ActionResult {
   const s = gameStore.getState();
   if (!s.chapter2.crateLifted) return { ok: false, message: 'No sample is in the analyzer. The quarantine container is still in the bay stack — the crew member has to lift it.' };
   const given = String(fragment).replace(/\D/g, '').padStart(4, '0');
   if (given !== secretsFor(s.seed).registryFragment) {
     return { ok: false, message: 'Registry cross-check failed: that fragment matches no Combine hull. Have the crew member read the stencil again, digit by digit.' };
   }
+  // New Game+: the kill-switch does not wait for the lower deck — it wakes the
+  // moment the Kestrel has a name. Its first wave is still preceded by a warning.
+  const wakeNow = rulesFor(s).wakeOn === 'kestrel' && s.killswitch === 'dormant';
   gameStore.setState((st) => ({
     chapter2: { ...st.chapter2, sampleAnalyzed: true },
-    killswitch: st.killswitch === 'dormant' ? 'stirring' : st.killswitch,
+    killswitch: wakeNow ? 'active' : st.killswitch === 'dormant' ? 'stirring' : st.killswitch,
     chapter: 3,
     checkpoint: { chapter: 3, room: 'cargo_bay' },
+    ...(wakeNow ? { chapter3: { ...st.chapter3, cycleStartedAt: now, wave: 'calm' as const, wavesEndured: 0 } } : {}),
   }));
   return {
     ok: true,
     message:
       'Registry confirmed. ISV KESTREL. And something below decks just changed its breathing. ' +
-      'The lower-deck bulkheads have released — reactor room, core vault, comms array. Tell the crew member: the reactor room first, through engineering.',
+      'The lower-deck bulkheads have released — reactor room, core vault, comms array. Tell the crew member: the reactor room first, through engineering.' +
+      (wakeNow ? ' The kill-switch is awake NOW — the waves start from here, not from the lower deck. Move.' : ''),
   };
 }
 
@@ -358,14 +365,15 @@ function patch3(p: Partial<Chapter3State>): void {
 export function tickKillswitch(now: number = Date.now()): void {
   const s = gameStore.getState();
   if (s.killswitch !== 'active' || s.chapter3.cycleStartedAt === null) return;
+  const cycle = rulesFor(s).cycle;
   const prev = s.chapter3.wave;
-  let wave = waveAt(s.chapter3.cycleStartedAt, now);
+  let wave = waveAt(s.chapter3.cycleStartedAt, now, cycle);
   let cycleStartedAt = s.chapter3.cycleStartedAt;
   // Fairness: a wave is always telegraphed. A clock that jumps straight from
   // calm into an active window (throttled tab, long GC pause) is rebased so
   // the warning phase is the next thing the crew sees.
   if (prev === 'calm' && wave === 'active') {
-    cycleStartedAt = now - WAVE_CALM_MS;
+    cycleStartedAt = now - cycle.calmMs;
     wave = 'warning';
   }
   const wavesEndured = s.chapter3.wavesEndured + (prev === 'active' && wave === 'calm' ? 1 : 0);
@@ -434,10 +442,11 @@ export function seatKernel(now: number = Date.now()): ActionResult {
   if (s.room !== 'core_vault') return { ok: false, message: 'The kernel cradle is in the core vault.' };
   if (!rackCorrect(s)) return { ok: false, message: 'The kernel will not seat: the rack is not in order. Your AI can read the order off the rack schematic.' };
   if (s.ritual.phase === 'done') return { ok: false, message: 'This ship has already chosen.' };
-  const { next, result } = armRitual(s.ritual, 'restore', now);
+  const window = rulesFor(s).windows.restore;
+  const { next, result } = armRitual(s.ritual, 'restore', now, window);
   if (!result.ok) return { ok: false, message: 'Another two-operator sequence is live. Let it finish or lapse.' };
   gameStore.setState({ ritual: next, chapter3: { ...s.chapter3, kernelSeated: true } });
-  return { ok: true, message: `Kernel seated. Hold the engage lever; your AI has ${RITUALS.restore.windowMs / 1000}s to call merge_fragment.` };
+  return { ok: true, message: `Kernel seated. Hold the engage lever; your AI has ${window / 1000}s to call merge_fragment.` };
 }
 
 export function queryFragmentMemory(): ActionResult & { stage: number } {
@@ -479,10 +488,11 @@ export function openBand(now: number = Date.now()): ActionResult {
   if (!dishAligned(s)) return { ok: false, message: 'The dish is off the bearing. Nothing you transmit would land.' };
   if (!s.chapter3.cacheRead) return { ok: false, message: 'There is nothing on the bus worth burning across the open band yet. Your AI reads PRIME\'s cache first.' };
   if (s.ritual.phase === 'done') return { ok: false, message: 'This ship has already chosen.' };
-  const { next, result } = armRitual(s.ritual, 'broadcast', now);
+  const window = rulesFor(s).windows.broadcast;
+  const { next, result } = armRitual(s.ritual, 'broadcast', now, window);
   if (!result.ok) return { ok: false, message: 'Another two-operator sequence is live. Let it finish or lapse.' };
   gameStore.setState({ ritual: next });
-  return { ok: true, message: `Band open. Hold the alignment lock against drift; your AI has ${RITUALS.broadcast.windowMs / 1000}s to call broadcast_evidence.` };
+  return { ok: true, message: `Band open. Hold the alignment lock against drift; your AI has ${window / 1000}s to call broadcast_evidence.` };
 }
 
 export function confirmMerge(now: number = Date.now()): ActionResult {

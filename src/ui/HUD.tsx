@@ -5,12 +5,14 @@ import { enginesOnline } from '../game/derived';
 import { useStrings } from './useLocale';
 import { LocaleToggle } from './LocaleToggle';
 import { secondsToNextPhase } from '../game/killswitch';
+import { rulesFor } from '../game/rules';
 
 function WaveBanner() {
   const killswitch = useGame((s) => s.killswitch);
   const wave = useGame((s) => s.chapter3.wave);
   const startedAt = useGame((s) => s.chapter3.cycleStartedAt);
   const won = useGame((s) => s.won);
+  const ngPlus = useGame((s) => s.ngPlus);
   const t = useStrings();
   const [now, setNow] = useState(() => Date.now());
   const live = killswitch === 'active' && wave !== 'calm' && startedAt !== null;
@@ -23,7 +25,7 @@ function WaveBanner() {
   if (won) return null;
   if (killswitch === 'contained') return <div className="wave-banner status-ok">{t.hud.contained}</div>;
   if (!live) return null;
-  const secs = secondsToNextPhase(startedAt!, now);
+  const secs = secondsToNextPhase(startedAt!, now, rulesFor({ ngPlus }).cycle);
   return (
     <div className={`wave-banner blink ${wave === 'active' ? 'status-bad' : ''}`} style={{ color: wave === 'warning' ? 'var(--amber)' : undefined }} role="status">
       {wave === 'warning' ? t.hud.waveWarning(secs) : t.hud.waveActive(secs)}

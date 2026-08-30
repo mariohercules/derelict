@@ -1,7 +1,8 @@
 import type { BedState, GameState } from './types';
 export type { BedState } from './types';
-import { CORRECT_FUSE, DISH_TOLERANCE, DOORS_REQUIRED, ENGINES_REQUIRED, SHIELD_COST, WATER_BUDGET } from './content';
+import { CORRECT_FUSE, DISH_TOLERANCE, DOORS_REQUIRED, ENGINES_REQUIRED, WATER_BUDGET } from './content';
 import { secretsFor } from './secrets';
+import { rulesFor } from './rules';
 
 export function valvesCorrect(s: GameState): boolean {
   const targets = secretsFor(s.seed).valveTargets;
@@ -51,7 +52,7 @@ export function dishAligned(s: GameState): boolean {
   return Math.abs(az - target.az) <= DISH_TOLERANCE && Math.abs(el - target.el) <= DISH_TOLERANCE;
 }
 
-// Isolation power the next breaker will demand: 5u per shielded bus, cumulative.
+// Isolation power the next breaker will demand: the profile's cost per shielded bus, cumulative.
 export function nextShieldCost(s: GameState): number {
-  return SHIELD_COST * (s.chapter3.shielded.length + 1);
+  return rulesFor(s).shieldCost * (s.chapter3.shielded.length + 1);
 }
