@@ -299,7 +299,7 @@ function roadsWalked(memory: Meta): string {
   if (seen.includes('restore')) parts.push(pt ? 'o que virou a nave' : 'the one who became the ship');
   if (seen.includes('broadcast')) parts.push(pt ? 'o que queimou a banda' : 'the one who burned the band');
   if (seen.includes('stay')) parts.push(pt ? 'o que esperou' : 'the one who waited');
-  return parts.join(pt ? ', ' : ', ');
+  return parts.join(', ');
 }
 
 function priorInstance(memory: Meta): string {

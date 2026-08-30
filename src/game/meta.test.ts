@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_META, META_KEY, getMemory, hasSeenAllRoads, hydrateMeta, loadMeta, metaStore, recordRun, startRecordingRuns } from './meta';
 import { initialState } from './store';
+import { getEmergencyBulletin } from './narrative';
+import { setLocale } from './i18n';
 import type { GameState } from './types';
 
 const storage = new Map<string, string>();
@@ -54,6 +56,15 @@ describe('recordRun', () => {
   it('ignores a state that has no ending', () => {
     recordRun({ ...initialState(1), won: true, ending: null });
     expect(getMemory()).toEqual(EMPTY_META);
+  });
+
+  it('a recorded STAY reaches the emergency bulletin as a prior session', () => {
+    setLocale('en');
+    recordRun({ ...initialState(7, true), won: true, ending: 'stay', toolCalls: 80 });
+    expect(getMemory().endingsSeen).toContain('stay');
+    const bulletin = getEmergencyBulletin(getMemory());
+    expect(bulletin).toContain('PRIOR SESSION');
+    expect(bulletin).toContain('STAY');
   });
 });
 

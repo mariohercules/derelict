@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   gameStore, resetGame, startInvestigation, moveCrane, liftCrate, analyzeSample, enterRoom, routePower, cutIsolation,
-  tickKillswitch, initiateLaunch, seatColumn, seatKernel, setDish, openBand,
+  tickKillswitch, initiateLaunch, seatColumn, seatKernel, setDish, openBand, quarantineKillswitch,
 } from './store';
 import { nextShieldCost } from './derived';
 import { LAUNCH_AUTH } from './content';
@@ -79,5 +79,29 @@ describe('New Game+ pressure profile', () => {
     expect(cutIsolation('core').ok).toBe(true);
     expect(routePower('isolation', 'engines', 1).ok).toBe(false);
     expect(nextShieldCost(gameStore.getState())).toBe(12);
+  });
+
+  it('the full plus containment walk: shield all four buses, then quarantine the kill-switch segment by segment', () => {
+    kestrel(true);
+    gameStore.setState({
+      powerAllocation: { life_support: 15, doors: 5, medbay: 0, engines: 20, comms: 0, isolation: 0 },
+      room: 'engineering',
+    });
+    gameStore.setState({ room: 'reactor_room' });
+    expect(routePower('engines', 'isolation', 20).ok).toBe(true);
+    expect(routePower('doors', 'isolation', 4).ok).toBe(true);
+    expect(cutIsolation('core').ok).toBe(true);
+    expect(cutIsolation('nav').ok).toBe(true);
+    expect(cutIsolation('archive').ok).toBe(true);
+    expect(cutIsolation('comms').ok).toBe(true);
+    expect(quarantineKillswitch().ok).toBe(true);
+    expect(quarantineKillswitch().ok).toBe(true);
+    expect(quarantineKillswitch().ok).toBe(true);
+    expect(quarantineKillswitch().ok).toBe(true);
+    const s = gameStore.getState();
+    expect(s.killswitch).toBe('contained');
+    expect(s.powerAllocation.isolation).toBe(24);
+    expect(s.powerAllocation.life_support).toBe(15);
+    expect(routePower('isolation', 'engines', 1).ok).toBe(false);
   });
 });

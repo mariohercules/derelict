@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSavedState, startPersisting, migrateV1, SAVE_KEY, LEGACY_SAVE_KEY } from './persist';
-import { gameStore, resetGame, initialState } from './store';
+import { gameStore, resetGame, initialState, tickKillswitch } from './store';
 import { toolAvailability } from '../mcp/tools';
 
 const storage = new Map<string, string>();
@@ -226,6 +226,20 @@ describe('persistence', () => {
     expect(loaded?.ngPlus).toBe(true);
     expect(loaded?.ending).toBe('stay');
     expect(loaded?.ritual.active).toBe('stay');
+  });
+
+  it('resumes a New Game+ save on the plus cycle: calm at load, warning after the 20s calm phase', () => {
+    const saved = {
+      ...initialState(0, true), chapter: 3, killswitch: 'active',
+      chapter3: { ...initialState(0).chapter3, cycleStartedAt: 123456, wave: 'active' },
+    };
+    storage.set(SAVE_KEY, JSON.stringify(saved));
+    const loaded = loadSavedState();
+    expect(loaded?.chapter3.wave).toBe('calm');
+    expect(loaded?.ngPlus).toBe(true);
+    gameStore.setState(loaded!, true);
+    tickKillswitch(loaded!.chapter3.cycleStartedAt! + 20_001);
+    expect(gameStore.getState().chapter3.wave).toBe('warning');
   });
 });
 
