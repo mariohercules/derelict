@@ -8,6 +8,18 @@
   --red: #ff5c57;
   --dim: #6f8578;
   --text: #cfe3d4;
+  /* instrument palette — bezels, faces, brass, engraved lettering (shared by every scene) */
+  --steel: #3a4a40;
+  --steel-hi: #7a8f82;
+  --steel-mid: #4a5a50;
+  --steel-lo: #1d2620;
+  --face: #0c110e;
+  --face-deep: #080b09;
+  --brass: #c9a55a;
+  --brass-hi: #e2c27a;
+  --brass-mid: #b8893e;
+  --brass-lo: #6e4f1e;
+  --parchment: #c9c1a5;
   font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 

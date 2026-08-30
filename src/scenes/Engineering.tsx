@@ -44,7 +44,7 @@ function Gauge({ label, pressure, ariaLabel }: { label: string; pressure: number
   return (
     <svg viewBox="0 0 120 120" width="128" role="img" aria-label={ariaLabel}>
       {/* bezel + face */}
-      <circle cx={CX} cy={CY} r="56" fill="#0c110e" stroke="#3a4a40" strokeWidth="3" />
+      <circle cx={CX} cy={CY} r="56" fill="var(--face)" stroke="var(--steel)" strokeWidth="3" />
       <circle cx={CX} cy={CY} r="52" fill="none" stroke="var(--line)" strokeWidth="1.5" />
       {/* scale */}
       <path d={arcPath(44, -120, 120)} fill="none" stroke="#33443a" strokeWidth="2" />
@@ -52,7 +52,7 @@ function Gauge({ label, pressure, ariaLabel }: { label: string; pressure: number
       {[10, 20, 40, 50, 70, 80, 100, 110].map((v) => {
         const [x1, y1] = polar(44, valueDeg(v));
         const [x2, y2] = polar(40.5, valueDeg(v));
-        return <line key={v} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#4a5a50" strokeWidth="1" />;
+        return <line key={v} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--steel-mid)" strokeWidth="1" />;
       })}
       {[0, 30, 60, 90, 120].map((v) => {
         const [x1, y1] = polar(44, valueDeg(v));
@@ -60,7 +60,7 @@ function Gauge({ label, pressure, ariaLabel }: { label: string; pressure: number
         const [tx, ty] = polar(28, valueDeg(v));
         return (
           <g key={v}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#7a8f82" strokeWidth="2" />
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--steel-hi)" strokeWidth="2" />
             <text x={tx} y={ty + 2.5} fill="var(--dim)" fontSize="7.5" textAnchor="middle">
               {v}
             </text>
@@ -69,10 +69,10 @@ function Gauge({ label, pressure, ariaLabel }: { label: string; pressure: number
       })}
       {/* needle + hub */}
       <polygon points={needle} fill="var(--amber)" />
-      <circle cx={CX} cy={CY} r="5" fill="#1d2620" stroke="#3a4a40" strokeWidth="1.5" />
+      <circle cx={CX} cy={CY} r="5" fill="var(--steel-lo)" stroke="var(--steel)" strokeWidth="1.5" />
       <circle cx={CX} cy={CY} r="1.8" fill="var(--amber)" />
       {/* engraved label plate */}
-      <rect x="39" y="86" width="42" height="13" rx="2" fill="#131a16" stroke="var(--line)" />
+      <rect x="39" y="86" width="42" height="13" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />
       <text x={CX} y="95.5" fill="var(--text)" fontSize="7" letterSpacing="1" textAnchor="middle">
         {label}
       </text>
@@ -194,7 +194,7 @@ function PowerBoard() {
               flex: 1,
               maxWidth: 340,
               height: 14,
-              background: '#0c110e',
+              background: 'var(--face)',
               border: '1px solid var(--line)',
               borderRadius: 3,
               overflow: 'hidden',

@@ -28,14 +28,14 @@ function StripChart({ examined, aria }: { examined: boolean; aria: string }) {
           <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#1f2b25" strokeWidth="0.5" />
         </pattern>
         <pattern id="mb-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="6" stroke="#3a4a40" strokeWidth="1.5" />
+          <line x1="0" y1="0" x2="0" y2="6" stroke="var(--steel)" strokeWidth="1.5" />
         </pattern>
       </defs>
       {/* paper strip with sprocket holes */}
-      <rect x="2" y="2" width="316" height="86" rx="3" fill="#0f1512" stroke="#2a3a30" />
+      <rect x="2" y="2" width="316" height="86" rx="3" fill="#0f1512" stroke="var(--line)" />
       <rect x="10" y="10" width="300" height="70" fill="url(#mb-grid)" />
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-        <circle key={i} cx={20 + i * 40} cy="6" r="1.4" fill="#2a3a30" />
+        <circle key={i} cx={20 + i * 40} cy="6" r="1.4" fill="var(--line)" />
       ))}
       {/* induction band */}
       <rect x="240" y="10" width="70" height="70" fill="url(#mb-hatch)" opacity="0.7" />
@@ -74,7 +74,7 @@ function BurnedTerminal({ burnIn, aria }: { burnIn: string; aria: string }) {
         </radialGradient>
       </defs>
       {/* bezel */}
-      <rect x="4" y="4" width="312" height="112" rx="10" fill="#131a16" stroke="#3a4a40" strokeWidth="3" />
+      <rect x="4" y="4" width="312" height="112" rx="10" fill="var(--panel-solid)" stroke="var(--steel)" strokeWidth="3" />
       <rect x="18" y="16" width="284" height="88" rx="6" fill="url(#mb-glass)" stroke="#1f2b25" />
       {/* ghost text: the phosphor burn-in */}
       <text x="34" y="62" fontSize="16" fill="var(--green)" opacity="0.13" letterSpacing="2" fontFamily="ui-monospace, monospace">{burnIn}</text>

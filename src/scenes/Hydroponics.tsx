@@ -48,18 +48,18 @@ function Beds() {
           </linearGradient>
         </defs>
         {/* steel trough */}
-        <rect x="6" y="40" width="348" height="96" rx="6" fill="#131a16" stroke="#3a4a40" strokeWidth="2" />
+        <rect x="6" y="40" width="348" height="96" rx="6" fill="var(--panel-solid)" stroke="var(--steel)" strokeWidth="2" />
         {[0, 1, 2].map((i) => {
           const x = 24 + i * 112;
           const level = irrigation[i] / 9; // 0..1
           const vineSize = i === SPIKE_BED ? (solved ? 0.35 : 1) : 0.6;
           return (
             <g key={i}>
-              <rect x={x} y="56" width="96" height="70" rx="4" fill="url(#hy-soil)" stroke="#2a3a30" />
+              <rect x={x} y="56" width="96" height="70" rx="4" fill="url(#hy-soil)" stroke="var(--line)" />
               <rect x={x + 2} y={124 - 66 * level} width="92" height={66 * level} fill="url(#hy-water)" style={{ transition: 'all 0.4s' }} />
               <Vine x={x + 48} y={120} size={vineSize} />
               {/* brass need tag */}
-              <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#6a5630" stroke="#c9a55a" strokeWidth="0.75" />
+              <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#6a5630" stroke="var(--brass)" strokeWidth="0.75" />
               <text x={x + 48} y="141" textAnchor="middle" fontSize="7.5" fill="#f0dfb0" letterSpacing="1">{t.hydro.needTag(needs[i])}</text>
               <text x={x + 48} y="50" textAnchor="middle" fontSize="7" fill="var(--dim)" letterSpacing="1">{t.hydro.bed(i + 1)}</text>
               {/* bed state lamp */}
@@ -80,7 +80,7 @@ function Beds() {
       {/* budget tank meter */}
       <div style={{ marginTop: 12, maxWidth: 360 }}>
         <div className="status-dim" style={{ fontSize: 12 }}>{t.hydro.budget}: {total}/{WATER_BUDGET}u</div>
-        <div style={{ position: 'relative', height: 12, background: '#0c110e', border: '1px solid var(--line)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: 12, background: 'var(--face)', border: '1px solid var(--line)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 1, width: `${Math.min(100, (total / WATER_BUDGET) * 100)}%`, background: report.overBudget ? 'var(--red)' : 'linear-gradient(180deg, #7ac8d8, #3a7a8a)', transition: 'width 0.3s' }} />
         </div>
         {report.overBudget ? <p className="status-bad">{t.hydro.over}</p> : <p className="status-dim">{t.hydro.cycleHint}</p>}

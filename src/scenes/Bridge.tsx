@@ -88,7 +88,7 @@ function Viewport() {
             <circle cx="200" cy="70" r="1.2" fill={aligned ? 'var(--green)' : 'var(--dim)'} stroke="none" />
           </g>
         </g>
-        <rect x="1" y="1" width="398" height="158" rx="10" fill="none" stroke="#2a3a30" strokeWidth="2" />
+        <rect x="1" y="1" width="398" height="158" rx="10" fill="none" stroke="var(--line)" strokeWidth="2" />
       </svg>
       <input
         type="range" min={0} max={100} value={alignment}

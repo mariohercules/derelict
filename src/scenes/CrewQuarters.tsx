@@ -21,7 +21,7 @@ function Wheel({ value, onUp, onDown, aria, disabled, index }: { value: number; 
         </defs>
         <rect x="2" y="2" width="36" height="56" rx="5" fill={`url(#${gradientId})`} stroke="#8a7040" />
         <text x="20" y="16" textAnchor="middle" fontSize="9" fill="#a8905a" opacity="0.5">{prev}</text>
-        <rect x="6" y="22" width="28" height="16" rx="2" fill="#0a0e0c" stroke="#c9a55a" />
+        <rect x="6" y="22" width="28" height="16" rx="2" fill="var(--hull)" stroke="var(--brass)" />
         <text x="20" y="34" textAnchor="middle" fontSize="12" fill="var(--amber)" fontWeight="bold">{value}</text>
         <text x="20" y="52" textAnchor="middle" fontSize="9" fill="#a8905a" opacity="0.5">{next}</text>
       </svg>
@@ -74,11 +74,11 @@ function Safe() {
         </div>
         {/* handle: drops when the bolt slides */}
         <svg viewBox="0 0 60 60" width="60" aria-hidden="true">
-          <circle cx="30" cy="30" r="24" fill="#131a16" stroke="#8a7040" strokeWidth="3" />
+          <circle cx="30" cy="30" r="24" fill="var(--panel-solid)" stroke="#8a7040" strokeWidth="3" />
           <g style={{ transition: 'transform 0.5s', transform: opened ? 'rotate(60deg)' : 'rotate(0deg)', transformOrigin: '30px 30px' }}>
-            <rect x="27" y="8" width="6" height="26" rx="3" fill="#c9a55a" />
+            <rect x="27" y="8" width="6" height="26" rx="3" fill="var(--brass)" />
           </g>
-          <circle cx="30" cy="30" r="4" fill="#c9a55a" />
+          <circle cx="30" cy="30" r="4" fill="var(--brass)" />
         </svg>
         {!opened && <button onClick={() => setLast(dialSafe(combo).ok ? null : 'shut')}>{t.quarters.tryHandle}</button>}
       </div>
@@ -180,10 +180,10 @@ function Recorder() {
       <h2>{t.quarters.recorderTitle}</h2>
       <p className="status-dim">{t.quarters.recorderDesc}</p>
       <svg viewBox="0 0 320 120" width="100%" style={{ maxWidth: 480, display: 'block' }} aria-hidden="true">
-        <rect x="4" y="4" width="312" height="112" rx="8" fill="#131a16" stroke="#3a4a40" strokeWidth="2" />
+        <rect x="4" y="4" width="312" height="112" rx="8" fill="var(--panel-solid)" stroke="var(--steel)" strokeWidth="2" />
         {[80, 240].map((cx, i) => (
           <g key={cx} className={playing ? 'reel-spinning' : undefined}>
-            <circle cx={cx} cy="50" r={i === 0 ? 34 : 24} fill="#0a0e0c" stroke="#5a4a30" strokeWidth="3" />
+            <circle cx={cx} cy="50" r={i === 0 ? 34 : 24} fill="var(--hull)" stroke="#5a4a30" strokeWidth="3" />
             <circle cx={cx} cy="50" r="7" fill="#2a2216" stroke="#8a7040" />
             {[0, 120, 240].map((a) => (
               <line key={a} x1={cx} y1="50" x2={cx + 20 * Math.cos((a * Math.PI) / 180)} y2={50 + 20 * Math.sin((a * Math.PI) / 180)} stroke="#5a4a30" strokeWidth="3" />
@@ -193,7 +193,7 @@ function Recorder() {
         <path d="M 80 84 Q 160 96 240 74" fill="none" stroke="#6a5630" strokeWidth="2" />
         {/* VU bars */}
         {bars.map((h, i) => (
-          <rect key={i} x={40 + i * 10} y={110 - h} width="6" height={h} fill={playing ? 'var(--green)' : '#2a3a30'} opacity={playing ? 0.85 : 0.6} />
+          <rect key={i} x={40 + i * 10} y={110 - h} width="6" height={h} fill={playing ? 'var(--green)' : 'var(--line)'} opacity={playing ? 0.85 : 0.6} />
         ))}
         <circle cx="300" cy="18" r="4" fill={playing ? 'var(--red)' : '#2a1414'} stroke="#3a2020" />
         <text x="292" y="30" fontSize="6" fill="var(--dim)" textAnchor="middle">PLAY</text>

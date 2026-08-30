@@ -3,8 +3,8 @@ import { enterRoom } from '../game/store';
 import { useGame } from './useGame';
 import { useStrings } from './useLocale';
 
-const FILL = { current: 'var(--amber)', open: '#1d2620', locked: '#10151a', sealed: '#0b0e0c' } as const;
-const STROKE = { current: 'var(--amber)', open: 'var(--green)', locked: 'var(--dim)', sealed: '#2a3a30' } as const;
+const FILL = { current: 'var(--amber)', open: 'var(--steel-lo)', locked: '#10151a', sealed: '#0b0e0c' } as const;
+const STROKE = { current: 'var(--amber)', open: 'var(--green)', locked: 'var(--dim)', sealed: 'var(--line)' } as const;
 
 // Splits a room label into up to two lines so it fits its 60×32 map box.
 // Short labels pass through untouched; long ones are balanced across two
@@ -34,8 +34,8 @@ export function DeckMap() {
     <div className="deckmap" aria-label={t.deck.title}>
       <svg viewBox="0 0 400 140" width="100%" role="group">
         {/* hull silhouette */}
-        <path d="M 14 30 L 40 14 L 370 14 L 392 45 L 392 105 L 370 128 L 40 128 L 14 110 Z" fill="#0a0e0c" stroke="#2a3a30" strokeWidth="2" />
-        <line x1="20" y1="72" x2="388" y2="72" stroke="#2a3a30" strokeWidth="1" strokeDasharray="3 3" />
+        <path d="M 14 30 L 40 14 L 370 14 L 392 45 L 392 105 L 370 128 L 40 128 L 14 110 Z" fill="var(--hull)" stroke="var(--line)" strokeWidth="2" />
+        <line x1="20" y1="72" x2="388" y2="72" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" />
         {EDGES.map((e) => {
           const a = ROOM_BY_ID[e.a];
           const b = ROOM_BY_ID[e.b];
@@ -78,7 +78,7 @@ export function DeckMap() {
                 return (
                   <text x={r.x} y={singleLine ? r.y + 3 : undefined} textAnchor="middle"
                     fontSize={singleLine ? '7.5' : '6.8'} letterSpacing={singleLine ? '0.5' : undefined}
-                    fill={status === 'current' ? '#0a0e0c' : status === 'sealed' ? '#3d4f45' : 'var(--text)'}>
+                    fill={status === 'current' ? 'var(--hull)' : status === 'sealed' ? '#3d4f45' : 'var(--text)'}>
                     {lines.map((line, i) => {
                       const y = singleLine ? undefined : i === 0 ? r.y - 2 : r.y + 7;
                       const overflow = line.length > 11;
@@ -100,7 +100,7 @@ export function DeckMap() {
       <div className="status-dim" style={{ fontSize: 11 }}>
         <span style={{ color: 'var(--green)' }}>■</span> {t.deck.legendOpen}{' '}
         <span style={{ color: 'var(--dim)' }}>■</span> {t.deck.legendLocked}{' '}
-        <span style={{ color: '#2a3a30' }}>■</span> {t.deck.legendSealed}
+        <span style={{ color: 'var(--line)' }}>■</span> {t.deck.legendSealed}
       </div>
     </div>
   );
