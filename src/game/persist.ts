@@ -98,6 +98,14 @@ function validShape(p: Partial<GameState>): boolean {
     if (!dish || !isIntInRange(dish.az, 0, 359) || !isIntInRange(dish.el, 0, 90)) return false;
     if (!CHAPTER3_BOOL_FLAGS.every((k) => typeof c3[k] === 'boolean')) return false;
   }
+  if (p.chapter1v !== undefined) {
+    const c1 = p.chapter1v as unknown as Record<string, unknown>;
+    if (!c1 || typeof c1 !== 'object') return false;
+    if (!Array.isArray(c1.sockets) || c1.sockets.length !== 3 || !c1.sockets.every((b) => b === null || isIntInRange(b, 1, 3))) return false;
+    if (typeof c1.energized !== 'boolean') return false;
+    if (c1.gear !== null && !isIntInRange(c1.gear, 1, 99)) return false;
+    if (!Array.isArray(c1.phases) || c1.phases.length !== 3 || !c1.phases.every((v) => isIntInRange(v, 0, 11))) return false;
+  }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
   if (!SUBSYSTEMS.every((k) => isFiniteNumber(alloc[k]))) return false;

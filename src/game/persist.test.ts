@@ -241,6 +241,23 @@ describe('persistence', () => {
     tickKillswitch(loaded!.chapter3.cycleStartedAt! + 20_001);
     expect(gameStore.getState().chapter3.wave).toBe('warning');
   });
+
+  it('fills chapter1v defaults for an older save and rejects malformed shapes', () => {
+    const older = { ...initialState(0) } as Record<string, unknown>;
+    delete older.chapter1v;
+    storage.set(SAVE_KEY, JSON.stringify(older));
+    const loaded = loadSavedState();
+    expect(loaded?.chapter1v).toEqual({ sockets: [null, null, null], energized: false, gear: null, phases: [0, 0, 0] });
+    const c1 = initialState(0).chapter1v;
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter1v: { ...c1, sockets: [0, null, null] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter1v: { ...c1, phases: [0, 0, 12] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter1v: { ...c1, energized: 'yes' } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter1v: { ...c1, sockets: [2, 1, 3], gear: 17 } }));
+    expect(loadSavedState()?.chapter1v.gear).toBe(17);
+  });
 });
 
 describe('v1 → v2 migration', () => {

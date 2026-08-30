@@ -30,7 +30,7 @@ const GLYPHS = ['KAV', 'ORO', 'SET', 'NIM', 'TAL', 'VEX', 'RUH', 'ZAN', 'MOL', '
 const GREEK = ['ALPHA', 'BETA', 'GAMMA', 'DELTA', 'EPSILON', 'ZETA', 'ETA', 'THETA', 'IOTA', 'KAPPA', 'LAMBDA', 'SIGMA', 'OMEGA', 'RHO'];
 
 // mulberry32 — small, fast, good enough for puzzle variety
-function prng(seed: number): () => number {
+export function prng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;

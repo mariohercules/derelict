@@ -43,6 +43,7 @@ export function initialState(seed: number = randomSeed(), ngPlus = false): GameS
       dish: { az: 0, el: 0 }, beaconHeard: false,
     },
     ngPlus,
+    chapter1v: { sockets: [null, null, null], energized: false, gear: null, phases: [0, 0, 0] },
   };
 }
 

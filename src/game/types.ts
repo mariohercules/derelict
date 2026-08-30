@@ -69,6 +69,15 @@ export interface Chapter2State {
   sampleAnalyzed: boolean;
 }
 
+// Inputs of the chapter-1 variant puzzles (Plan F). Outcomes stay in the
+// existing flags: auxPower, enginesOnline (derived), starFixTaken.
+export interface Chapter1VariantState {
+  sockets: [number | null, number | null, number | null]; // bus per cable: red, green, blue
+  energized: boolean; // the last ENERGIZE press lit the panel
+  gear: number | null; // seated coupling gear's tooth count
+  phases: [number, number, number]; // coil phase dials, 0–11
+}
+
 export interface GameState {
   seed: number;
   act: 1 | 2 | 3;
@@ -93,4 +102,5 @@ export interface GameState {
   killswitch: KillswitchState;
   chapter3: Chapter3State;
   ngPlus: boolean; // New Game+: the plus rules profile and a ship that remembers
+  chapter1v: Chapter1VariantState;
 }
