@@ -36,7 +36,7 @@ function Dish() {
   // truth.
   const drift = transmitting && !elapsed && !ritual.held ? Math.sin(tick / 3) * 6 : 0;
   const [ax, ay] = polar(58, dish.az + drift);
-  const elRad = ((90 - dish.el) * Math.PI) / 180;
+  const elRad = (dish.el * Math.PI) / 180;
   const ex = 230 + 60 * Math.cos(elRad);
   const ey = 150 - 60 * Math.sin(elRad);
   const lampColor = aligned ? 'var(--green)' : 'var(--amber)';
@@ -74,7 +74,7 @@ function Dish() {
         <path d="M 230 150 L 284 150 A 54 54 0 0 0 230 96 Z" fill="url(#ca-face)" stroke="var(--line)" />
         {[0, 15, 30, 45, 60, 75, 90].map((deg) => {
           const r1 = 54, r2 = deg % 45 === 0 ? 44 : 48;
-          const rad = ((90 - deg) * Math.PI) / 180;
+          const rad = (deg * Math.PI) / 180;
           return <line key={deg} x1={230 + r1 * Math.cos(rad)} y1={150 - r1 * Math.sin(rad)} x2={230 + r2 * Math.cos(rad)} y2={150 - r2 * Math.sin(rad)} stroke="#4a5a50" strokeWidth={deg % 45 === 0 ? 2 : 1} />;
         })}
         <line x1="230" y1="150" x2={ex} y2={ey} stroke="var(--amber)" strokeWidth="2.5" />
