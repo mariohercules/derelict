@@ -7,9 +7,9 @@ import { Medbay } from './Medbay';
 import { CrewQuarters } from './CrewQuarters';
 import { Hydroponics } from './Hydroponics';
 import { CargoBay } from './CargoBay';
-import { SealedCompartment } from './SealedCompartment';
 import { ReactorRoom } from './ReactorRoom';
 import { CoreVault } from './CoreVault';
+import { CommsArray } from './CommsArray';
 
 export const SCENES: Record<RoomId, () => JSX.Element> = {
   cryo_bay: CryoBay,
@@ -21,5 +21,5 @@ export const SCENES: Record<RoomId, () => JSX.Element> = {
   cargo_bay: CargoBay,
   reactor_room: ReactorRoom,
   core_vault: CoreVault,
-  comms_array: SealedCompartment,
+  comms_array: CommsArray,
 };

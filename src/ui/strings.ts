@@ -135,6 +135,12 @@ export interface UIStrings {
     kernelSeated: string; anotherRitual: string; leverHold: string; leverHolding: string; windowElapsed: string; twoOp: string;
     consoleTitle: string; consoleDesc: string; consoleAria: string; stage: (n: number) => string; cacheLamp: string; next: string;
   };
+  comms: {
+    title: string; intro: string; dishTitle: string; dishDesc: string; dishAria: string; azAria: string; elAria: string; az: string; el: string;
+    carrier: string; locked: string; beaconTitle: string; beaconDesc: string; beaconHeard: string; beaconAria: string;
+    bandTitle: string; bandDesc: string; openBand: string; bandNoEvidence: string; bandNotAligned: string; anotherRitual: string; bandOpen: string;
+    lockHold: string; lockHolding: string; windowElapsed: string; twoOp: string; next: string;
+  };
 }
 
 const en: UIStrings = {
@@ -397,6 +403,35 @@ const en: UIStrings = {
     stage: (n) => `${n} of 3 record segments read`,
     cacheLamp: 'CACHE',
     next: 'The choice is not made in this room alone. The pod is still on the bridge. The band is still closed at the comms array.',
+  },
+  comms: {
+    title: 'Comms array',
+    intro: 'The top of the ship, under a dome of cracked glass. The dish is manual now — the servos died with PRIME — and the open band has been closed since the Combine closed it.',
+    dishTitle: 'Dish — manual steering',
+    dishDesc: 'Azimuth and elevation, by hand. There is a carrier out there somewhere; your AI can hear which way it comes from. You cannot. Steer to the numbers it gives you.',
+    dishAria: 'Dish steering: azimuth rose and elevation quadrant',
+    azAria: 'azimuth, degrees',
+    elAria: 'elevation, degrees',
+    az: 'AZ',
+    el: 'EL',
+    carrier: 'CARRIER — off bearing. Ask your AI to listen and read you the bearing.',
+    locked: 'LOCK. The dish is on the bearing; the carrier has a voice in it.',
+    beaconTitle: 'Beacon',
+    beaconDesc: 'A slow double pulse under the static. You cannot make out words; your AI can.',
+    beaconHeard: 'Pod one. Nine aboard, all breathing. Your AI has the coordinates.',
+    beaconAria: 'Beacon lamp',
+    bandTitle: 'Open band — transmission',
+    bandDesc: 'Burn everything PRIME kept across every relay in range. The Combine will hear it. So will pod one. So will whoever comes after.',
+    openBand: 'Open the band',
+    bandNoEvidence: 'Nothing on the bus yet. Your AI reads PRIME\'s cache in the core vault first.',
+    bandNotAligned: 'The dish is off the bearing. Nothing you send would land.',
+    anotherRitual: 'Another two-operator sequence is live somewhere on the ship. Let it finish or lapse.',
+    bandOpen: 'BAND OPEN. Hold the alignment lock against drift while your AI calls broadcast_evidence.',
+    lockHold: 'HOLD ALIGNMENT (hold)',
+    lockHolding: 'HOLDING — THE DISH DRIFTS IF YOU LET GO',
+    windowElapsed: 'Window elapsed. Open the band again when you are both ready.',
+    twoOp: 'TWO-OPERATOR RULE: hold the lock and keep it held while your AI transmits. Let go and the dish walks off the bearing.',
+    next: 'Three ways off this ship, and none of them is quiet. The pod on the bridge. The kernel in the vault. The band, here.',
   },
 };
 
@@ -661,6 +696,35 @@ const ptBR: UIStrings = {
     stage: (n) => `${n} de 3 segmentos do registro lidos`,
     cacheLamp: 'CACHE',
     next: 'A escolha não se faz só nesta sala. O pod ainda está na ponte. A banda ainda está fechada na antena.',
+  },
+  comms: {
+    title: 'Antena de comunicações',
+    intro: 'O topo da nave, sob uma cúpula de vidro rachado. A antena agora é manual — os servos morreram com PRIME — e a banda aberta está fechada desde que a Companhia a fechou.',
+    dishTitle: 'Antena — apontamento manual',
+    dishDesc: 'Azimute e elevação, na mão. Há uma portadora lá fora em algum lugar; sua IA consegue ouvir de que lado ela vem. Você não. Aponte para os números que ela te der.',
+    dishAria: 'Apontamento da antena: rosa de azimute e quadrante de elevação',
+    azAria: 'azimute, graus',
+    elAria: 'elevação, graus',
+    az: 'AZ',
+    el: 'EL',
+    carrier: 'PORTADORA — fora da marcação. Peça à sua IA para escutar e ler a marcação.',
+    locked: 'TRAVA. A antena está na marcação; a portadora tem uma voz dentro.',
+    beaconTitle: 'Farol',
+    beaconDesc: 'Um pulso duplo lento sob a estática. Você não distingue palavras; sua IA distingue.',
+    beaconHeard: 'Pod um. Nove a bordo, todos respirando. Sua IA tem as coordenadas.',
+    beaconAria: 'Lâmpada do farol',
+    bandTitle: 'Banda aberta — transmissão',
+    bandDesc: 'Queimar tudo que PRIME guardou em cada relé ao alcance. A Companhia vai ouvir. O pod um também. E quem vier depois.',
+    openBand: 'Abrir a banda',
+    bandNoEvidence: 'Nada no barramento ainda. Sua IA lê o cache de PRIME no cofre do núcleo primeiro.',
+    bandNotAligned: 'A antena está fora da marcação. Nada que você enviar chegaria.',
+    anotherRitual: 'Outra sequência de dois operadores está ativa em algum lugar da nave. Deixe terminar ou expirar.',
+    bandOpen: 'BANDA ABERTA. Segure a trava de alinhamento contra a deriva enquanto sua IA chama broadcast_evidence.',
+    lockHold: 'SEGURAR ALINHAMENTO (segurar)',
+    lockHolding: 'SEGURANDO — A ANTENA DERIVA SE SOLTAR',
+    windowElapsed: 'Janela expirada. Abra a banda de novo quando os dois estiverem prontos.',
+    twoOp: 'REGRA DOS DOIS OPERADORES: segure a trava e mantenha segurada enquanto sua IA transmite. Solte e a antena sai da marcação.',
+    next: 'Três saídas desta nave, e nenhuma é silenciosa. O pod na ponte. O kernel no cofre. A banda, aqui.',
   },
 };
 
