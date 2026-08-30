@@ -555,6 +555,13 @@ describe('remixed ships — the surface follows the ship', () => {
     expect(JSON.stringify(sensors)).not.toContain('FAULT');
   });
 
+  it('get_ship_status reports coolant_valves_ok on a coil-drive ship — the field the tool contract never renamed', async () => {
+    resetGame(S_GC);
+    gameStore.setState({ room: 'engineering', act: 2 });
+    const status = await call('get_ship_status');
+    expect(status.coolant_valves_ok).toBe(true);
+  });
+
   it('the classic ship\'s surface is untouched, and the tool contract never changes', async () => {
     resetGame(0);
     gameStore.setState({ room: 'engineering', act: 2 });

@@ -191,8 +191,17 @@ export function computeTrajectory(symbols: string[]): ActionResult {
   if (!s.starFixTaken) {
     return { ok: false, message: 'No optical fix logged. The viewport reticle must be aligned by hand first — that is crew work, not yours.' };
   }
-  const given = symbols.map((x) => String(x).trim().toUpperCase()).join('-');
-  const fix = variantFor(s.seed, 'bridge') === 1 ? variantSecretsFor(s.seed).driftFix : secretsFor(s.seed).starFix;
+  const drift = variantFor(s.seed, 'bridge') === 1;
+  // driftFix codes can be '07'-'09'; an agent passing numbers loses the leading
+  // zero ('8' !== '08') and gets a misleading refusal — normalize digit-only
+  // symbols the same way unlock_door already does. The classic path (drift
+  // false) is untouched: no padding, byte-identical behaviour.
+  const symbols2 = symbols.map((x) => {
+    const t = String(x).trim().toUpperCase();
+    return drift && /^\d+$/.test(t) ? t.padStart(2, '0') : t;
+  });
+  const given = symbols2.join('-');
+  const fix = drift ? variantSecretsFor(s.seed).driftFix : secretsFor(s.seed).starFix;
   if (given !== fix.join('-')) {
     return { ok: false, message: 'Star fix does not resolve. Those symbols point us into a gas giant. Re-check the viewport.' };
   }

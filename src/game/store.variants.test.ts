@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { gameStore, resetGame, plugCable, energize, seatGear, setPhase, takeStarFix, computeTrajectory } from './store';
+import {
+  gameStore, resetGame, plugCable, energize, seatGear, setPhase, takeStarFix, computeTrajectory,
+  unlockDoor, enterRoom, routePower, breakSeal, initiateLaunch, confirmLaunch, holdHandle,
+} from './store';
 import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, valvesCorrect } from './derived';
 import { variantFor, variantSecretsFor } from './variants';
 import { STAR_FIX } from './content';
+import { secretsFor } from './secrets';
 
 function findSeed(pred: (seed: number) => boolean): number {
   for (let seed = 1; seed < 5000; seed++) if (pred(seed)) return seed;
@@ -96,5 +100,73 @@ describe('drift correction (bridge variant 1)', () => {
     gameStore.setState({ room: 'bridge', act: 3 });
     takeStarFix();
     expect(computeTrajectory([...STAR_FIX]).ok).toBe(true);
+  });
+
+  it('normalizes drift-fix codes that lost their leading zero: an agent passing numbers still resolves', () => {
+    resetGame(S_DV);
+    gameStore.setState({ room: 'bridge', act: 3 });
+    takeStarFix();
+    // numbers lose their zeros ('08' -> 8); the store restores them before comparing
+    const numeric = variantSecretsFor(S_DV).driftFix.map(Number) as unknown as string[];
+    expect(computeTrajectory(numeric).ok).toBe(true);
+    expect(gameStore.getState().trajectorySet).toBe(true);
+  });
+});
+
+describe('chapter-1 full walk (seed 8: variant 1 in all three rooms)', () => {
+  const SEED = 8;
+  const T0 = 9_000_000;
+
+  it('rolls variant 1 for cryo_bay, engineering, and bridge', () => {
+    expect(variantFor(SEED, 'cryo_bay')).toBe(1);
+    expect(variantFor(SEED, 'engineering')).toBe(1);
+    expect(variantFor(SEED, 'bridge')).toBe(1);
+  });
+
+  it('walks the patch bay, coil drive, and drift fix through the store to a leave_knowing launch', () => {
+    resetGame(SEED);
+
+    // cryo bay: wire the patch bay and bring auxiliary power online
+    const cableBuses = variantSecretsFor(SEED).cableBuses;
+    plugCable(0, cableBuses[0]); plugCable(1, cableBuses[1]); plugCable(2, cableBuses[2]);
+    expect(energize().ok).toBe(true);
+    expect(gameStore.getState().auxPower).toBe(true);
+
+    // walk through to engineering
+    expect(unlockDoor('cryo_exit', secretsFor(SEED).authCode).ok).toBe(true);
+    expect(enterRoom('engineering').ok).toBe(true);
+    expect(gameStore.getState().act).toBe(2);
+
+    // route power off the initial allocation: engines need 20u, doors need 5u
+    expect(routePower('life_support', 'engines', 10).ok).toBe(true);
+    expect(routePower('medbay', 'engines', 5).ok).toBe(true);
+    expect(routePower('comms', 'engines', 5).ok).toBe(true);
+    expect(routePower('comms', 'doors', 5).ok).toBe(true);
+    expect(gameStore.getState().powerAllocation.engines).toBe(20);
+    expect(gameStore.getState().powerAllocation.doors).toBe(5);
+
+    // seat the coupling gear and dial in the coil phases
+    const v = variantSecretsFor(SEED);
+    expect(seatGear(v.gearTeeth.target).ok).toBe(true);
+    setPhase(0, v.coilPhases[0]); setPhase(1, v.coilPhases[1]); setPhase(2, v.coilPhases[2]);
+    expect(enginesOnline(gameStore.getState())).toBe(true);
+
+    // walk through to the bridge
+    expect(unlockDoor('engineering_exit').ok).toBe(true);
+    expect(enterRoom('bridge').ok).toBe(true);
+    expect(gameStore.getState().act).toBe(3);
+
+    // bridge: drift fix, seal, launch
+    takeStarFix();
+    expect(computeTrajectory([...v.driftFix]).ok).toBe(true);
+    expect(gameStore.getState().trajectorySet).toBe(true);
+    expect(breakSeal().ok).toBe(true);
+
+    expect(initiateLaunch(secretsFor(SEED).launchAuth, T0).ok).toBe(true);
+    holdHandle(true);
+    const conf = confirmLaunch(T0 + 1000);
+    expect(conf.ok).toBe(true);
+    expect(gameStore.getState().won).toBe(true);
+    expect(gameStore.getState().ending).toBe('leave_knowing');
   });
 });
