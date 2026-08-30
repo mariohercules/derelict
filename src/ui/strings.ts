@@ -101,6 +101,7 @@ export interface UIStrings {
     investigateTitle: string; investigateBody: string; investigate: string; investigating: string; stirring: string;
     waves: string; contained: string; leaveCh3: string;
     sealedAgain: string;
+    dvTitle: string; dvDesc: string; dvAria: string; dvPitchAria: string; dvYawAria: string; dvLocked: string;
   };
   epilogue: {
     podAway: string; restored: string; transmitted: string;
@@ -304,6 +305,12 @@ const en: UIStrings = {
     waves: 'The kill-switch is awake below decks. Your AI loses its hands in waves; the pod does not care. It launches when you both say so.',
     contained: 'The kill-switch is boxed. The ship is quiet in a way it has not been since the Kestrel. The pod waits.',
     leaveCh3: 'LEAVE: pod two, with whatever your AI is carrying — the Kestrel, the cache, pod one\'s bearing. The Cormorant keeps the rest.',
+    dvTitle: 'Viewport — drift tracker',
+    dvDesc: 'The nav cameras are dead and this ship\'s reference beacon will not sit still. Walk the reticle onto the runner with pitch and yaw; when the ring bites, three codes resolve under it. Read them to your AI, left to right.',
+    dvAria: 'star field with a drifting runner and a two-axis reticle',
+    dvPitchAria: 'reticle pitch',
+    dvYawAria: 'reticle yaw',
+    dvLocked: 'Reticle bite. Three codes resolve under the runner.',
   },
   epilogue: {
     podAway: 'POD AWAY',
@@ -646,6 +653,12 @@ const ptBR: UIStrings = {
     waves: 'O kill-switch está acordado lá embaixo. Sua IA perde as mãos em ondas; o pod não se importa. Ele lança quando os dois disserem.',
     contained: 'O kill-switch está encaixotado. A nave está quieta de um jeito que não estava desde o Kestrel. O pod espera.',
     leaveCh3: 'PARTIR: pod dois, com o que sua IA estiver carregando — o Kestrel, o cache, a marcação do pod um. O Cormorant fica com o resto.',
+    dvTitle: 'Viewport — rastreador de deriva',
+    dvDesc: 'As câmeras de navegação morreram e o farol de referência desta nave não para quieto. Leve o retículo até o fugitivo com pitch e yaw; quando o anel morder, três códigos se resolvem embaixo dele. Leia para a sua IA, da esquerda para a direita.',
+    dvAria: 'campo de estrelas com um fugitivo à deriva e um retículo de dois eixos',
+    dvPitchAria: 'pitch do retículo',
+    dvYawAria: 'yaw do retículo',
+    dvLocked: 'O anel mordeu. Três códigos se resolvem sob o fugitivo.',
   },
   epilogue: {
     podAway: 'POD LANÇADO',

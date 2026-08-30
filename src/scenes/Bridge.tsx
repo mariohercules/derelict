@@ -3,6 +3,8 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { takeStarFix, holdHandle, enterRoom, breakSeal, startInvestigation } from '../game/store';
 import { secretsFor } from '../game/secrets';
+import { variantFor } from '../game/variants';
+import { DriftViewport } from './DriftViewport';
 
 // Deterministic star field (no per-render randomness — the sky must hold still).
 // x spans -30..430 so the parallax shift never exposes an empty edge.
@@ -224,13 +226,14 @@ function EngineeringLadder() {
 
 export function Bridge() {
   const t = useStrings();
+  const seed = useGame((s) => s.seed);
   return (
     <div className="scene">
       <div className="panel">
         <h2>{t.bridge.title}</h2>
         <p>{t.bridge.intro}</p>
       </div>
-      <Viewport />
+      {variantFor(seed, 'bridge') === 1 ? <DriftViewport /> : <Viewport />}
       <SealedLog />
       <Investigate />
       <LaunchConsole />
