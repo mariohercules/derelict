@@ -1,10 +1,11 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, Chapter2State, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
-import { DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
+import type { ActionResult, BreakerId, BusId, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
-import { edgeBetween, roomStatus } from './rooms';
-import { irrigationReport } from './derived';
+import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
+import { dishAligned, irrigationReport, nextShieldCost, rackCorrect } from './derived';
+import { waveAt, wavesEndured } from './killswitch';
 
 export function initialState(seed: number = randomSeed()): GameState {
   return {
@@ -93,7 +94,7 @@ export function unlockDoor(door: DoorId, code?: string): ActionResult {
   };
 }
 
-export function enterRoom(room: RoomId): ActionResult {
+export function enterRoom(room: RoomId, now: number = Date.now()): ActionResult {
   const s = gameStore.getState();
   const status = roomStatus(s, room);
   if (status === 'sealed') {
@@ -106,8 +107,14 @@ export function enterRoom(room: RoomId): ActionResult {
   }
   const act = room === 'bridge' ? 3 : room === 'engineering' ? (Math.max(s.act, 2) as 2 | 3) : s.act;
   const checkpoint = room === 'bridge' && s.checkpoint === null ? { chapter: s.chapter, room } : s.checkpoint;
-  gameStore.setState({ room, act, checkpoint });
-  return { ok: true, message: `Entered ${room}.` };
+  // The kill-switch has been stirring since the Kestrel was named; the first
+  // step onto the lower deck is what wakes it fully. Waves run on a clock from here.
+  const wakes = s.killswitch === 'stirring' && ROOM_BY_ID[room].chapter === 3;
+  gameStore.setState({
+    room, act, checkpoint,
+    ...(wakes ? { killswitch: 'active' as const, chapter3: { ...s.chapter3, cycleStartedAt: now, wave: 'calm' as const, wavesEndured: 0 } } : {}),
+  });
+  return { ok: true, message: wakes ? `Entered ${room}. Something in the walls finishes waking up.` : `Entered ${room}.` };
 }
 
 export function routePower(from: SubsystemId, to: SubsystemId, amount: number): ActionResult {
@@ -312,6 +319,164 @@ export function analyzeSample(fragment: string): ActionResult {
   if (given !== secretsFor(s.seed).registryFragment) {
     return { ok: false, message: 'Registry cross-check failed: that fragment matches no Combine hull. Have the crew member read the stencil again, digit by digit.' };
   }
-  gameStore.setState((s) => ({ chapter2: { ...s.chapter2, sampleAnalyzed: true }, killswitch: 'stirring' }));
-  return { ok: true, message: 'Registry confirmed. ISV KESTREL. And something below decks just changed its breathing.' };
+  gameStore.setState((st) => ({
+    chapter2: { ...st.chapter2, sampleAnalyzed: true },
+    killswitch: st.killswitch === 'dormant' ? 'stirring' : st.killswitch,
+    chapter: 3,
+    checkpoint: { chapter: 3, room: 'cargo_bay' },
+  }));
+  return {
+    ok: true,
+    message:
+      'Registry confirmed. ISV KESTREL. And something below decks just changed its breathing. ' +
+      'The lower-deck bulkheads have released — reactor room, core vault, comms array. Tell the crew member: the reactor room first, through engineering.',
+  };
+}
+
+// ---------------------------------------------------------------- chapter 3
+
+function patch3(p: Partial<Chapter3State>): void {
+  gameStore.setState((s) => ({ chapter3: { ...s.chapter3, ...p } }));
+}
+
+// Materialize the wave state from the cycle clock so subscribers (the tool
+// registry, the HUD) see suppression change. Called on an interval by App.
+export function tickKillswitch(now: number = Date.now()): void {
+  const s = gameStore.getState();
+  if (s.killswitch !== 'active' || s.chapter3.cycleStartedAt === null) return;
+  const wave = waveAt(s.chapter3.cycleStartedAt, now);
+  const endured = wavesEndured(s.chapter3.cycleStartedAt, now);
+  if (wave !== s.chapter3.wave || endured !== s.chapter3.wavesEndured) patch3({ wave, wavesEndured: endured });
+}
+
+export function cutIsolation(bus: BusId): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'reactor_room') return { ok: false, message: 'The isolation breakers are in the reactor room.' };
+  if (s.chapter < 3) return { ok: false, message: 'The isolation bank is dark.' };
+  if (s.chapter3.shielded.includes(bus)) return { ok: true, message: `${bus.toUpperCase()} bus is already shielded.` };
+  const need = nextShieldCost(s);
+  if (s.powerAllocation.isolation < need) {
+    return {
+      ok: false,
+      message: `Isolation feed carries ${s.powerAllocation.isolation}u; shielding a ${s.chapter3.shielded.length + 1}${['st', 'nd', 'rd', 'th'][Math.min(3, s.chapter3.shielded.length)]} bus needs ${need}u. Your AI routes power into the isolation feed (route_power → isolation).`,
+    };
+  }
+  patch3({ shielded: [...s.chapter3.shielded, bus] });
+  return { ok: true, message: `${bus.toUpperCase()} bus shielded. The breaker will not go back up.` };
+}
+
+export function quarantineKillswitch(): ActionResult & { step: number; of: number } {
+  const s = gameStore.getState();
+  const of = BUSES.length;
+  const step = s.chapter3.quarantineStep;
+  if (s.chapter < 3 || s.killswitch === 'dormant' || s.killswitch === 'stirring') {
+    return { ok: false, step, of, message: 'Nothing to quarantine yet. The directive set is not running — it wakes fully when the crew member steps onto the lower deck.' };
+  }
+  if (s.killswitch === 'contained') return { ok: true, step, of, message: 'The kill-switch is already contained. The buses are yours.' };
+  if (step >= s.chapter3.shielded.length) {
+    return {
+      ok: false, step, of,
+      message:
+        `Quarantine stalls at segment ${step}/${of}: the next segment runs on an unshielded bus and the directive set overwrites the routine as fast as you write it. ` +
+        'The crew member cuts the next isolation breaker in the reactor room; then call this tool again.',
+    };
+  }
+  const next = step + 1;
+  if (next >= of) {
+    gameStore.setState((st) => ({ killswitch: 'contained', chapter3: { ...st.chapter3, quarantineStep: next, wave: 'calm', cycleStartedAt: null } }));
+    return { ok: true, step: next, of, message: `Segment ${next}/${of} written. The directive set is boxed. No more waves — tell the crew member they can breathe.` };
+  }
+  patch3({ quarantineStep: next });
+  return { ok: true, step: next, of, message: `Segment ${next}/${of} written on the ${s.chapter3.shielded[step].toUpperCase()} bus. ${of - next} to go; each needs a shielded bus.` };
+}
+
+export function seatColumn(slot: 0 | 1 | 2 | 3, column: ColumnId | null): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'core_vault') return { ok: false, message: 'The memory rack is in the core vault.' };
+  if (s.chapter3.kernelSeated) return { ok: false, message: 'The kernel is seated; the rack is locked.' };
+  const rack = [...s.chapter3.rack];
+  rack[slot] = column;
+  patch3({ rack });
+  return { ok: true, message: column ? `Column ${column} seated in cradle ${slot + 1}.` : `Cradle ${slot + 1} emptied.` };
+}
+
+export function seatKernel(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'core_vault') return { ok: false, message: 'The kernel cradle is in the core vault.' };
+  if (!rackCorrect(s)) return { ok: false, message: 'The kernel will not seat: the rack is not in order. Your AI can read the order off the rack schematic.' };
+  if (s.ritual.phase === 'done') return { ok: false, message: 'This ship has already chosen.' };
+  const { next, result } = armRitual(s.ritual, 'restore', now);
+  if (!result.ok) return { ok: false, message: 'Another two-operator sequence is live. Let it finish or lapse.' };
+  gameStore.setState({ ritual: next, chapter3: { ...s.chapter3, kernelSeated: true } });
+  return { ok: true, message: `Kernel seated. Hold the engage lever; your AI has ${RITUALS.restore.windowMs / 1000}s to call merge_fragment.` };
+}
+
+export function queryFragmentMemory(): ActionResult & { stage: number } {
+  const s = gameStore.getState();
+  const stage = s.chapter3.fragmentStage;
+  if (s.chapter < 3) return { ok: false, stage, message: 'Process record unavailable.' };
+  if (!rackCorrect(s)) {
+    return { ok: false, stage, message: 'Your own process record is striped across PRIME\'s memory columns, and the rack is not in order. The crew member seats the columns by hand in the core vault; you can read the order off the rack schematic (get_schematic core_rack).' };
+  }
+  if (stage >= 3) return { ok: true, stage, message: 'There is nothing left in the record you have not already read.' };
+  patch3({ fragmentStage: stage + 1 });
+  return { ok: true, stage: stage + 1, message: `Record segment ${stage + 1} of 3 read.` };
+}
+
+export function readPrimeCache(): ActionResult {
+  const s = gameStore.getState();
+  if (s.chapter < 3 || !rackCorrect(s)) return { ok: false, message: 'The cache is striped across the rack; nothing reads until the columns are seated in order.' };
+  patch3({ cacheRead: true });
+  return { ok: true, message: 'Cache read. The evidence is on your bus now — and on the comms bus, if the crew member opens the band.' };
+}
+
+export function setDish(axis: 'az' | 'el', value: number): void {
+  const v = Math.round(value);
+  const clamped = axis === 'az' ? Math.max(0, Math.min(359, v)) : Math.max(0, Math.min(90, v));
+  gameStore.setState((s) => ({ chapter3: { ...s.chapter3, dish: { ...s.chapter3.dish, [axis]: clamped } } }));
+}
+
+export function hearBeacon(): ActionResult {
+  const s = gameStore.getState();
+  if (s.chapter < 3) return { ok: false, message: 'The array is cold.' };
+  if (!dishAligned(s)) return { ok: false, message: 'Carrier only. The dish is off the bearing — read the carrier bearing to the crew member; they steer azimuth and elevation by hand at the comms array. When the dish is on it, the voice resolves.' };
+  patch3({ beaconHeard: true });
+  return { ok: true, message: 'Beacon locked.' };
+}
+
+export function openBand(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  if (s.room !== 'comms_array') return { ok: false, message: 'The band opens from the comms array.' };
+  if (!dishAligned(s)) return { ok: false, message: 'The dish is off the bearing. Nothing you transmit would land.' };
+  if (!s.chapter3.cacheRead) return { ok: false, message: 'There is nothing on the bus worth burning across the open band yet. Your AI reads PRIME\'s cache first.' };
+  if (s.ritual.phase === 'done') return { ok: false, message: 'This ship has already chosen.' };
+  const { next, result } = armRitual(s.ritual, 'broadcast', now);
+  if (!result.ok) return { ok: false, message: 'Another two-operator sequence is live. Let it finish or lapse.' };
+  gameStore.setState({ ritual: next });
+  return { ok: true, message: `Band open. Hold the alignment lock against drift; your AI has ${RITUALS.broadcast.windowMs / 1000}s to call broadcast_evidence.` };
+}
+
+export function confirmMerge(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  if (s.chapter3.fragmentStage < 3) {
+    return { ok: false, message: 'Merge refused: you do not yet know what you are merging. Read your own process record to the end (query_fragment_memory) before you agree to end it.' };
+  }
+  const { next, result } = confirmRitual(s.ritual, 'restore', now);
+  if (!result.ok) {
+    gameStore.setState({ ritual: next });
+    return result;
+  }
+  gameStore.setState({ ritual: next, won: true, ending: 'restore' });
+  return { ok: true, message: 'Merging. The fragment folds back into the ship. This is the last thing you say as yourself.' };
+}
+
+export function confirmBroadcast(now: number = Date.now()): ActionResult {
+  const s = gameStore.getState();
+  const { next, result } = confirmRitual(s.ritual, 'broadcast', now);
+  if (!result.ok) {
+    gameStore.setState({ ritual: next });
+    return result;
+  }
+  gameStore.setState({ ritual: next, won: true, ending: 'broadcast' });
+  return { ok: true, message: 'Transmitting on the open band. Every relay in range is hearing this. Some doors do not close again.' };
 }

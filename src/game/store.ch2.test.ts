@@ -109,6 +109,8 @@ describe('cargo bay', () => {
     expect(analyzeSample('7741').ok).toBe(true);
     expect(gameStore.getState().chapter2.sampleAnalyzed).toBe(true);
     expect(gameStore.getState().killswitch).toBe('stirring');
+    expect(gameStore.getState().chapter).toBe(3);
+    expect(gameStore.getState().checkpoint).toEqual({ chapter: 3, room: 'cargo_bay' });
   });
 
   it('analyzeSample flips sampleAnalyzed and killswitch in a single, atomic update', () => {

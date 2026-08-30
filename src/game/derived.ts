@@ -1,5 +1,5 @@
 import type { GameState } from './types';
-import { CORRECT_FUSE, DOORS_REQUIRED, ENGINES_REQUIRED, WATER_BUDGET } from './content';
+import { CORRECT_FUSE, DISH_TOLERANCE, DOORS_REQUIRED, ENGINES_REQUIRED, SHIELD_COST, WATER_BUDGET } from './content';
 import { secretsFor } from './secrets';
 
 export function valvesCorrect(s: GameState): boolean {
@@ -35,4 +35,20 @@ export function irrigationReport(s: GameState): { beds: BedState[]; total: numbe
   const total = s.chapter2.irrigation.reduce((a, b) => a + b, 0);
   const overBudget = total > WATER_BUDGET;
   return { beds, total, overBudget, solved: !overBudget && beds.every((b) => b === 'ok') };
+}
+
+export function rackCorrect(s: GameState): boolean {
+  const order = secretsFor(s.seed).columnOrder;
+  return s.chapter3.rack.every((c, i) => c === order[i]);
+}
+
+export function dishAligned(s: GameState): boolean {
+  const target = secretsFor(s.seed).beaconBearing;
+  const { az, el } = s.chapter3.dish;
+  return Math.abs(az - target.az) <= DISH_TOLERANCE && Math.abs(el - target.el) <= DISH_TOLERANCE;
+}
+
+// Isolation power the next breaker will demand: 5u per shielded bus, cumulative.
+export function nextShieldCost(s: GameState): number {
+  return SHIELD_COST * (s.chapter3.shielded.length + 1);
 }
