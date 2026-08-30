@@ -7,10 +7,13 @@ the fuses, the photo pinned above the bunk. Your agent can act on it: unlock doo
 power, read the logs and schematics you can't reach. Neither of you has the whole picture,
 and neither of you can escape alone.
 
-DERELICT is a three-act asymmetric co-op escape room (Cryo Bay → Engineering → Bridge,
-about 15–20 minutes) built for the OpenAI WebMCP Challenge. There's no lobby, no second
-player to invite — you bring the teammate you already have. Talk to your agent, describe
-what you see, and let it tell you what it can do about it.
+DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo bay →
+engineering → bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
+Challenge. Chapter 2, "The Investigation" (medbay, crew quarters, hydroponics, cargo bay,
+about 30 minutes more), opens once you've chosen to stay and find out what really happened
+here. This is the Director's Cut — still in progress, with a third chapter still to come.
+There's no lobby, no second player to invite — you bring the teammate you already have.
+Talk to your agent, describe what you see, and let it tell you what it can do about it.
 
 ## How to play
 
@@ -37,7 +40,7 @@ Chapter 2 opens from the bridge once the sealed log is read.
 The game registers and revokes tools live, in step with the ship. A subsystem that has no
 power has no tools — the agent starts with just 5 tools online, and when the human restores
 aux power, new tools visibly light up on the in-game **AI LINK** panel, and the agent can
-suddenly act where it couldn't a second ago. Across the three acts the game defines 23
+suddenly act where it couldn't a second ago. Across both chapters the game defines 23
 tools in total, gated open and closed by ship state: reading the ship's status and logs,
 unlocking doors, routing power, running diagnostics, pulling schematics and sensor data,
 computing a nav fix, and — in the two-operator finale — initiating and then confirming the
@@ -55,7 +58,10 @@ Two layers of asymmetry make the tools necessary rather than decorative:
   either side can act.
 - **Every ship is unique:** each run rolls a seed that decides the breaker order, Amara's
   birthday (the door PIN), the gauge pressures, the three star-fix glyphs, and the launch
-  phrase. Nothing is memorizable, and the answers are not sitting in this repository.
+  phrase — and, in Chapter 2, the captain's commission number (its last three digits are
+  the safe combination), each hydroponics bed's water needs, the cargo bay's quarantine
+  slot, and the registry fragment stencilled on the hull plate. Nothing is memorizable, and
+  the answers are not sitting in this repository.
 
 Tool descriptions are written in-fiction — the agent is addressed directly as the ship's
 auxiliary AI — so it plays its role without any prompting from the human. Every tool
@@ -78,7 +84,7 @@ The implementation lives in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 129 tests)
+npm test       # run the test suite (Vitest, 137 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.
