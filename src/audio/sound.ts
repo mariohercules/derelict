@@ -32,6 +32,25 @@ export function playAlarm(): void {
   setTimeout(() => tone(330, 350, 'sawtooth', 0.05), 380);
 }
 
+// Kill-switch wave warning: two rising sawtooth barks.
+export function playKlaxon(): void {
+  tone(220, 420, 'sawtooth', 0.06);
+  setTimeout(() => tone(294, 420, 'sawtooth', 0.06), 460);
+}
+
+// RESTORE: a slow ascending triad, held — the ship coming back as one voice.
+export function playMergeTheme(): void {
+  tone(196, 1400, 'sine', 0.05);
+  setTimeout(() => tone(247, 1200, 'sine', 0.05), 450);
+  setTimeout(() => tone(294, 1800, 'sine', 0.06), 900);
+}
+
+// Pod one's beacon: a soft double ping.
+export function playBeaconPing(): void {
+  tone(1320, 70, 'sine', 0.035);
+  setTimeout(() => tone(1320, 70, 'sine', 0.03), 160);
+}
+
 export function startAmbience(): void {
   const c = ensureCtx();
   if (!c) return;

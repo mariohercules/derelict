@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IMMUNE_TOOLS, shieldCost, suppressed, waveAt, wavesEndured } from './killswitch';
+import { IMMUNE_TOOLS, secondsToNextPhase, shieldCost, suppressed, waveAt, wavesEndured } from './killswitch';
 import { initialState } from './store';
 import { SHIELD_COST, WAVE_ACTIVE_MS, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
 import type { GameState } from './types';
@@ -23,6 +23,28 @@ describe('waveAt', () => {
     expect(wavesEndured(T0, T0 + WAVE_CYCLE_MS - 1)).toBe(0);
     expect(wavesEndured(T0, T0 + WAVE_CYCLE_MS)).toBe(1);
     expect(wavesEndured(T0, T0 + 3 * WAVE_CYCLE_MS + 5)).toBe(3);
+  });
+});
+
+describe('secondsToNextPhase', () => {
+  it('counts down to the calm→warning boundary', () => {
+    expect(secondsToNextPhase(T0, T0)).toBe(WAVE_CALM_MS / 1000);
+    expect(secondsToNextPhase(T0, T0 + WAVE_CALM_MS - 1)).toBe(1);
+  });
+
+  it('counts down to the warning→active boundary', () => {
+    expect(secondsToNextPhase(T0, T0 + WAVE_CALM_MS)).toBe(WAVE_WARNING_MS / 1000);
+    expect(secondsToNextPhase(T0, T0 + WAVE_CALM_MS + WAVE_WARNING_MS - 1)).toBe(1);
+  });
+
+  it('counts down to the active→calm boundary that closes the cycle', () => {
+    expect(secondsToNextPhase(T0, T0 + WAVE_CALM_MS + WAVE_WARNING_MS)).toBe(WAVE_ACTIVE_MS / 1000);
+    expect(secondsToNextPhase(T0, T0 + WAVE_CYCLE_MS - 1)).toBe(1);
+  });
+
+  it('wraps into the next cycle', () => {
+    expect(secondsToNextPhase(T0, T0 + WAVE_CYCLE_MS)).toBe(WAVE_CALM_MS / 1000);
+    expect(secondsToNextPhase(T0, T0 + 3 * WAVE_CYCLE_MS)).toBe(WAVE_CALM_MS / 1000);
   });
 });
 

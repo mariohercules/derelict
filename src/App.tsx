@@ -7,9 +7,9 @@ import { LocaleToggle } from './ui/LocaleToggle';
 import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
-import { gameStore, resetGame } from './game/store';
+import { gameStore, resetGame, tickKillswitch } from './game/store';
 import { loadSavedState } from './game/persist';
-import { playAlarm, playBlip, startAmbience } from './audio/sound';
+import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme, startAmbience } from './audio/sound';
 import { SCENES } from './scenes/registry';
 import { Epilogue } from './scenes/Epilogue';
 import { DeckMap } from './ui/DeckMap';
@@ -69,9 +69,26 @@ export default function App() {
       if (state.chapter2.crateLifted && !prevState.chapter2.crateLifted) playBlip();
       if (state.chapter === 2 && prevState.chapter === 1) playBlip();
       if (state.killswitch === 'stirring' && prevState.killswitch !== 'stirring') playAlarm();
+      if (state.chapter3.wave === 'warning' && prevState.chapter3.wave !== 'warning') playKlaxon();
+      if (state.chapter3.shielded.length > prevState.chapter3.shielded.length) playBlip();
+      if (state.killswitch === 'contained' && prevState.killswitch !== 'contained') playBlip();
+      if (state.chapter3.beaconHeard && !prevState.chapter3.beaconHeard) playBeaconPing();
+      if (state.ending === 'restore' && prevState.ending !== 'restore') playMergeTheme();
+      if (state.ending === 'broadcast' && prevState.ending !== 'broadcast') playAlarm();
+      if (state.chapter === 3 && prevState.chapter === 2) playAlarm();
     });
     return unsubscribeSound;
   }, []);
+
+  // The kill-switch's clock: while it is active, materialize the wave state
+  // every half second so the tool registry and the HUD see it change.
+  const killswitch = useGame((s) => s.killswitch);
+  useEffect(() => {
+    if (killswitch !== 'active') return;
+    tickKillswitch();
+    const timer = setInterval(() => tickKillswitch(), 500);
+    return () => clearInterval(timer);
+  }, [killswitch]);
 
   const Scene = SCENES[room];
 

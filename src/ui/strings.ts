@@ -1,5 +1,5 @@
 import type { Locale } from '../game/i18n';
-import type { RoomId, SubsystemId } from '../game/types';
+import type { BusId, RoomId, SubsystemId } from '../game/types';
 
 export interface UIStrings {
   app: {
@@ -17,6 +17,9 @@ export interface UIStrings {
     ailinkTitle: string;
     severed: string;
     rooms: Record<RoomId, string>;
+    waveWarning: (secs: number) => string;
+    waveActive: (secs: number) => string;
+    contained: string;
   };
   cryo: {
     title: string;
@@ -119,6 +122,13 @@ export interface UIStrings {
     up: string; down: string; left: string; right: string; lift: string; wrongCrate: string; lifted: string;
     fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string;
   };
+  reactor: {
+    title: string; intro: string; bankTitle: string; bankDesc: string; bus: Record<BusId, string>; cut: string;
+    cutAria: (bus: string) => string; shielded: string; needPower: (have: number, need: number) => string; bankAria: string;
+    feedTitle: string; feedDesc: string; feedAria: string; feedReading: (have: number, need: number) => string;
+    waveTitle: string; waveCalm: string; waveWarning: string; waveActive: string; waveContained: string; waveStirring: string; waveAria: string;
+    quarantineTitle: string; quarantineDesc: string; quarantineAria: string; segment: (n: number, of: number) => string; next: string;
+  };
 }
 
 const en: UIStrings = {
@@ -144,6 +154,9 @@ const en: UIStrings = {
       medbay: 'medbay', crew_quarters: 'crew quarters', hydroponics: 'hydroponics', cargo_bay: 'cargo bay',
       reactor_room: 'reactor room', core_vault: 'core vault', comms_array: 'comms array',
     },
+    waveWarning: (secs) => `KILL-SWITCH WAVE IN ${secs}s — your AI is about to lose its hands`,
+    waveActive: (secs) => `WAVE ACTIVE — ${secs}s — unshielded tools are down`,
+    contained: 'KILL-SWITCH CONTAINED',
   },
   cryo: {
     title: 'Cryo bay',
@@ -323,6 +336,34 @@ const en: UIStrings = {
     readOut: 'Read the four legible digits to your AI. The analyzer is on the ship\'s side; it will need them exactly.',
     analyzed: 'The analyzer has a name for this plate now. Ask your AI what it found — and then listen to the ship.',
   },
+  reactor: {
+    title: 'Reactor room',
+    intro: 'Forty percent of a reactor, humming like it has something to prove. Okafor lived here nine weeks. And along the back wall, a bank of breakers nobody has touched since the yard: the isolation bank.',
+    bankTitle: 'Isolation bank',
+    bankDesc: 'Four knife-switches, one per data bus. Cut one and that bus is physically cut off from the corporate directive set — nothing on it can be silenced. The blade does not go back up. Each cut draws power from the isolation feed.',
+    bus: { core: 'CORE', nav: 'NAV', archive: 'ARCHIVE', comms: 'COMMS' },
+    cut: 'Cut',
+    cutAria: (bus) => `cut the ${bus} isolation breaker`,
+    shielded: 'SHIELDED',
+    needPower: (have, need) => `Feed carries ${have}u; this cut needs ${need}u. Your AI routes power into the isolation feed.`,
+    bankAria: 'Isolation breaker bank: four knife-switches, one per bus',
+    feedTitle: 'Isolation feed',
+    feedDesc: 'The only meter on this wall that matters tonight. Your AI moves power here from what the ship can live without; each shielded bus holds five units for good.',
+    feedAria: 'Isolation feed tank meter',
+    feedReading: (have, need) => `${have}u in the feed · next cut needs ${need}u`,
+    waveTitle: 'Directive set 7',
+    waveStirring: 'Stirring. It knows the Kestrel has a name again. It has not decided what to do about you yet.',
+    waveCalm: 'Between waves. Breathe. Route power. Cut what you can.',
+    waveWarning: 'WAVE INCOMING. In seconds it will silence everything on an unshielded bus. Your AI keeps its eyes; it loses its hands.',
+    waveActive: 'WAVE. Watch the AI LINK dots go dark. Anything your AI is already doing finishes; anything new waits.',
+    waveContained: 'Contained. The directive set runs in a room with no doors now. The lower deck is yours.',
+    waveAria: 'Klaxon lamp showing the kill-switch wave state',
+    quarantineTitle: 'Quarantine',
+    quarantineDesc: 'Your AI writes the quarantine one segment at a time, and a segment only holds on a bus you have shielded. Four segments. Four breakers. Two of you.',
+    quarantineAria: 'Quarantine progress: four segments',
+    segment: (n, of) => `${n} of ${of} segments hold`,
+    next: 'When the buses you need are safe, the core vault is next door — and the comms array is up past the bridge.',
+  },
 };
 
 const ptBR: UIStrings = {
@@ -348,6 +389,9 @@ const ptBR: UIStrings = {
       medbay: 'enfermaria', crew_quarters: 'cabines', hydroponics: 'hidroponia', cargo_bay: 'porão de carga',
       reactor_room: 'sala do reator', core_vault: 'cofre do núcleo', comms_array: 'arranjo de comms',
     },
+    waveWarning: (secs) => `ONDA DO KILL-SWITCH EM ${secs}s — sua IA está prestes a perder as mãos`,
+    waveActive: (secs) => `ONDA ATIVA — ${secs}s — ferramentas sem blindagem caídas`,
+    contained: 'KILL-SWITCH CONTIDO',
   },
   cryo: {
     title: 'Baia criogênica',
@@ -527,6 +571,34 @@ const ptBR: UIStrings = {
     fragmentAria: 'uma chapa de casco chamuscada com um estêncil de registro parcialmente legível',
     readOut: 'Leia os quatro dígitos legíveis para sua IA. O analisador fica do lado da nave; ele vai precisar deles exatos.',
     analyzed: 'O analisador agora tem um nome para esta chapa. Pergunte à sua IA o que ela encontrou — e depois escute a nave.',
+  },
+  reactor: {
+    title: 'Sala do reator',
+    intro: 'Quarenta por cento de um reator, zumbindo como se tivesse algo a provar. Okafor viveu aqui nove semanas. E na parede do fundo, um banco de disjuntores que ninguém toca desde o estaleiro: o banco de isolamento.',
+    bankTitle: 'Banco de isolamento',
+    bankDesc: 'Quatro chaves-faca, uma por barramento de dados. Corte uma e aquele barramento fica fisicamente separado do conjunto de diretrizes corporativo — nada nele pode ser silenciado. A lâmina não volta. Cada corte puxa energia da alimentação de isolamento.',
+    bus: { core: 'CORE', nav: 'NAV', archive: 'ARCHIVE', comms: 'COMMS' },
+    cut: 'Cortar',
+    cutAria: (bus) => `cortar o disjuntor de isolamento ${bus}`,
+    shielded: 'BLINDADO',
+    needPower: (have, need) => `A alimentação carrega ${have}u; este corte precisa de ${need}u. Sua IA roteia energia para a alimentação de isolamento.`,
+    bankAria: 'Banco de disjuntores de isolamento: quatro chaves-faca, uma por barramento',
+    feedTitle: 'Alimentação de isolamento',
+    feedDesc: 'O único medidor desta parede que importa esta noite. Sua IA move energia para cá do que a nave pode dispensar; cada barramento blindado retém cinco unidades para sempre.',
+    feedAria: 'Medidor de tanque da alimentação de isolamento',
+    feedReading: (have, need) => `${have}u na alimentação · próximo corte precisa de ${need}u`,
+    waveTitle: 'Conjunto de diretrizes 7',
+    waveStirring: 'Agitado. Sabe que o Kestrel tem nome de novo. Ainda não decidiu o que fazer com você.',
+    waveCalm: 'Entre ondas. Respire. Roteie energia. Corte o que puder.',
+    waveWarning: 'ONDA CHEGANDO. Em segundos vai silenciar tudo que estiver num barramento sem blindagem. Sua IA mantém os olhos; perde as mãos.',
+    waveActive: 'ONDA. Veja os pontos do AI LINK apagarem. O que sua IA já está fazendo termina; o que é novo espera.',
+    waveContained: 'Contido. O conjunto de diretrizes roda numa sala sem portas agora. O convés inferior é seu.',
+    waveAria: 'Lâmpada de alarme mostrando o estado da onda do kill-switch',
+    quarantineTitle: 'Quarentena',
+    quarantineDesc: 'Sua IA escreve a quarentena um segmento por vez, e um segmento só se firma num barramento que você blindou. Quatro segmentos. Quatro disjuntores. Vocês dois.',
+    quarantineAria: 'Progresso da quarentena: quatro segmentos',
+    segment: (n, of) => `${n} de ${of} segmentos firmes`,
+    next: 'Quando os barramentos de que precisa estiverem seguros, o cofre do núcleo é a porta ao lado — e a antena fica lá em cima, depois da ponte.',
   },
 };
 
