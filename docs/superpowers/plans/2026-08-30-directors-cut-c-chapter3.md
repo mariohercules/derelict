@@ -977,7 +977,7 @@ export function confirmBroadcast(now: number = Date.now()): ActionResult {
 - [ ] **Step 5: Run the gate**
 
 Run: `npx vitest run && npm run build`
-Expected: PASS — all previous tests plus 15 new; build exit 0.
+Expected: PASS — all previous tests plus 17 new; build exit 0.
 
 - [ ] **Step 6: Commit**
 
@@ -1396,7 +1396,7 @@ New tools, inserted before `initiate_launch_sequence`:
         const r = hearBeacon();
         if (r.ok) return { ok: true, beacon: getBeaconMessage(s.seed), message: r.message };
         const b = secretsFor(s.seed).beaconBearing;
-        return { ...r, carrier_bearing: `AZ  / EL ` };
+        return { ...r, carrier_bearing: `AZ ${b.az} / EL ${b.el}` };
       },
       false, 'comms'
     ),
