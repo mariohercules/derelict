@@ -205,6 +205,14 @@ describe('persistence', () => {
     expect(loaded?.chapter3.cycleStartedAt).toBeGreaterThan(Date.now() - 2000);
     expect(loaded?.chapter3.cycleStartedAt).toBeLessThanOrEqual(Date.now() + 2000);
   });
+
+  it('keeps the endured-wave count when it restarts the cycle on resume', () => {
+    const c3 = { ...initialState(0).chapter3, cycleStartedAt: 123456, wave: 'active' as const, wavesEndured: 3 };
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter: 3, killswitch: 'active', chapter3: c3 }));
+    const loaded = loadSavedState();
+    expect(loaded?.chapter3.wave).toBe('calm');
+    expect(loaded?.chapter3.wavesEndured).toBe(3);
+  });
 });
 
 describe('v1 → v2 migration', () => {

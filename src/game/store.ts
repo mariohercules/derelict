@@ -5,7 +5,7 @@ import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual } from './ritual';
 import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
 import { dishAligned, irrigationReport, nextShieldCost, rackCorrect } from './derived';
-import { waveAt, wavesEndured } from './killswitch';
+import { waveAt } from './killswitch';
 
 export function initialState(seed: number = randomSeed()): GameState {
   return {
@@ -357,18 +357,20 @@ function patch3(p: Partial<Chapter3State>): void {
 export function tickKillswitch(now: number = Date.now()): void {
   const s = gameStore.getState();
   if (s.killswitch !== 'active' || s.chapter3.cycleStartedAt === null) return;
-  const wave = waveAt(s.chapter3.cycleStartedAt, now);
-  // A throttled tab (backgrounded, laptop asleep) can tick straight from calm
-  // into the active window, skipping the telegraph entirely. Rebase the clock
-  // so the jump always materializes as a warning first — the crew always gets
-  // the ten seconds' notice, even on a stale tick.
-  if (s.chapter3.wave === 'calm' && wave === 'active') {
-    const cycleStartedAt = now - WAVE_CALM_MS;
-    patch3({ wave: 'warning', cycleStartedAt, wavesEndured: wavesEndured(cycleStartedAt, now) });
-    return;
+  const prev = s.chapter3.wave;
+  let wave = waveAt(s.chapter3.cycleStartedAt, now);
+  let cycleStartedAt = s.chapter3.cycleStartedAt;
+  // Fairness: a wave is always telegraphed. A clock that jumps straight from
+  // calm into an active window (throttled tab, long GC pause) is rebased so
+  // the warning phase is the next thing the crew sees.
+  if (prev === 'calm' && wave === 'active') {
+    cycleStartedAt = now - WAVE_CALM_MS;
+    wave = 'warning';
   }
-  const endured = wavesEndured(s.chapter3.cycleStartedAt, now);
-  if (wave !== s.chapter3.wave || endured !== s.chapter3.wavesEndured) patch3({ wave, wavesEndured: endured });
+  const wavesEndured = s.chapter3.wavesEndured + (prev === 'active' && wave === 'calm' ? 1 : 0);
+  if (wave !== prev || cycleStartedAt !== s.chapter3.cycleStartedAt || wavesEndured !== s.chapter3.wavesEndured) {
+    patch3({ wave, cycleStartedAt, wavesEndured });
+  }
 }
 
 export function cutIsolation(bus: BusId): ActionResult {

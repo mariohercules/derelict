@@ -24,10 +24,6 @@ export function waveAt(cycleStartedAt: number, now: number): WaveState {
   return 'active';
 }
 
-export function wavesEndured(cycleStartedAt: number, now: number): number {
-  return Math.max(0, Math.floor((now - cycleStartedAt) / WAVE_CYCLE_MS));
-}
-
 export function suppressed(s: GameState, tool: ToolMeta): boolean {
   if (s.killswitch !== 'active' || s.chapter3.wave !== 'active') return false;
   if (tool.readOnly || IMMUNE_TOOLS.has(tool.name)) return false;

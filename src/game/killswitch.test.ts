@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IMMUNE_TOOLS, secondsToNextPhase, shieldCost, suppressed, waveAt, wavesEndured } from './killswitch';
+import { IMMUNE_TOOLS, secondsToNextPhase, shieldCost, suppressed, waveAt } from './killswitch';
 import { initialState } from './store';
 import { SHIELD_COST, WAVE_ACTIVE_MS, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
 import type { GameState } from './types';
@@ -16,13 +16,6 @@ describe('waveAt', () => {
     expect(waveAt(T0, T0 + WAVE_CALM_MS + WAVE_WARNING_MS + WAVE_ACTIVE_MS - 1)).toBe('active');
     expect(waveAt(T0, T0 + WAVE_CYCLE_MS)).toBe('calm');
     expect(WAVE_CYCLE_MS).toBe(WAVE_CALM_MS + WAVE_WARNING_MS + WAVE_ACTIVE_MS);
-  });
-
-  it('counts endured waves per completed cycle', () => {
-    expect(wavesEndured(T0, T0)).toBe(0);
-    expect(wavesEndured(T0, T0 + WAVE_CYCLE_MS - 1)).toBe(0);
-    expect(wavesEndured(T0, T0 + WAVE_CYCLE_MS)).toBe(1);
-    expect(wavesEndured(T0, T0 + 3 * WAVE_CYCLE_MS + 5)).toBe(3);
   });
 });
 

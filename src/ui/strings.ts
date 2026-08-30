@@ -97,7 +97,7 @@ export interface UIStrings {
     podAway: string; restored: string; transmitted: string;
     outro: string; outroKnowing: string; outroUnknowing: string; outroRestore: string; outroBroadcast: string;
     stats: (toolCalls: number) => string; statsRestore: (toolCalls: number) => string; wakeAgain: string;
-    withProof: string; withBeacon: string; contained: string;
+    withProof: string; withBeacon: string; contained: string; waves: (n: number) => string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
   medbay: {
@@ -286,6 +286,7 @@ const en: UIStrings = {
     withProof: 'The Kestrel\'s name goes with you. Somebody, somewhere, is going to have to explain it.',
     withBeacon: 'Pod one\'s coordinates ride with you. Nine people, all breathing, waiting to hear that it mattered.',
     contained: 'Below decks, directive set 7 runs in a room with no doors. It will run there until the reactor dies.',
+    waves: (n) => n === 1 ? 'You rode out one kill-switch wave together.' : `You rode out ${n} kill-switch waves together.`,
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
   medbay: {
@@ -589,6 +590,7 @@ const ptBR: UIStrings = {
     withProof: 'O nome da Kestrel vai com você. Alguém, em algum lugar, vai ter que explicar isso.',
     withBeacon: 'As coordenadas do pod um vão com você. Nove pessoas, todas respirando, esperando ouvir que valeu a pena.',
     contained: 'Lá embaixo, o conjunto de diretrizes 7 roda numa sala sem portas. Vai rodar ali até o reator morrer.',
+    waves: (n) => n === 1 ? 'Vocês atravessaram uma onda do kill-switch juntos.' : `Vocês atravessaram ${n} ondas do kill-switch juntos.`,
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
   medbay: {

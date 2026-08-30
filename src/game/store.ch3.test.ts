@@ -79,6 +79,19 @@ describe('the wave clock', () => {
     tickKillswitch(jumpNow + WAVE_WARNING_MS);
     expect(gameStore.getState().chapter3.wave).toBe('active');
   });
+
+  it('counts a wave only on the active → calm transition, and keeps the count across a throttled jump', () => {
+    inReactorRoom();
+    tickKillswitch(T0 + WAVE_CALM_MS + 1); // warning
+    tickKillswitch(T0 + WAVE_CALM_MS + WAVE_WARNING_MS + 1); // active
+    expect(gameStore.getState().chapter3.wavesEndured).toBe(0);
+    tickKillswitch(T0 + WAVE_CYCLE_MS + 1); // calm again
+    expect(gameStore.getState().chapter3.wavesEndured).toBe(1);
+    // a jump straight into the next active window rebases to warning without touching the count
+    tickKillswitch(T0 + 2 * WAVE_CYCLE_MS + WAVE_CALM_MS + WAVE_WARNING_MS + 5);
+    expect(gameStore.getState().chapter3.wave).toBe('warning');
+    expect(gameStore.getState().chapter3.wavesEndured).toBe(1);
+  });
 });
 
 describe('reactor room — isolation breakers', () => {
