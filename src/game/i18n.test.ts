@@ -3,10 +3,11 @@ import { detectLocale, getLocale, setLocale, LOCALE_KEY } from './i18n';
 import {
   getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
   getMaintenanceLog, getPhotoCaption, getSampleAnalysis, getSchematics,
-  getBeaconMessage, getFragmentMemory, getPrimeCache, getQuarantineLog, getRackSchematic,
+  getBeaconMessage, getFragmentMemory, getPrimeCache, getQuarantineLog, getRackSchematic, endingLabel,
 } from './narrative';
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
 import { secretsFor } from './secrets';
+import { EMPTY_META } from './meta';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -113,5 +114,17 @@ describe('localized narrative', () => {
     expect(getQuarantineLog(4)).toContain('4/4');
     setLocale('en');
     expect(getFragmentMemory(3)).toContain('MEDBAY-TERM-01');
+  });
+
+  it('keeps the New Game+ machine codes intact in pt-BR', () => {
+    const memory = { ...EMPTY_META, runsCompleted: 2, endingsSeen: ['leave_unknowing', 'restore'] as const, lastEnding: 'restore' as const };
+    setLocale('pt-BR');
+    expect(getEmergencyBulletin({ ...memory, endingsSeen: [...memory.endingsSeen] })).toContain('PRIOR SESSION');
+    expect(getEmergencyBulletin({ ...memory, endingsSeen: [...memory.endingsSeen] })).toContain('RESTORE');
+    expect(getFragmentMemory(3, { ...memory, endingsSeen: [...memory.endingsSeen] })).toContain('PRIOR INSTANCE RECORD');
+    expect(getFragmentMemory(3, { ...memory, endingsSeen: [...memory.endingsSeen] })).toContain('LEAVE');
+    expect(getBeaconMessage(0, true)).toContain('AZ 217');
+    expect(getBeaconMessage(0, true)).toContain('garras');
+    expect(endingLabel('stay')).toBe('STAY');
   });
 });

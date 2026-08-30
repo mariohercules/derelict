@@ -7,6 +7,7 @@ import {
   initiateLaunch, queryFragmentMemory, readPrimeCache,
 } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
+import { EMPTY_META, metaStore } from '../game/meta';
 
 beforeEach(() => resetGame(0));
 
@@ -274,8 +275,8 @@ describe('chapter 3 tools', () => {
   }
   const online = () => toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
 
-  it('defines 29 tools and keeps the chapter-3 set offline before the Kestrel is named', () => {
-    expect(buildTools()).toHaveLength(29);
+  it('defines 31 tools and keeps the chapter-3 set offline before the Kestrel is named', () => {
+    expect(buildTools()).toHaveLength(31);
     for (const name of ['quarantine_killswitch', 'query_fragment_memory', 'read_prime_cache', 'listen_beacon', 'merge_fragment', 'broadcast_evidence']) {
       expect(online()).not.toContain(name);
     }
@@ -444,5 +445,77 @@ describe('chapter 3 tools', () => {
     routePower('comms', 'isolation', SHIELD_COST);
     expect(cutIsolation('comms').ok).toBe(true);
     expect(online()).toContain('broadcast_evidence');
+  });
+});
+
+describe('New Game+ tools', () => {
+  const ALL_ROADS = { ...EMPTY_META, runsCompleted: 3, endingsSeen: ['leave_knowing', 'restore', 'broadcast'] as const, lastEnding: 'broadcast' as const, lastSeed: 42, bestToolCalls: 60 };
+  function readyToStay() {
+    resetGame(0, { ngPlus: true });
+    metaStore.setState({ ...ALL_ROADS, endingsSeen: [...ALL_ROADS.endingsSeen] }, true);
+    gameStore.setState((s) => ({
+      room: 'engineering', act: 3, chapter: 3, trajectorySet: true, sealedLogRead: true,
+      doors: { cryo_exit: true, engineering_exit: true }, killswitch: 'contained',
+      chapter3: { ...s.chapter3, quarantineStep: 4, beaconHeard: true },
+    }));
+  }
+  const online = () => toolAvailability(gameStore.getState()).filter((t) => t.online).map((t) => t.name);
+
+  it('hail_pod_one and dock_pod_one never appear in a classic run', () => {
+    metaStore.setState({ ...ALL_ROADS, endingsSeen: [...ALL_ROADS.endingsSeen] }, true);
+    resetGame(0);
+    gameStore.setState((s) => ({ chapter: 3, killswitch: 'contained', chapter3: { ...s.chapter3, beaconHeard: true } }));
+    expect(online()).not.toContain('hail_pod_one');
+    expect(online()).not.toContain('dock_pod_one');
+  });
+
+  it('get_ship_status reports stay availability and the missing step in New Game+', async () => {
+    readyToStay();
+    gameStore.setState({ killswitch: 'active' });
+    const blocked = await call('get_ship_status');
+    expect(blocked.new_game_plus).toBe(true);
+    expect(blocked.stay_available).toBe(false);
+    expect(blocked.stay_hint).toMatch(/quarantine_killswitch/);
+    gameStore.setState({ killswitch: 'contained' });
+    const open = await call('get_ship_status');
+    expect(open.stay_available).toBe(true);
+    expect(open.stay_hint).toMatch(/hail_pod_one/);
+  });
+
+  it('full agent-side run to STAY: hail from the wrong room, hail, hold, dock', async () => {
+    readyToStay();
+    expect(online()).toContain('hail_pod_one');
+    gameStore.setState({ room: 'cargo_bay' });
+    const wrong = await call('hail_pod_one');
+    expect(wrong.ok).toBe(false);
+    expect(wrong.message).toMatch(/engineering/i);
+    gameStore.setState({ room: 'engineering' });
+    const hail = await call('hail_pod_one');
+    expect(hail.ok).toBe(true);
+    expect(online()).toContain('dock_pod_one');
+    expect((await call('dock_pod_one')).ok).toBe(false); // clamps not held
+    holdHandle(true);
+    expect((await call('dock_pod_one')).ok).toBe(true);
+    expect(gameStore.getState().ending).toBe('stay');
+  });
+
+  it('the bulletin, the beacon and the fragment remember in New Game+ only', async () => {
+    readyToStay();
+    const bulletin = await call('read_emergency_bulletin');
+    expect(bulletin.bulletin).toMatch(/PRIOR SESSION/);
+    expect(bulletin.bulletin).toMatch(/BROADCAST/);
+    gameStore.setState({ room: 'comms_array' });
+    setDish('az', 217); setDish('el', 34);
+    const beacon = await call('listen_beacon');
+    expect(beacon.beacon).toMatch(/clamps/i);
+    gameStore.setState({ room: 'core_vault' });
+    seatColumn(0, 'C'); seatColumn(1, 'A'); seatColumn(2, 'D'); seatColumn(3, 'B');
+    await call('query_fragment_memory'); await call('query_fragment_memory');
+    const third = await call('query_fragment_memory');
+    expect(third.record).toMatch(/PRIOR INSTANCE RECORD/);
+    expect(third.record).toMatch(/RESTORE/);
+    resetGame(0);
+    const plain = await call('read_emergency_bulletin');
+    expect(plain.bulletin).not.toMatch(/PRIOR SESSION/);
   });
 });

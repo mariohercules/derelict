@@ -4,12 +4,15 @@ import {
   gameStore, bumpToolCalls, unlockDoor, routePower, computeTrajectory, initiateLaunch, confirmLaunch,
   traceCommand, decryptPrivateLog, runIrrigation, analyzeSample,
   quarantineKillswitch, queryFragmentMemory, readPrimeCache, hearBeacon, confirmMerge, confirmBroadcast,
+  hailPodOne, confirmDock,
 } from '../game/store';
-import { enginesOnline, logsAvailable, nextShieldCost, rackCorrect, valvesCorrect } from '../game/derived';
+import { enginesOnline, logsAvailable, nextShieldCost, rackCorrect, stayAvailable, stayBlocker, valvesCorrect } from '../game/derived';
+import type { StayBlocker } from '../game/derived';
 import { BUSES, CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
 import { suppressed } from '../game/killswitch';
+import { getMemory } from '../game/meta';
 import {
   getBeaconMessage, getCargoManifest, getCommandTrace, getCrewLogs, getCrewManifest, getDataSpike, getEmergencyBulletin,
   getFragmentMemory, getMaintenanceLog, getMedbayRecords, getPrimeCache, getPrivateLog, getQuarantineLog, getRackSchematic,
@@ -54,6 +57,13 @@ function mkTool(
 }
 
 const noInput = { type: 'object', properties: {}, required: [] };
+const STAY_HINTS: Record<StayBlocker, string> = {
+  not_plus: 'Pod one is not coming to this ship this time.',
+  roads: 'STAY opens to a crew that has already left, restored and broadcast on earlier runs.',
+  contained: 'STAY needs the kill-switch contained: isolation breakers by hand, then quarantine_killswitch to 4/4.',
+  beacon: 'STAY needs pod one found: the dish steered to the carrier bearing, then listen_beacon.',
+};
+const STAY_OPEN_HINT = 'Pod one is within reach: with the crew member in engineering, hands on the docking clamps, call hail_pod_one — then dock_pod_one while they hold.';
 const SUBSYSTEM_IDS: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
 const inAct2 = (s: GameState) => s.act >= 2;
 const onBridge = (s: GameState) => s.room === 'bridge';
@@ -108,6 +118,10 @@ export function buildTools(): GameTool[] {
               'The crew member cuts isolation breakers in the reactor room (one per bus: CORE, NAV, ARCHIVE, COMMS); each needs isolation power you route first (route_power → isolation). ' +
               'quarantine_killswitch advances one segment per shielded bus.',
           } : undefined,
+          ...(s.ngPlus ? (() => {
+            const blocker = stayBlocker(s, getMemory());
+            return { new_game_plus: true, stay_available: blocker === null, stay_hint: blocker ? STAY_HINTS[blocker] : STAY_OPEN_HINT };
+          })() : {}),
           note:
             'The crew member sees the physical ship. You see this board. Between you, a whole picture. ' +
             'You act ONLY by calling tools yourself; the crew member acts only by touching the ship. ' +
@@ -145,7 +159,7 @@ export function buildTools(): GameTool[] {
       'Read the automated emergency bulletin posted when the main computer died.',
       () => true,
       noInput,
-      () => ({ ok: true, bulletin: getEmergencyBulletin() }),
+      () => { const s = gameStore.getState(); return { ok: true, bulletin: getEmergencyBulletin(s.ngPlus ? getMemory() : null) }; },
       true
     ),
     mkTool(
@@ -463,8 +477,9 @@ export function buildTools(): GameTool[] {
       (s) => s.chapter >= 3,
       noInput,
       () => {
+        const s = gameStore.getState();
         const r = queryFragmentMemory();
-        return r.ok && r.stage > 0 ? { ok: true, stage: r.stage, of: 3, record: getFragmentMemory(r.stage), message: r.message } : r;
+        return r.ok && r.stage > 0 ? { ok: true, stage: r.stage, of: 3, record: getFragmentMemory(r.stage, s.ngPlus ? getMemory() : null), message: r.message } : r;
       },
       false, 'core'
     ),
@@ -487,7 +502,7 @@ export function buildTools(): GameTool[] {
       () => {
         const s = gameStore.getState();
         const r = hearBeacon();
-        if (r.ok) return { ok: true, beacon: getBeaconMessage(s.seed), message: r.message };
+        if (r.ok) return { ok: true, beacon: getBeaconMessage(s.seed, s.ngPlus), message: r.message };
         const b = secretsFor(s.seed).beaconBearing;
         return { ...r, carrier_bearing: `AZ ${b.az} / EL ${b.el}` };
       },
@@ -508,6 +523,22 @@ export function buildTools(): GameTool[] {
       noInput,
       () => confirmBroadcast(),
       false, 'comms'
+    ),
+    mkTool(
+      'hail_pod_one',
+      'STAY. Hail pod one on the narrow band and bring it in. Opens only in New Game+ for a crew that has already left, restored and broadcast, with the kill-switch contained and the beacon heard. Two-operator rule: the crew member must be in engineering, hands on the docking clamps; after the hail they HOLD the clamps open while you call dock_pod_one. Nobody leaves, nobody merges, nobody shouts. Call it only if you have both chosen it.',
+      (s) => stayAvailable(s, getMemory()),
+      noInput,
+      () => hailPodOne(),
+      false, 'comms'
+    ),
+    mkTool(
+      'dock_pod_one',
+      'Confirm the dock while the crew member holds the docking clamps open (window from the hail). Nine people come aboard; the fragment stays what it is.',
+      (s) => isArmed(s.ritual, 'stay'),
+      noInput,
+      () => confirmDock(),
+      false, 'nav'
     ),
     mkTool(
       'initiate_launch_sequence',

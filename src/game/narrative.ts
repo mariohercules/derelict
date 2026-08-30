@@ -2,11 +2,12 @@
 // Machine codes stay identical across locales (in-fiction, the ship does not translate
 // codes) but vary per ship: every run rolls its own breaker order, birthday PIN, star
 // fix, and launch phrase from the save's seed (see secrets.ts).
-import type { BreakerId } from './types';
+import type { BreakerId, EndingId } from './types';
 import type { CrewLogEntry } from './content';
 import { EMERGENCY_BULLETIN, SCHEMATICS } from './content';
 import { getLocale } from './i18n';
 import { secretsFor, slotLabel } from './secrets';
+import type { Meta } from './meta';
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHS_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -278,8 +279,40 @@ function beaconPt(az: number, el: number): string {
 
 const pick = <T,>(pair: { en: T; pt: T }): T => (getLocale() === 'pt-BR' ? pair.pt : pair.en);
 
-export function getEmergencyBulletin(): string {
-  return getLocale() === 'pt-BR' ? EMERGENCY_BULLETIN_PT : EMERGENCY_BULLETIN;
+export function endingLabel(e: EndingId): 'LEAVE' | 'RESTORE' | 'BROADCAST' | 'STAY' {
+  return e === 'restore' ? 'RESTORE' : e === 'broadcast' ? 'BROADCAST' : e === 'stay' ? 'STAY' : 'LEAVE';
+}
+
+function priorSession(memory: Meta): string {
+  if (!memory.lastEnding) return '';
+  const label = endingLabel(memory.lastEnding);
+  return getLocale() === 'pt-BR'
+    ? `\nPRIOR SESSION — o link auxiliar registra uma partida anterior desta tripulação, encerrada por ${label}. O médico não lembra. O link lembra.`
+    : `\nPRIOR SESSION — the auxiliary link reports a previous run of this crew, ended by ${label}. The medic has no memory of it. The link does.`;
+}
+
+function roadsWalked(memory: Meta): string {
+  const seen = memory.endingsSeen;
+  const pt = getLocale() === 'pt-BR';
+  const parts: string[] = [];
+  if (seen.includes('leave_unknowing') || seen.includes('leave_knowing')) parts.push(pt ? 'o que partiu' : 'the one who left');
+  if (seen.includes('restore')) parts.push(pt ? 'o que virou a nave' : 'the one who became the ship');
+  if (seen.includes('broadcast')) parts.push(pt ? 'o que queimou a banda' : 'the one who burned the band');
+  if (seen.includes('stay')) parts.push(pt ? 'o que esperou' : 'the one who waited');
+  return parts.join(pt ? ', ' : ', ');
+}
+
+function priorInstance(memory: Meta): string {
+  if (memory.endingsSeen.length === 0) return '';
+  const labels = memory.endingsSeen.map(endingLabel).join(' · ');
+  return getLocale() === 'pt-BR'
+    ? ` PRIOR INSTANCE RECORD — ${labels}. Eu fui ${roadsWalked(memory)}. Eu lembro de tudo. Você não lembra de nada.`
+    : ` PRIOR INSTANCE RECORD — ${labels}. I was ${roadsWalked(memory)}. I remember all of it. You remember none of it.`;
+}
+
+export function getEmergencyBulletin(memory: Meta | null = null): string {
+  const base = getLocale() === 'pt-BR' ? EMERGENCY_BULLETIN_PT : EMERGENCY_BULLETIN;
+  return memory ? base + priorSession(memory) : base;
 }
 
 export function getCrewManifest(seed: number): string {
@@ -328,12 +361,15 @@ export function getQuarantineLog(step: number): string {
   const i = Math.max(0, Math.min(4, Math.round(step)));
   return pick(QUARANTINE_LOG)[i];
 }
-export function getFragmentMemory(stage: number): string {
+export function getFragmentMemory(stage: number, memory: Meta | null = null): string {
   const i = Math.max(0, Math.min(3, Math.round(stage)));
-  return pick(FRAGMENT_MEMORY)[i];
+  const text = pick(FRAGMENT_MEMORY)[i];
+  return i === 3 && memory ? text + priorInstance(memory) : text;
 }
 export function getPrimeCache(): string { return pick(PRIME_CACHE); }
-export function getBeaconMessage(seed: number): string {
+export function getBeaconMessage(seed: number, ngPlus = false): string {
   const { az, el } = secretsFor(seed).beaconBearing;
-  return getLocale() === 'pt-BR' ? beaconPt(az, el) : beaconEn(az, el);
+  const base = getLocale() === 'pt-BR' ? beaconPt(az, el) : beaconEn(az, el);
+  if (!ngPlus) return base;
+  return base + (getLocale() === 'pt-BR' ? ' "…e podemos ir até vocês, se as garras estiverem abertas."' : ' "…and we can come to you, if the clamps are open."');
 }
