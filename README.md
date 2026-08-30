@@ -7,8 +7,8 @@ the fuses, the photo pinned above the bunk. Your agent can act on it: unlock doo
 power, read the logs and schematics you can't reach. Neither of you has the whole picture,
 and neither of you can escape alone.
 
-DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo bay â
-engineering â bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
+DERELICT is an asymmetric co-op escape room, played in chapters. Chapter 1 (cryo bay →
+engineering → bridge, about 20 minutes) is the original build, made for the OpenAI WebMCP
 Challenge. Chapter 2, "The Investigation" (medbay, crew quarters, hydroponics, cargo bay,
 about 30 minutes more), opens once you've chosen to stay and find out what really happened
 here. Chapter 3, "The Truth" (reactor room, core vault, comms array, about 35 minutes more),
@@ -76,8 +76,11 @@ Two layers of asymmetry make the tools necessary rather than decorative:
   phrase — in Chapter 2, the captain's commission number (its last three digits are the
   safe combination), each hydroponics bed's water needs, the cargo bay's quarantine slot,
   and the registry fragment stencilled on the hull plate — and, in Chapter 3, the core
-  vault's memory-column order and pod one's beacon bearing. Nothing is memorizable, and the
-  answers are not sitting in this repository.
+  vault's memory-column order and pod one's beacon bearing. And the seed redraws structure, not just numbers: a ship may wake
+  with a patch bay where the cryo breakers would be, a coil drive in place of the coolant
+  valves, or a drifting nav fix instead of the parallax star fix — each rolled
+  independently, each a different puzzle with its own logs, schematics and instruments.
+  Nothing is memorizable, and the answers are not sitting in this repository.
 
 Tool descriptions are written in-fiction — the agent is addressed directly as the ship's
 auxiliary AI — so it plays its role without any prompting from the human. Every tool
@@ -102,7 +105,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 230 tests)
+npm test       # run the test suite (Vitest, 253 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.

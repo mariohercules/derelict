@@ -72,3 +72,7 @@ No new tools, no schema changes, no description changes. Variant-aware **content
 ## 10. Sequencing
 
 One plan (F) on `directors-cut`, superpowers SDD, final review on the most capable model, Vercel preview, Mario's playthrough (including a seed that rolls all three variants — the plan's last task finds and names one), then merge to `main` + prod.
+
+---
+
+**Shipped 2026-08-30** — 253 tests; chapter-1 structural variants live (patch bay / coil drive / drift fix, one per room, drawn on a dedicated PRNG stream; seed 0 and every pre-existing ship untouched).
