@@ -50,7 +50,7 @@ Create `src/game/killswitch.test.ts`:
 import { describe, expect, it } from 'vitest';
 import { IMMUNE_TOOLS, shieldCost, suppressed, waveAt, wavesEndured } from './killswitch';
 import { initialState } from './store';
-import { SHIELD_COST, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
+import { SHIELD_COST, WAVE_ACTIVE_MS, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
 import type { GameState } from './types';
 
 const T0 = 1_000_000;
@@ -324,7 +324,7 @@ Create `src/game/killswitch.ts`:
 // registry, which only reacts to store changes, sees suppression flip on and
 // off; this module decides what "suppressed" means.
 import type { BusId, GameState, WaveState } from './types';
-import { SHIELD_COST, WAVE_ACTIVE_MS, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
+import { SHIELD_COST, WAVE_CALM_MS, WAVE_CYCLE_MS, WAVE_WARNING_MS } from './content';
 
 export interface ToolMeta {
   name: string;
