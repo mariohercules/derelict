@@ -33,12 +33,21 @@ export function variantSecretsFor(seed: number): VariantSecrets {
     const j = Math.floor(rnd() * (i + 1));
     [buses[i], buses[j]] = [buses[j], buses[i]];
   }
+  // The draw count varies per seed (a duplicate roll costs an extra draw), so
+  // unlike secretsFor, positions here shift: any future field must be
+  // appended AFTER driftFix — never inserted mid-stream.
   const teeth: number[] = [];
   while (teeth.length < 3) {
     const t = int(13, 29);
     if (!teeth.includes(t)) teeth.push(t);
   }
-  const coilPhases: [number, number, number] = [int(0, 11), int(0, 11), int(0, 11)];
+  let coilPhases: [number, number, number] = [int(0, 11), int(0, 11), int(0, 11)];
+  // Guard the rare all-zero draw: a coil-drive ship whose phases are all 0 at
+  // rest would need no player action to solve. Deterministic; variants are
+  // unshipped, so changing a 1-in-1728 seed's phases is safe.
+  while (coilPhases.every((p) => p === 0)) {
+    coilPhases = [int(0, 11), int(0, 11), int(0, 11)];
+  }
   const driftFix = [0, 1, 2].map(() => String(int(7, 99)).padStart(2, '0')) as [string, string, string];
   return {
     cableBuses: buses as [number, number, number],
