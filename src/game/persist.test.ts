@@ -55,6 +55,13 @@ describe('persistence', () => {
     expect(loadSavedState()?.seed).toBe(0);
   });
 
+  it('rejects a tampered seed: negative or fractional would corrupt seed % 3 array indexing', () => {
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), seed: -1 }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), seed: 1.5 }));
+    expect(loadSavedState()).toBeNull();
+  });
+
   it('rejects a save with a malformed launch object', () => {
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), ritual: null }));
     expect(loadSavedState()).toBeNull();

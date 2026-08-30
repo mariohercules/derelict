@@ -58,7 +58,8 @@ export function migrateV1(raw: Record<string, unknown>): Partial<GameState> {
 // A save that fails any of these checks is discarded whole: hydrating a
 // half-valid save corrupts invariants the store never re-checks.
 function validShape(p: Partial<GameState>): boolean {
-  if (!isFiniteNumber(p.seed)) return false;
+  // A tampered fractional/negative seed would feed `seed % 3` as an array index.
+  if (!(typeof p.seed === 'number' && Number.isInteger(p.seed) && p.seed >= 0)) return false;
   if (typeof p.act !== 'number' || ![1, 2, 3].includes(p.act)) return false;
   if (p.chapter !== undefined && ![1, 2, 3].includes(p.chapter as number)) return false;
   if (typeof p.ngPlus !== 'boolean') return false;

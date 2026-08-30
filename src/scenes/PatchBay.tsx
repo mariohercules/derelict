@@ -70,7 +70,8 @@ export function PatchBay() {
                 <circle cx="266" cy={SOCKET_Y[b]} r="4" fill="var(--face-deep)" />
                 <rect x="282" y={SOCKET_Y[b] - 8} width="30" height="16" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />
                 <text x="297" y={SOCKET_Y[b] + 3.5} textAnchor="middle" fontSize="7" fill="var(--text)" letterSpacing="1">{t.cryo.pbBus} {b + 1}</text>
-                <circle cx="266" cy={SOCKET_Y[b] - 16} r="3" fill={auxPower ? 'var(--green)' : 'var(--face)'} stroke="var(--steel)" strokeWidth="0.75" />
+                {/* this SVG renders only while !auxPower, so the lamp is always the dim housing */}
+                <circle cx="266" cy={SOCKET_Y[b] - 16} r="3" fill="var(--face)" stroke="var(--steel)" strokeWidth="0.75" />
               </g>
             ))}
             <rect x="18" y="128" width="44" height="13" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />

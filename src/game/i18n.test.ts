@@ -63,6 +63,11 @@ describe('localized narrative', () => {
     expect(getEmergencyBulletin()).toBe(EMERGENCY_BULLETIN);
   });
 
+  it('pins the classic ship\'s maintenance log and engine feed schematic byte-for-byte (EN)', () => {
+    expect(getMaintenanceLog(0)).toMatchInlineSnapshot(`"AUX POWER PANEL P-7 — bring breakers online in LOAD ORDER: C (life support), A (main bus), B (lighting). Any other order trips the master relay and resets the panel. Yes, someone labeled them out of order. No, we never found out who."`);
+    expect(getSchematics(0).engine_feed).toMatchInlineSnapshot(`"ENGINE FEED FUSE — required rating 10A: cartridge with TWO AMBER bands. For reference: 5A = one red band, 15A = three green bands. A wrong cartridge will seat perfectly and carry exactly nothing."`);
+  });
+
   it('serves pt-BR content when the locale is pt-BR', () => {
     setLocale('pt-BR');
     expect(getEmergencyBulletin()).not.toBe(EMERGENCY_BULLETIN);
@@ -101,6 +106,7 @@ describe('localized narrative', () => {
     setLocale('pt-BR');
     expect(getPhotoCaption(seed)).toContain(String(s.birthday.day).padStart(2, '0'));
     expect(getCrewLogs(seed)[4].text).toContain(s.launchAuth);
+    expect(variantFor(700, 'cryo_bay')).toBe(0);
     expect(getMaintenanceLog(seed)).toContain(`${s.breakerSequence[0]} (suporte de vida)`);
   });
 
