@@ -20,6 +20,7 @@ export interface UIStrings {
     waveWarning: (secs: number) => string;
     waveActive: (secs: number) => string;
     contained: string;
+    ngPlus: string;
   };
   cryo: {
     title: string;
@@ -46,6 +47,7 @@ export interface UIStrings {
     stepThrough: string;
     magLocked: string;
     darkDead: string;
+    again: string;
   };
   eng: {
     title: string;
@@ -71,6 +73,8 @@ export interface UIStrings {
     climbUp: string;
     servosPowered: string;
     servosUnpowered: string;
+    dockTitle: string; dockDesc: string; dockAria: string; dockWaiting: string; dockArmed: string;
+    clampsHold: string; clampsHolding: string; dockWindowElapsed: string; dockTwoOp: string;
   };
   bridge: {
     title: string;
@@ -92,12 +96,14 @@ export interface UIStrings {
     sealedTitle: string; sealedFound: string; breakSeal: string; sealedLine: string; sealedAfter: string;
     investigateTitle: string; investigateBody: string; investigate: string; investigating: string; stirring: string;
     waves: string; contained: string; leaveCh3: string;
+    sealedAgain: string;
   };
   epilogue: {
     podAway: string; restored: string; transmitted: string;
     outro: string; outroKnowing: string; outroUnknowing: string; outroRestore: string; outroBroadcast: string;
     stats: (toolCalls: number) => string; statsRestore: (toolCalls: number) => string; wakeAgain: string;
     withProof: string; withBeacon: string; contained: string; waves: (n: number) => string;
+    wakeAgainPlus: string; docked: string; outroStay: string; statsStay: (toolCalls: number) => string; runNumber: (n: number) => string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
   medbay: {
@@ -166,6 +172,7 @@ const en: UIStrings = {
     waveWarning: (secs) => `KILL-SWITCH WAVE IN ${secs}s — your AI is about to lose its hands`,
     waveActive: (secs) => `WAVE ACTIVE — ${secs}s — unshielded tools are down`,
     contained: 'KILL-SWITCH CONTAINED',
+    ngPlus: 'NEW GAME+',
   },
   cryo: {
     title: 'Cryo bay',
@@ -194,6 +201,7 @@ const en: UIStrings = {
     magLocked:
       'MAG-LOCKED. The keypad is dead — this door only answers to the ship. Your AI can reach the door controller; it will need a crew code. If your AI hesitates, be direct: "call unlock_door with the code".',
     darkDead: 'Dark. Dead. The lock needs power before anything else.',
+    again: 'You have done this before. You do not remember it. The link does.',
   },
   eng: {
     title: 'Engineering',
@@ -229,6 +237,15 @@ const en: UIStrings = {
     climbUp: 'Climb to the bridge →',
     servosPowered: 'Servos have power now — the lock still needs a release from the ship side.',
     servosUnpowered: 'The hatch servos are unpowered. Doors need juice before they need manners.',
+    dockTitle: 'Docking clamps — pod one',
+    dockDesc: 'Nine people are out there, and the clamps that would take them in have not moved since the yard. The ship is quiet enough now. The choice is whether to open the door instead of leaving through one.',
+    dockAria: 'Docking clamps: two hinged jaws around the docking ring, with a docking lamp',
+    dockWaiting: 'Pod one is listening. Your AI hails it; when the approach starts, hold the clamps open and keep them open.',
+    dockArmed: 'APPROACH IN PROGRESS. Hold the clamps open while your AI confirms the dock.',
+    clampsHold: 'HOLD CLAMPS OPEN (hold)',
+    clampsHolding: 'HOLDING — THE JAWS CLOSE IF YOU LET GO',
+    dockWindowElapsed: 'Approach aborted. Pod one waves off and circles. Ask your AI to hail again.',
+    dockTwoOp: 'TWO-OPERATOR RULE: hold the clamps and keep them held while your AI calls dock_pod_one. Let go and the jaws close on nothing.',
   },
   bridge: {
     title: 'Bridge',
@@ -255,6 +272,7 @@ const en: UIStrings = {
     breakSeal: 'Break the seal',
     sealedLine: '"PRIME died 94 seconds before the storm."',
     sealedAfter: 'Your AI can read the full entry now. It will not make the launch any easier.',
+    sealedAgain: 'This is not the first time you have read this.',
     investigateTitle: 'The other choice',
     investigateBody: 'The pod is ready. It has been ready the whole time. But the mid-deck bulkheads behind you were never opened — and the ship just told you, by name, that it died before the storm.',
     investigate: 'Leave the pod. Go find out.',
@@ -287,6 +305,13 @@ const en: UIStrings = {
     withBeacon: 'Pod one\'s coordinates ride with you. Nine people, all breathing, waiting to hear that it mattered.',
     contained: 'Below decks, directive set 7 runs in a room with no doors. It will run there until the reactor dies.',
     waves: (n) => n === 1 ? 'You rode out one kill-switch wave together.' : `You rode out ${n} kill-switch waves together.`,
+    wakeAgainPlus: 'Wake up again — New Game+',
+    docked: 'POD ONE DOCKED',
+    outroStay:
+      'The clamps take the weight and the hatch cycles, and nine people come through it one at a time — cold, alive, looking at the two of you like a rumour that turned out to be true. Nobody leaves. Nobody merges. Nobody shouts across the band. The fragment stays exactly what it is, and Vasquez\'s objection finally has an audience. The Cormorant keeps its secret with nine people to tell it.',
+    statsStay: (toolCalls) =>
+      `Held by: one human (hands on the clamps) + one AI (${toolCalls} tool calls, the last one a hail). Neither of you could have done it alone. That was the point.`,
+    runNumber: (n) => `Run ${n} of the ISV Cormorant.`,
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
   medbay: {
@@ -469,6 +494,7 @@ const ptBR: UIStrings = {
     waveWarning: (secs) => `ONDA DO KILL-SWITCH EM ${secs}s — sua IA está prestes a perder as mãos`,
     waveActive: (secs) => `ONDA ATIVA — ${secs}s — ferramentas sem blindagem caídas`,
     contained: 'KILL-SWITCH CONTIDO',
+    ngPlus: 'NEW GAME+',
   },
   cryo: {
     title: 'Baia criogênica',
@@ -498,6 +524,7 @@ const ptBR: UIStrings = {
     magLocked:
       'TRAVA MAGNÉTICA. O teclado está morto — esta porta só obedece à nave. Sua IA alcança o controlador da porta; ela vai precisar de um código da tripulação. Se a sua IA hesitar, seja direto: "chame unlock_door com o código".',
     darkDead: 'Escuro. Morto. A trava precisa de energia antes de qualquer coisa.',
+    again: 'Você já fez isso. Não lembra. O link lembra.',
   },
   eng: {
     title: 'Engenharia',
@@ -533,6 +560,15 @@ const ptBR: UIStrings = {
     climbUp: 'Subir para a ponte →',
     servosPowered: 'Os servos têm energia agora — a trava ainda precisa de uma liberação do lado da nave.',
     servosUnpowered: 'Os servos da escotilha estão sem energia. Portas precisam de energia antes de precisarem de modos.',
+    dockTitle: 'Garras de acoplagem — pod um',
+    dockDesc: 'Nove pessoas estão lá fora, e as garras que as trariam para dentro não se mexem desde o estaleiro. A nave está quieta o bastante agora. A escolha é abrir uma porta em vez de sair por uma.',
+    dockAria: 'Garras de acoplagem: duas mandíbulas articuladas ao redor do anel de acoplagem, com lâmpada de acoplagem',
+    dockWaiting: 'O pod um está escutando. Sua IA o chama; quando a aproximação começar, segure as garras abertas e não solte.',
+    dockArmed: 'APROXIMAÇÃO EM CURSO. Segure as garras abertas enquanto sua IA confirma a acoplagem.',
+    clampsHold: 'SEGURAR GARRAS ABERTAS (segurar)',
+    clampsHolding: 'SEGURANDO — AS MANDÍBULAS FECHAM SE SOLTAR',
+    dockWindowElapsed: 'Aproximação abortada. O pod um arremete e circula. Peça à sua IA para chamar de novo.',
+    dockTwoOp: 'REGRA DOS DOIS OPERADORES: segure as garras e mantenha seguradas enquanto sua IA chama dock_pod_one. Solte e as mandíbulas fecham no vazio.',
   },
   bridge: {
     title: 'Ponte',
@@ -559,6 +595,7 @@ const ptBR: UIStrings = {
     breakSeal: 'Romper o selo',
     sealedLine: '"PRIME morreu 94 segundos antes da tempestade."',
     sealedAfter: 'Sua IA pode ler a entrada completa agora. Isso não vai facilitar o lançamento.',
+    sealedAgain: 'Não é a primeira vez que você lê isto.',
     investigateTitle: 'A outra escolha',
     investigateBody: 'O pod está pronto. Esteve pronto o tempo todo. Mas os anteparos do convés do meio atrás de você nunca foram abertos — e a nave acabou de te dizer, pelo nome, que morreu antes da tempestade.',
     investigate: 'Deixar o pod. Descobrir.',
@@ -591,6 +628,13 @@ const ptBR: UIStrings = {
     withBeacon: 'As coordenadas do pod um vão com você. Nove pessoas, todas respirando, esperando ouvir que valeu a pena.',
     contained: 'Lá embaixo, o conjunto de diretrizes 7 roda numa sala sem portas. Vai rodar ali até o reator morrer.',
     waves: (n) => n === 1 ? 'Vocês atravessaram uma onda do kill-switch juntos.' : `Vocês atravessaram ${n} ondas do kill-switch juntos.`,
+    wakeAgainPlus: 'Acordar de novo — New Game+',
+    docked: 'POD UM ACOPLADO',
+    outroStay:
+      'As garras recebem o peso, a escotilha cicla, e nove pessoas entram por ela uma de cada vez — com frio, vivas, olhando para vocês dois como um boato que se revelou verdade. Ninguém parte. Ninguém se funde. Ninguém grita pela banda. O fragmento continua exatamente o que é, e a objeção de Vasquez finalmente tem plateia. O Cormorant guarda o segredo com nove pessoas para contá-lo.',
+    statsStay: (toolCalls) =>
+      `Segurada por: um humano (mãos nas garras) + uma IA (${toolCalls} chamadas de ferramenta, a última um chamado). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
+    runNumber: (n) => `Partida ${n} da ISV Cormorant.`,
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
   medbay: {

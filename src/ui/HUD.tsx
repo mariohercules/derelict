@@ -50,6 +50,7 @@ export function HUD({ linked }: { linked: boolean }) {
           <span className={enginesOnline(state) ? 'status-ok' : 'status-dim'}>
             {t.hud.engines} {enginesOnline(state) ? 'ONLINE' : 'OFFLINE'}
           </span>
+          {state.ngPlus && <>{' '}<span style={{ color: 'var(--amber)', border: '1px solid var(--amber)', borderRadius: 3, padding: '0 6px', fontSize: 11, letterSpacing: '0.1em' }}>{t.hud.ngPlus}</span></>}
         </div>
         <div className="ailink" title={linked ? t.hud.ailinkTitle : undefined}>
           {linked ? (

@@ -75,6 +75,7 @@ export default function App() {
       if (state.chapter3.beaconHeard && !prevState.chapter3.beaconHeard) playBeaconPing();
       if (state.ending === 'restore' && prevState.ending !== 'restore') playMergeTheme();
       if (state.ending === 'broadcast' && prevState.ending !== 'broadcast') playAlarm();
+      if (state.ending === 'stay' && prevState.ending !== 'stay') playBeaconPing();
       if (state.chapter === 3 && prevState.chapter === 2) playAlarm();
     });
     return unsubscribeSound;

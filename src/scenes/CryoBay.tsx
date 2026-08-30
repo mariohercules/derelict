@@ -135,6 +135,7 @@ function ExitDoor() {
 
 export function CryoBay() {
   const t = useStrings();
+  const ngPlus = useGame((s) => s.ngPlus);
   return (
     <div className="scene">
       <div className="panel">
@@ -145,6 +146,7 @@ export function CryoBay() {
           {t.cryo.introB}
         </p>
         <p className="status-dim">{t.cryo.askAI}</p>
+        {ngPlus && <p style={{ color: 'var(--amber)' }}>{t.cryo.again}</p>}
       </div>
       <BreakerPanel />
       <FamilyPhoto />

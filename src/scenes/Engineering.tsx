@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
+import { useMeta } from '../ui/useMeta';
 import { useStrings } from '../ui/useLocale';
-import { installFuse, setValve, enterRoom } from '../game/store';
-import { doorsPowered, enginesOnline, valvesCorrect } from '../game/derived';
+import { installFuse, setValve, enterRoom, holdHandle } from '../game/store';
+import { doorsPowered, enginesOnline, valvesCorrect, stayAvailable } from '../game/derived';
 import { LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
 import { secretsFor } from '../game/secrets';
 import type { FuseRating, SubsystemId } from '../game/types';
@@ -243,6 +245,118 @@ function PowerBoard() {
   );
 }
 
+function Jaw({ side, open }: { side: 'left' | 'right'; open: boolean }) {
+  // A hinged jaw around the docking ring. Hinge pins at (110, 82) and (210, 82);
+  // the jaw swings outward while the clamps are held open.
+  const hx = side === 'left' ? 110 : 210;
+  const dir = side === 'left' ? -1 : 1;
+  const d = side === 'left'
+    ? 'M 110 74 L 132 62 Q 160 54 176 70 L 170 78 Q 158 66 136 72 L 118 90 Z'
+    : 'M 210 74 L 188 62 Q 160 54 144 70 L 150 78 Q 162 66 184 72 L 202 90 Z';
+  return (
+    <g className="lever" style={{ transform: open ? `rotate(${dir * 32}deg)` : 'rotate(0deg)', transformOrigin: `${hx}px 82px` }}>
+      <path d={d} fill="url(#dk-steel)" stroke="var(--steel)" strokeWidth="1.5" />
+      <circle cx={hx} cy="82" r="5" fill="url(#dk-brass)" stroke="var(--brass-lo)" strokeWidth="1.5" />
+    </g>
+  );
+}
+
+function DockingClamps() {
+  const ngPlus = useGame((s) => s.ngPlus);
+  const killswitch = useGame((s) => s.killswitch);
+  const chapter3 = useGame((s) => s.chapter3);
+  const ritual = useGame((s) => s.ritual);
+  const ending = useGame((s) => s.ending);
+  const memory = useMeta((m) => m);
+  const t = useStrings();
+  const available = stayAvailable({ ngPlus, killswitch, chapter3 }, memory);
+  const armed = ritual.active === 'stay' && ritual.phase === 'armed';
+  const docked = ending === 'stay';
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!armed) return;
+    setNowTick(Date.now());
+    const timer = setInterval(() => setNowTick(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, [armed]);
+  const secondsLeft = armed && ritual.endsAt ? Math.max(0, Math.ceil((ritual.endsAt - nowTick) / 1000)) : null;
+  const elapsed = armed && secondsLeft === 0;
+  if (!available) return null;
+  const open = armed && ritual.held && !elapsed;
+  const lamp = docked ? 'var(--green)' : armed && !elapsed ? 'var(--amber)' : 'var(--dim)';
+  return (
+    <div className="panel" style={{ borderColor: armed ? 'var(--amber)' : 'var(--line)' }}>
+      <h2>{t.eng.dockTitle}</h2>
+      <p className="status-dim">{t.eng.dockDesc}</p>
+      <svg viewBox="0 0 320 160" width="100%" style={{ maxWidth: 480, display: 'block' }} role="img" aria-label={t.eng.dockAria}>
+        <defs>
+          <linearGradient id="dk-steel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--steel-hi)" />
+            <stop offset="100%" stopColor="var(--steel-lo)" />
+          </linearGradient>
+          <linearGradient id="dk-brass" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--brass-hi)" />
+            <stop offset="100%" stopColor="var(--brass-lo)" />
+          </linearGradient>
+          <clipPath id="dk-face"><rect x="10" y="10" width="300" height="140" rx="4" /></clipPath>
+        </defs>
+        <rect x="4" y="4" width="312" height="152" rx="6" fill="var(--face)" stroke="var(--steel)" strokeWidth="3" />
+        <rect x="10" y="10" width="300" height="140" rx="4" fill="var(--face-deep)" stroke="var(--line)" />
+        <g clipPath="url(#dk-face)">
+          {/* pod one: approaches down into the ring while the hail is live; sits docked at the end */}
+          <g style={{ transition: 'transform 0.8s ease', transform: docked || (armed && !elapsed) ? 'translate(0px, 0px)' : 'translate(0px, -90px)' }}>
+            <rect x="146" y="58" width="28" height="44" rx="12" fill="url(#dk-steel)" stroke="var(--steel)" strokeWidth="1.5" />
+            <rect x="152" y="66" width="16" height="8" rx="2" fill="var(--amber)" opacity="0.7" />
+            <text x="160" y="94" textAnchor="middle" fontSize="6" fill="var(--parchment)" letterSpacing="1">POD 1</text>
+          </g>
+        </g>
+        {/* docking ring */}
+        <circle cx="160" cy="82" r="36" fill="none" stroke="var(--steel)" strokeWidth="4" />
+        <circle cx="160" cy="82" r="30" fill="none" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => {
+          const r = (deg * Math.PI) / 180;
+          return <line key={deg} x1={160 + 36 * Math.cos(r)} y1={82 + 36 * Math.sin(r)} x2={160 + 40 * Math.cos(r)} y2={82 + 40 * Math.sin(r)} stroke="var(--steel-hi)" strokeWidth="1.5" />;
+        })}
+        <Jaw side="left" open={open} />
+        <Jaw side="right" open={open} />
+        {/* docking lamp */}
+        <circle cx="290" cy="26" r="8" fill="var(--face)" stroke="var(--steel)" strokeWidth="2" />
+        <circle cx="290" cy="26" r="5" fill={lamp} opacity={lamp === 'var(--dim)' ? 0.35 : 0.95} />
+        {/* engraved plate */}
+        <rect x="18" y="128" width="48" height="14" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />
+        <text x="42" y="138" textAnchor="middle" fontSize="7.5" fill="var(--text)" letterSpacing="2">DOCK-1</text>
+      </svg>
+      {docked ? null : armed ? (
+        <>
+          <p className="status-ok">{t.eng.dockArmed}</p>
+          {elapsed ? (
+            <p className="status-dim">{t.eng.dockWindowElapsed}</p>
+          ) : (
+            <>
+              <p className="status-bad blink" style={{ fontSize: 24 }}>T-{secondsLeft}s</p>
+              <p>{t.eng.dockTwoOp}</p>
+            </>
+          )}
+        </>
+      ) : (
+        <p className="status-dim">{t.eng.dockWaiting}</p>
+      )}
+      <button
+        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); holdHandle(true); }}
+        onPointerUp={() => holdHandle(false)}
+        onPointerCancel={() => holdHandle(false)}
+        onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); holdHandle(true); } }}
+        onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') holdHandle(false); }}
+        onBlur={() => holdHandle(false)}
+        disabled={!armed || elapsed || docked}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch', marginTop: 10 }}
+      >
+        {open ? t.eng.clampsHolding : t.eng.clampsHold}
+      </button>
+    </div>
+  );
+}
+
 function BridgeDoor() {
   const unlocked = useGame((s) => s.doors.engineering_exit);
   const powered = useGame(doorsPowered);
@@ -277,6 +391,7 @@ export function Engineering() {
       <PowerBoard />
       <FuseBox />
       <CoolantManifold />
+      <DockingClamps />
       <BridgeDoor />
     </div>
   );

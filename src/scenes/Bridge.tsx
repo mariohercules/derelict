@@ -104,6 +104,7 @@ function Viewport() {
 function SealedLog() {
   const trajectorySet = useGame((s) => s.trajectorySet);
   const read = useGame((s) => s.sealedLogRead);
+  const ngPlus = useGame((s) => s.ngPlus);
   const t = useStrings();
   if (!trajectorySet) return null;
   return (
@@ -113,6 +114,7 @@ function SealedLog() {
         <>
           <p style={{ fontSize: 17 }}>{t.bridge.sealedLine}</p>
           <p className="status-dim">{t.bridge.sealedAfter}</p>
+          {ngPlus && <p className="status-dim">{t.bridge.sealedAgain}</p>}
         </>
       ) : (
         <>
