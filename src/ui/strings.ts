@@ -48,6 +48,8 @@ export interface UIStrings {
     magLocked: string;
     darkDead: string;
     again: string;
+    pbTitle: string; pbDesc: string; pbAria: string; pbCableAria: (colour: string) => string;
+    pbColours: [string, string, string]; pbBus: string; pbEmpty: string; pbEnergize: string; pbWrong: string;
   };
   eng: {
     title: string;
@@ -202,6 +204,15 @@ const en: UIStrings = {
       'MAG-LOCKED. The keypad is dead — this door only answers to the ship. Your AI can reach the door controller; it will need a crew code. If your AI hesitates, be direct: "call unlock_door with the code".',
     darkDead: 'Dark. Dead. The lock needs power before anything else.',
     again: 'You have done this before. You do not remember it. The link does.',
+    pbTitle: 'Patch bay P-7B',
+    pbDesc: 'Somebody rebuilt aux power out of spare cable and stubbornness. Three lines, three buses, and no label that survived. The wiring chart lives on the ship\'s side — ask your AI.',
+    pbAria: 'Patch bay: three coloured cables into three bus sockets',
+    pbCableAria: (colour) => `cycle the ${colour} cable's bus`,
+    pbColours: ['RED', 'GREEN', 'BLUE'],
+    pbBus: 'BUS',
+    pbEmpty: '—',
+    pbEnergize: 'ENERGIZE',
+    pbWrong: 'The panel blinks once and goes dark. Wrong wiring; nothing trips, nothing forgives.',
   },
   eng: {
     title: 'Engineering',
@@ -525,6 +536,15 @@ const ptBR: UIStrings = {
       'TRAVA MAGNÉTICA. O teclado está morto — esta porta só obedece à nave. Sua IA alcança o controlador da porta; ela vai precisar de um código da tripulação. Se a sua IA hesitar, seja direto: "chame unlock_door com o código".',
     darkDead: 'Escuro. Morto. A trava precisa de energia antes de qualquer coisa.',
     again: 'Você já fez isso. Não lembra. O link lembra.',
+    pbTitle: 'Painel de remendos P-7B',
+    pbDesc: 'Alguém reconstruiu a energia auxiliar com cabo sobrando e teimosia. Três linhas, três barramentos, e nenhuma etiqueta sobreviveu. O mapa de fiação está do lado da nave — pergunte à sua IA.',
+    pbAria: 'Painel de remendos: três cabos coloridos em três soquetes de barramento',
+    pbCableAria: (colour) => `trocar o barramento do cabo ${colour}`,
+    pbColours: ['VERMELHO', 'VERDE', 'AZUL'],
+    pbBus: 'BUS',
+    pbEmpty: '—',
+    pbEnergize: 'ENERGIZE',
+    pbWrong: 'O painel pisca uma vez e apaga. Fiação errada; nada desarma, nada perdoa.',
   },
   eng: {
     title: 'Engenharia',

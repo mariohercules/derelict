@@ -3,9 +3,11 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { removeGrate, flipBreaker, enterRoom } from '../game/store';
 import { getPhotoCaption } from '../game/narrative';
+import { variantFor } from '../game/variants';
 import type { BreakerId } from '../game/types';
 import photoStill from '../assets/family-photo.jpg';
 import photoLoop from '../assets/family-photo.mp4';
+import { PatchBay } from './PatchBay';
 
 function FamilyPhoto() {
   const [zoomed, setZoomed] = useState(false);
@@ -75,21 +77,22 @@ function FamilyPhoto() {
   );
 }
 
-function BreakerPanel() {
-  const grateRemoved = useGame((s) => s.grateRemoved);
+function VentGrate() {
+  const t = useStrings();
+  return (
+    <div className="panel">
+      <h2>{t.cryo.ventGrate}</h2>
+      <p className="status-dim">{t.cryo.ventHum}</p>
+      <button onClick={removeGrate}>{t.cryo.pullGrate}</button>
+    </div>
+  );
+}
+
+function AuxBreakers() {
   const flipped = useGame((s) => s.breakersFlipped);
   const auxPower = useGame((s) => s.auxPower);
   const t = useStrings();
 
-  if (!grateRemoved) {
-    return (
-      <div className="panel">
-        <h2>{t.cryo.ventGrate}</h2>
-        <p className="status-dim">{t.cryo.ventHum}</p>
-        <button onClick={removeGrate}>{t.cryo.pullGrate}</button>
-      </div>
-    );
-  }
   return (
     <div className="panel">
       <h2>{t.cryo.auxPanel}</h2>
@@ -136,6 +139,9 @@ function ExitDoor() {
 export function CryoBay() {
   const t = useStrings();
   const ngPlus = useGame((s) => s.ngPlus);
+  const seed = useGame((s) => s.seed);
+  const grateRemoved = useGame((s) => s.grateRemoved);
+  const patchBay = variantFor(seed, 'cryo_bay') === 1;
   return (
     <div className="scene">
       <div className="panel">
@@ -148,7 +154,7 @@ export function CryoBay() {
         <p className="status-dim">{t.cryo.askAI}</p>
         {ngPlus && <p style={{ color: 'var(--amber)' }}>{t.cryo.again}</p>}
       </div>
-      <BreakerPanel />
+      {!grateRemoved ? <VentGrate /> : patchBay ? <PatchBay /> : <AuxBreakers />}
       <FamilyPhoto />
       <ExitDoor />
     </div>
