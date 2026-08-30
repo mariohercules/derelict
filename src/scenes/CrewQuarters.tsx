@@ -3,6 +3,8 @@ import { useGame } from '../ui/useGame';
 import { useLocale, useStrings } from '../ui/useLocale';
 import { dialSafe, playRecorder } from '../game/store';
 import { getRecorderTranscript } from '../game/narrative';
+import okaforEn from '../assets/okafor-en.mp3';
+import okaforPt from '../assets/okafor-pt.mp3';
 
 function Wheel({ value, onUp, onDown, aria, disabled, index }: { value: number; onUp: () => void; onDown: () => void; aria: string; disabled: boolean; index: number }) {
   const prev = (value + 9) % 10;
@@ -113,6 +115,9 @@ function Recorder() {
   // mid-speech if nothing keeps a reference to it, silently killing the audio
   // and dropping `end` along with it.
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  // The recorded performance (Okafor's tape). Held so stop()/unmount can pause it;
+  // speechSynthesis remains the fallback when the file is missing or refuses to play.
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const clearIdleTimer = () => {
     if (idleTimerRef.current !== null) {
@@ -131,6 +136,10 @@ function Recorder() {
     clearIdleTimer();
     clearHardCapTimer();
     utteranceRef.current = null;
+    if (audioRef.current) {
+      try { audioRef.current.pause(); } catch { /* already stopped */ }
+      audioRef.current = null;
+    }
     setPlaying(false);
   };
 
@@ -147,15 +156,9 @@ function Recorder() {
     }, IDLE_MS);
   };
 
-  const play = () => {
-    playRecorder();
-    setPlaying(true);
-    armIdleTimer();
-    clearHardCapTimer();
-    hardCapTimerRef.current = setTimeout(() => {
-      try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
-      stop();
-    }, hardCapMs);
+  // Fallback: the browser's voice reads the transcript when the tape cannot play.
+  const speak = () => {
+    audioRef.current = null;
     try {
       const synth = window.speechSynthesis;
       if (!synth) throw new Error('no speech');
@@ -171,7 +174,32 @@ function Recorder() {
       synth.speak(u);
     } catch {
       setNoSpeech(true);
-      // playing stays true; the idle timer armed above stops it deterministically.
+      // playing stays true; the idle timer armed in play() stops it deterministically.
+    }
+  };
+
+  const play = () => {
+    playRecorder();
+    setPlaying(true);
+    armIdleTimer();
+    clearHardCapTimer();
+    hardCapTimerRef.current = setTimeout(() => {
+      try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
+      stop();
+    }, hardCapMs);
+    // The recorded tape first; the synthetic voice only when it cannot play.
+    // `timeupdate` fires a few times a second during playback, so the idle
+    // failsafe stays armed by real progress, exactly like word boundaries do
+    // for the synthetic path.
+    try {
+      const audio = new Audio(locale === 'pt-BR' ? okaforPt : okaforEn);
+      audioRef.current = audio;
+      audio.onended = () => stop();
+      audio.onerror = () => speak();
+      audio.ontimeupdate = () => armIdleTimer();
+      audio.play().then(() => armIdleTimer()).catch(() => speak());
+    } catch {
+      speak();
     }
   };
 
