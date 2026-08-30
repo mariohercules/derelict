@@ -77,6 +77,8 @@ export interface UIStrings {
     servosUnpowered: string;
     dockTitle: string; dockDesc: string; dockAria: string; dockWaiting: string; dockArmed: string;
     clampsHold: string; clampsHolding: string; dockWindowElapsed: string; dockTwoOp: string;
+    gcTitle: string; gcDesc: string; gcTrayAria: string; gcGearAria: (teeth: number) => string; gcSeat: string; gcSeated: string;
+    gcCoilsTitle: string; gcCoilsDesc: string; gcCoil: (label: string) => string; gcPhaseAria: (label: string) => string;
   };
   bridge: {
     title: string;
@@ -257,6 +259,16 @@ const en: UIStrings = {
     clampsHolding: 'HOLDING — THE JAWS CLOSE IF YOU LET GO',
     dockWindowElapsed: 'Approach aborted. Pod one waves off and circles. Ask your AI to hail again.',
     dockTwoOp: 'TWO-OPERATOR RULE: hold the clamps and keep them held while your AI calls dock_pod_one. Let go and the jaws close on nothing.',
+    gcTitle: 'Engine feed — coil drive',
+    gcDesc: 'No fuse on this ship: a coupling gear and three induction coils. Three gears in the tray, plates stamped by a liar — count the teeth yourself. The right count is paperwork, and paperwork is your AI\'s side.',
+    gcTrayAria: 'Gear tray: three coupling gears with countable teeth',
+    gcGearAria: (teeth) => `coupling gear with ${teeth} teeth`,
+    gcSeat: 'seat it',
+    gcSeated: 'seated',
+    gcCoilsTitle: 'Induction coils',
+    gcCoilsDesc: 'Three coils, twelve marks each, no numbers. The phases are on the schematic — the ship\'s side again.',
+    gcCoil: (label) => `COIL ${label}`,
+    gcPhaseAria: (label) => `coil ${label} phase dial`,
   },
   bridge: {
     title: 'Bridge',
@@ -589,6 +601,16 @@ const ptBR: UIStrings = {
     clampsHolding: 'SEGURANDO — AS MANDÍBULAS FECHAM SE SOLTAR',
     dockWindowElapsed: 'Aproximação abortada. O pod um arremete e circula. Peça à sua IA para chamar de novo.',
     dockTwoOp: 'REGRA DOS DOIS OPERADORES: segure as garras e mantenha seguradas enquanto sua IA chama dock_pod_one. Solte e as mandíbulas fecham no vazio.',
+    gcTitle: 'Alimentação dos motores — coil drive',
+    gcDesc: 'Nesta nave não há fusível: uma engrenagem de acoplamento e três bobinas de indução. Três engrenagens na bandeja, plaquetas carimbadas por um mentiroso — conte os dentes você mesmo. A contagem certa é papelada, e papelada é o lado da sua IA.',
+    gcTrayAria: 'Bandeja de engrenagens: três engrenagens de acoplamento com dentes contáveis',
+    gcGearAria: (teeth) => `engrenagem de acoplamento com ${teeth} dentes`,
+    gcSeat: 'encaixar',
+    gcSeated: 'encaixada',
+    gcCoilsTitle: 'Bobinas de indução',
+    gcCoilsDesc: 'Três bobinas, doze marcas cada, nenhum número. As fases estão no esquema — o lado da nave, de novo.',
+    gcCoil: (label) => `COIL ${label}`,
+    gcPhaseAria: (label) => `dial de fase da bobina ${label}`,
   },
   bridge: {
     title: 'Ponte',

@@ -6,6 +6,8 @@ import { installFuse, setValve, enterRoom, holdHandle } from '../game/store';
 import { doorsPowered, enginesOnline, valvesCorrect, stayAvailable } from '../game/derived';
 import { LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
 import { secretsFor } from '../game/secrets';
+import { variantFor } from '../game/variants';
+import { GearAndCoils } from './GearAndCoils';
 import type { FuseRating, SubsystemId } from '../game/types';
 
 // Gauge geometry: 0–120 PSI sweeps -120°..+120°, measured clockwise from 12 o'clock.
@@ -382,6 +384,8 @@ function BridgeDoor() {
 
 export function Engineering() {
   const t = useStrings();
+  const seed = useGame((s) => s.seed);
+  const coilDrive = variantFor(seed, 'engineering') === 1;
   return (
     <div className="scene">
       <div className="panel">
@@ -389,8 +393,7 @@ export function Engineering() {
         <p>{t.eng.intro}</p>
       </div>
       <PowerBoard />
-      <FuseBox />
-      <CoolantManifold />
+      {coilDrive ? <GearAndCoils /> : <><FuseBox /><CoolantManifold /></>}
       <DockingClamps />
       <BridgeDoor />
     </div>
