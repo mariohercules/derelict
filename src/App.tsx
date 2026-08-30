@@ -64,6 +64,11 @@ export default function App() {
       if (state.doors.cryo_exit && !prevState.doors.cryo_exit) playBlip();
       if (state.doors.engineering_exit && !prevState.doors.engineering_exit) playBlip();
       if (state.ritual.phase === 'armed' && prevState.ritual.phase !== 'armed') playAlarm();
+      if (state.chapter2.safeOpened && !prevState.chapter2.safeOpened) playBlip();
+      if (state.chapter2.irrigationSolved && !prevState.chapter2.irrigationSolved) playBlip();
+      if (state.chapter2.crateLifted && !prevState.chapter2.crateLifted) playBlip();
+      if (state.chapter === 2 && prevState.chapter === 1) playBlip();
+      if (state.killswitch === 'stirring' && prevState.killswitch !== 'stirring') playAlarm();
     });
     return unsubscribeSound;
   }, []);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
-import { takeStarFix, holdHandle, enterRoom, breakSeal } from '../game/store';
+import { takeStarFix, holdHandle, enterRoom, breakSeal, startInvestigation } from '../game/store';
 import { secretsFor } from '../game/secrets';
 
 // Deterministic star field (no per-render randomness — the sky must hold still).
@@ -124,6 +124,29 @@ function SealedLog() {
   );
 }
 
+function Investigate() {
+  const read = useGame((s) => s.sealedLogRead);
+  const chapter = useGame((s) => s.chapter);
+  const killswitch = useGame((s) => s.killswitch);
+  const t = useStrings();
+  if (!read) return null;
+  return (
+    <div className="panel" style={{ borderColor: chapter === 1 ? 'var(--amber)' : 'var(--line)' }}>
+      <h2>{t.bridge.investigateTitle}</h2>
+      {chapter === 1 ? (
+        <>
+          <p>{t.bridge.investigateBody}</p>
+          <button onClick={() => startInvestigation()}>{t.bridge.investigate}</button>
+        </>
+      ) : (
+        <p className={killswitch === 'stirring' ? 'status-bad' : 'status-dim'}>
+          {killswitch === 'stirring' ? t.bridge.stirring : t.bridge.investigating}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function LaunchConsole() {
   const ritual = useGame((s) => s.ritual);
   const armed = ritual.active === 'launch' && ritual.phase === 'armed';
@@ -204,6 +227,7 @@ export function Bridge() {
       </div>
       <Viewport />
       <SealedLog />
+      <Investigate />
       <LaunchConsole />
       <EngineeringLadder />
     </div>

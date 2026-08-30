@@ -87,6 +87,7 @@ export interface UIStrings {
     ladderDown: string;
     climbDown: string;
     sealedTitle: string; sealedFound: string; breakSeal: string; sealedLine: string; sealedAfter: string;
+    investigateTitle: string; investigateBody: string; investigate: string; investigating: string; stirring: string;
   };
   epilogue: {
     podAway: string;
@@ -95,9 +96,10 @@ export interface UIStrings {
     outroUnknowing: string;
     stats: (toolCalls: number) => string;
     wakeAgain: string;
+    withProof: string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
-  sealed: { title: string; body: string };
+  sealed: { title: string; body: string; stirring: string };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -230,6 +232,11 @@ const en: UIStrings = {
     breakSeal: 'Break the seal',
     sealedLine: '"PRIME died 94 seconds before the storm."',
     sealedAfter: 'Your AI can read the full entry now. It will not make the launch any easier.',
+    investigateTitle: 'The other choice',
+    investigateBody: 'The pod is ready. It has been ready the whole time. But the mid-deck bulkheads behind you were never opened — and the ship just told you, by name, that it died before the storm.',
+    investigate: 'Leave the pod. Go find out.',
+    investigating: 'The investigation is underway. The pod waits — it will wait as long as you need.',
+    stirring: 'Something below decks is awake. The pod is still here. So is the question of whether to use it.',
   },
   epilogue: {
     podAway: 'POD AWAY',
@@ -242,11 +249,13 @@ const en: UIStrings = {
     stats: (toolCalls) =>
       `Escaped by: one human (hands, eyes, judgment) + one AI (${toolCalls} tool calls on ship systems). Neither of you could have done it alone. That was the point.`,
     wakeAgain: 'Wake up again',
+    withProof: 'The Kestrel\'s name goes with you. Somebody, somewhere, is going to have to explain it.',
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
   sealed: {
     title: 'Sealed bulkhead',
     body: 'The door here is welded from the other side, and the ship has no opinion about it yet. Whatever this compartment holds belongs to a later chapter.',
+    stirring: 'Beyond this bulkhead something has started to breathe. It was not breathing an hour ago.',
   },
   medbay: {
     title: 'Medbay',
@@ -427,6 +436,11 @@ const ptBR: UIStrings = {
     breakSeal: 'Romper o selo',
     sealedLine: '"PRIME morreu 94 segundos antes da tempestade."',
     sealedAfter: 'Sua IA pode ler a entrada completa agora. Isso não vai facilitar o lançamento.',
+    investigateTitle: 'A outra escolha',
+    investigateBody: 'O pod está pronto. Esteve pronto o tempo todo. Mas os anteparos do convés do meio atrás de você nunca foram abertos — e a nave acabou de te dizer, pelo nome, que morreu antes da tempestade.',
+    investigate: 'Deixar o pod. Descobrir.',
+    investigating: 'A investigação está em curso. O pod espera — e vai esperar o quanto você precisar.',
+    stirring: 'Algo abaixo do convés está acordado. O pod ainda está aqui. E a pergunta de usá-lo, também.',
   },
   epilogue: {
     podAway: 'POD LANÇADO',
@@ -439,11 +453,13 @@ const ptBR: UIStrings = {
     stats: (toolCalls) =>
       `Fugiram: um humano (mãos, olhos, julgamento) + uma IA (${toolCalls} chamadas de ferramenta nos sistemas da nave). Nenhum dos dois teria conseguido sozinho. Esse era o ponto.`,
     wakeAgain: 'Acordar de novo',
+    withProof: 'O nome da Kestrel vai com você. Alguém, em algum lugar, vai ter que explicar isso.',
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
   sealed: {
     title: 'Anteparo selado',
     body: 'A porta aqui foi soldada do outro lado, e a nave ainda não tem opinião sobre isso. O que este compartimento guarda pertence a um capítulo posterior.',
+    stirring: 'Além deste anteparo, algo começou a respirar. Não estava respirando uma hora atrás.',
   },
   medbay: {
     title: 'Enfermaria',
