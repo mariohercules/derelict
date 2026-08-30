@@ -1,5 +1,5 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, BusId, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
 import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
@@ -9,6 +9,7 @@ import type { StayBlocker } from './derived';
 import { waveAt } from './killswitch';
 import { rulesFor } from './rules';
 import { getMemory } from './meta';
+import { variantFor, variantSecretsFor } from './variants';
 
 export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
@@ -191,7 +192,8 @@ export function computeTrajectory(symbols: string[]): ActionResult {
     return { ok: false, message: 'No optical fix logged. The viewport reticle must be aligned by hand first — that is crew work, not yours.' };
   }
   const given = symbols.map((x) => String(x).trim().toUpperCase()).join('-');
-  if (given !== secretsFor(s.seed).starFix.join('-')) {
+  const fix = variantFor(s.seed, 'bridge') === 1 ? variantSecretsFor(s.seed).driftFix : secretsFor(s.seed).starFix;
+  if (given !== fix.join('-')) {
     return { ok: false, message: 'Star fix does not resolve. Those symbols point us into a gas giant. Re-check the viewport.' };
   }
   gameStore.setState({ trajectorySet: true });
@@ -559,4 +561,68 @@ export function confirmDock(now: number = Date.now()): ActionResult {
   }
   gameStore.setState({ ritual: next, won: true, ending: 'stay' });
   return { ok: true, message: 'Clamps engaged. Pod one is docked. Nine people are coming through the hatch, and nobody on this ship has to choose anything tonight.' };
+}
+
+// ---------------------------------------------------------- chapter-1 variants
+
+function patch1v(p: Partial<Chapter1VariantState>): void {
+  gameStore.setState((s) => ({ chapter1v: { ...s.chapter1v, ...p } }));
+}
+
+export function plugCable(cable: 0 | 1 | 2, bus: number | null): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'cryo_bay') !== 1) return { ok: false, message: 'This ship has no patch bay.' };
+  if (s.room !== 'cryo_bay') return { ok: false, message: 'The patch bay is in the cryo bay.' };
+  if (s.auxPower) return { ok: true, message: 'Auxiliary power is already up; the wiring holds.' };
+  const sockets = [...s.chapter1v.sockets] as Chapter1VariantState['sockets'];
+  if (bus === null) {
+    sockets[cable] = null;
+    patch1v({ sockets, energized: false });
+    return { ok: true, message: 'Cable pulled.' };
+  }
+  const b = Math.round(bus);
+  if (b < 1 || b > 3) return { ok: false, message: 'Buses run 1 to 3.' };
+  if (s.chapter1v.sockets.some((v, i) => v === b && i !== cable)) {
+    return { ok: false, message: `Bus ${b} already holds a cable. One line per bus.` };
+  }
+  sockets[cable] = b;
+  patch1v({ sockets, energized: false });
+  return { ok: true, message: `Cable seated on bus ${b}.` };
+}
+
+export function energize(): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'cryo_bay') !== 1) return { ok: false, message: 'This ship has no patch bay.' };
+  if (s.room !== 'cryo_bay') return { ok: false, message: 'The patch bay is in the cryo bay.' };
+  if (s.auxPower) return { ok: true, message: 'Auxiliary power is already up.' };
+  if (s.chapter1v.sockets.some((b) => b === null)) {
+    return { ok: false, message: 'Not every cable is seated. The panel refuses a half-made circuit.' };
+  }
+  const target = variantSecretsFor(s.seed).cableBuses;
+  if (!s.chapter1v.sockets.every((b, i) => b === target[i])) {
+    patch1v({ energized: false });
+    return { ok: false, message: 'The panel blinks once and goes dark. Wrong wiring; nothing trips, nothing forgives.' };
+  }
+  patch1v({ energized: true });
+  gameStore.setState({ auxPower: true });
+  return { ok: true, message: 'AUXILIARY POWER ONLINE.' };
+}
+
+export function seatGear(teeth: number): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'engineering') !== 1) return { ok: false, message: 'This ship has no coil drive.' };
+  if (s.room !== 'engineering') return { ok: false, message: 'The gear tray is in engineering.' };
+  const v = variantSecretsFor(s.seed).gearTeeth;
+  if (![v.target, ...v.decoys].includes(teeth)) return { ok: false, message: 'No such gear in the tray.' };
+  patch1v({ gear: teeth });
+  return { ok: true, message: `Gear seated: ${teeth} teeth.` };
+}
+
+export function setPhase(index: 0 | 1 | 2, value: number): void {
+  const v = Math.max(0, Math.min(11, Math.round(value)));
+  gameStore.setState((s) => {
+    const phases = [...s.chapter1v.phases] as [number, number, number];
+    phases[index] = v;
+    return { chapter1v: { ...s.chapter1v, phases } };
+  });
 }

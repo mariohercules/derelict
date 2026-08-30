@@ -5,10 +5,23 @@ import { secretsFor } from './secrets';
 import { rulesFor } from './rules';
 import { hasSeenAllRoads } from './meta';
 import type { Meta } from './meta';
+import { variantFor, variantSecretsFor } from './variants';
 
 export function valvesCorrect(s: GameState): boolean {
+  // A coil-drive ship's manifold is self-regulating: the valves puzzle does
+  // not exist there, so nothing downstream should wait on it.
+  if (variantFor(s.seed, 'engineering') === 1) return true;
   const targets = secretsFor(s.seed).valveTargets;
   return s.valveSettings.every((v, i) => v === targets[i]);
+}
+
+export function gearCorrect(s: GameState): boolean {
+  return s.chapter1v.gear === variantSecretsFor(s.seed).gearTeeth.target;
+}
+
+export function coilsCorrect(s: GameState): boolean {
+  const t = variantSecretsFor(s.seed).coilPhases;
+  return s.chapter1v.phases.every((p, i) => p === t[i]);
 }
 
 export function doorsPowered(s: GameState): boolean {
@@ -16,17 +29,15 @@ export function doorsPowered(s: GameState): boolean {
 }
 
 export function enginesOnline(s: GameState): boolean {
-  return (
-    s.powerAllocation.engines >= ENGINES_REQUIRED &&
-    s.fuseInstalled === CORRECT_FUSE &&
-    valvesCorrect(s)
-  );
+  if (s.powerAllocation.engines < ENGINES_REQUIRED) return false;
+  if (variantFor(s.seed, 'engineering') === 1) return gearCorrect(s) && coilsCorrect(s);
+  return s.fuseInstalled === CORRECT_FUSE && valvesCorrect(s);
 }
 
 export function logsAvailable(s: GameState): number {
   let n = 2;
   if (s.powerAllocation.engines >= ENGINES_REQUIRED) n++;
-  if (valvesCorrect(s)) n++;
+  if (variantFor(s.seed, 'engineering') === 1 ? coilsCorrect(s) : valvesCorrect(s)) n++;
   if (enginesOnline(s)) n++;
   return n;
 }
