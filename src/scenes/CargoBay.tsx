@@ -11,10 +11,8 @@ const Y0 = 34;
 function CraneDeck() {
   const craneAt = useGame((s) => s.chapter2.craneAt);
   const lifted = useGame((s) => s.chapter2.crateLifted);
-  const seed = useGame((s) => s.seed);
   const t = useStrings();
   const [last, setLast] = useState<string | null>(null);
-  const slot = secretsFor(seed).quarantineSlot;
   const cx = X0 + craneAt.col * CELL + CELL / 2;
   const cy = Y0 + craneAt.row * CELL + CELL / 2;
   return (
@@ -41,20 +39,30 @@ function CraneDeck() {
         {[0, 1, 2].map((row) => [0, 1, 2].map((col) => {
           const x = X0 + col * CELL;
           const y = Y0 + row * CELL;
-          const isQ = row === slot.row && col === slot.col;
-          const gone = lifted && isQ;
+          // the crate is only ever visually distinct once the crane has lifted it —
+          // the scene never reads the secret slot, only the crane's own current position
+          const isQ = lifted && craneAt.row === row && craneAt.col === col;
+          // deterministic per-crate wear, keyed only on grid position — never on the secret
+          const idx = row * 3 + col;
+          const scuffOpacity = 0.12 + 0.05 * ((idx * 5) % 4);
+          const insetOpacity = 0.4 + 0.06 * ((idx * 3) % 5);
+          const scuffOffset = (idx % 3) * 4;
           return (
-            <g key={`${row}${col}`} aria-label={t.cargo.slotAria(slotLabel({ row, col }))}>
+            <g key={`${row}${col}`} role="group" aria-label={t.cargo.slotAria(slotLabel({ row, col }))}>
               <rect x={x + 4} y={y + 4} width={CELL - 8} height={CELL - 8} rx="4"
-                fill={gone ? '#0a0e0c' : 'url(#cb-steel)'} stroke={gone ? '#2a3a30' : '#4a5a50'} strokeWidth="1.5"
-                strokeDasharray={gone ? '3 3' : undefined} />
-              {!gone && (
+                fill={isQ ? '#0a0e0c' : 'url(#cb-steel)'} stroke={isQ ? '#2a3a30' : '#4a5a50'} strokeWidth="1.5"
+                strokeDasharray={isQ ? '3 3' : undefined} />
+              {!isQ && (
                 <>
-                  <rect x={x + 10} y={y + 10} width={CELL - 20} height="6" fill="#0a0e0c" opacity="0.5" />
+                  <rect x={x + 10} y={y + 10} width={CELL - 20} height="6" fill="#0a0e0c" opacity={insetOpacity} />
+                  <line x1={x + 12 + scuffOffset} y1={y + CELL - 14} x2={x + 30 + scuffOffset} y2={y + CELL - 20}
+                    stroke="#7a8f82" strokeWidth="1" opacity={scuffOpacity} />
+                  <line x1={x + CELL - 30} y1={y + 20 - scuffOffset} x2={x + CELL - 14} y2={y + 26 - scuffOffset}
+                    stroke="#0a0e0c" strokeWidth="1.5" opacity={scuffOpacity} />
                   <text x={x + CELL / 2} y={y + CELL / 2 + 4} textAnchor="middle" fontSize="11" fill="#7a8f82" letterSpacing="2">{slotLabel({ row, col })}</text>
                 </>
               )}
-              {lifted && isQ && <rect x={x + 8} y={y + CELL - 16} width={CELL - 16} height="6" fill="url(#cb-hazard)" />}
+              {isQ && <rect x={x + 8} y={y + CELL - 16} width={CELL - 16} height="6" fill="url(#cb-hazard)" />}
             </g>
           );
         }))}
@@ -116,7 +124,8 @@ function HullFragment() {
           <circle key={i} cx={x} cy={y} r="2.5" fill="#0a0e0c" stroke="#7a8f82" strokeWidth="0.75" />
         ))}
         <text x="60" y="66" fontSize="20" fill="#c9c1a5" letterSpacing="4" fontFamily="ui-monospace, monospace">ISV KES</text>
-        <text x="168" y="66" fontSize="20" fill="#c9c1a5" letterSpacing="4" fontFamily="ui-monospace, monospace" opacity="0.28">TREL</text>
+        <text x="168" y="66" fontSize="20" fill="#c9c1a5" letterSpacing="4" fontFamily="ui-monospace, monospace" opacity="0.22">▮</text>
+        <text x="192" y="66" fontSize="20" fill="#c9c1a5" letterSpacing="4" fontFamily="ui-monospace, monospace">REL</text>
         <text x="60" y="98" fontSize="16" fill="#c9c1a5" letterSpacing="3" fontFamily="ui-monospace, monospace">REG</text>
         <text x="112" y="98" fontSize="16" fill="#c9c1a5" letterSpacing="3" fontFamily="ui-monospace, monospace" opacity="0.22">▮▮</text>
         <text x="160" y="98" fontSize="16" fill="var(--amber)" letterSpacing="5" fontFamily="ui-monospace, monospace">{digits}</text>
