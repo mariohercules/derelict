@@ -1,5 +1,8 @@
 # DERELICT
 
+[![CI](https://github.com/mariohercules/derelict/actions/workflows/ci.yml/badge.svg)](https://github.com/mariohercules/derelict/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 You wake from cryosleep on a drifting ship whose main computer is dead. The only thing
 still listening is an auxiliary AI with partial access to ship systems — and that AI is
 your own agent, connected through WebMCP. You can see the ship: the doors, the gauges,
