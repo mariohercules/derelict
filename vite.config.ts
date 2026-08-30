@@ -16,4 +16,5 @@ const buildId = [sha, stamp].filter(Boolean).join(' · ');
 export default defineConfig({
   plugins: [react()],
   define: { __BUILD_ID__: JSON.stringify(buildId) },
+  test: { css: { include: [/theme\.css/] } },
 });
