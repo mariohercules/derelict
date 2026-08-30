@@ -92,6 +92,16 @@ describe('the wave clock', () => {
     expect(gameStore.getState().chapter3.wave).toBe('warning');
     expect(gameStore.getState().chapter3.wavesEndured).toBe(1);
   });
+
+  it('a stall across a whole cycle from an active wave does not count the wave it skipped (accepted undercount)', () => {
+    inReactorRoom();
+    tickKillswitch(T0 + WAVE_CALM_MS + 1); // warning
+    tickKillswitch(T0 + WAVE_CALM_MS + WAVE_WARNING_MS + 1); // active
+    // the tab stalls past the calm phase of the next cycle and wakes inside its warning
+    tickKillswitch(T0 + WAVE_CYCLE_MS + WAVE_CALM_MS + 5);
+    expect(gameStore.getState().chapter3.wave).toBe('warning');
+    expect(gameStore.getState().chapter3.wavesEndured).toBe(0);
+  });
 });
 
 describe('reactor room — isolation breakers', () => {

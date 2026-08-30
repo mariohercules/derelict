@@ -14,6 +14,7 @@ const css = (import.meta.glob('./theme.css', { query: '?raw', import: 'default',
 
 describe('instrument palette', () => {
   it('defines every instrument token in theme.css with its original value', () => {
+    expect(css, 'theme.css must load as raw text (see vite.config.ts test.css.include)').toBeTruthy();
     for (const [token, value] of [
       ['--steel', '#3a4a40'], ['--steel-hi', '#7a8f82'], ['--steel-mid', '#4a5a50'], ['--steel-lo', '#1d2620'],
       ['--face', '#0c110e'], ['--face-deep', '#080b09'],

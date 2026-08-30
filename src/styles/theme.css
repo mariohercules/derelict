@@ -98,7 +98,7 @@ input[type='range'] {
 }
 input[type='range']::-webkit-slider-runnable-track {
   height: 6px;
-  background: #0c110e;
+  background: var(--face);
   border: 1px solid var(--line);
   border-radius: 3px;
 }
@@ -114,7 +114,7 @@ input[type='range']::-webkit-slider-thumb {
 }
 input[type='range']::-moz-range-track {
   height: 6px;
-  background: #0c110e;
+  background: var(--face);
   border: 1px solid var(--line);
   border-radius: 3px;
 }

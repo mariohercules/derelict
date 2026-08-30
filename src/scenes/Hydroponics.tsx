@@ -79,7 +79,7 @@ function Beds() {
           </div>
         ))}
       </div>
-      <p className="status-dim" style={{ fontSize: 12 }}>{t.hydro.lampsHint}</p>
+      {lastCycle === null && <p className="status-dim" style={{ fontSize: 12 }}>{t.hydro.lampsHint}</p>}
       {/* budget tank meter */}
       <div style={{ marginTop: 12, maxWidth: 360 }}>
         <div className="status-dim" style={{ fontSize: 12 }}>{t.hydro.budget}: {total}/{WATER_BUDGET}u</div>
