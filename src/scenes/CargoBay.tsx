@@ -3,6 +3,8 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { liftCrate, moveCrane } from '../game/store';
 import { secretsFor, slotLabel } from '../game/secrets';
+import { variantFor } from '../game/variants';
+import { StackedDeck } from './StackedDeck';
 
 const CELL = 74;
 const X0 = 46;
@@ -139,6 +141,8 @@ function HullFragment() {
 }
 
 export function CargoBay() {
+  const seed = useGame((s) => s.seed);
+  const stacked = variantFor(seed, 'cargo_bay') === 1;
   const t = useStrings();
   return (
     <div className="scene">
@@ -146,7 +150,7 @@ export function CargoBay() {
         <h2>{t.cargo.title}</h2>
         <p>{t.cargo.intro}</p>
       </div>
-      <CraneDeck />
+      {stacked ? <StackedDeck /> : <CraneDeck />}
       <HullFragment />
     </div>
   );

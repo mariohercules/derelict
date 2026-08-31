@@ -144,6 +144,8 @@ export interface UIStrings {
     title: string; intro: string; craneTitle: string; craneDesc: string; gridAria: string; slotAria: (label: string) => string;
     up: string; down: string; left: string; right: string; lift: string; wrongCrate: string; lifted: string;
     fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string; lowerDeck: string;
+    stackedDesc: string; stackedGridAria: string; tierAria: (n: number) => string; lower: string; hookLamp: string;
+    palletUp: string; holdingOne: string; slotFull: string; parked: string;
   };
   reactor: {
     title: string; intro: string; bankTitle: string; bankDesc: string; bus: Record<BusId, string>; cut: string;
@@ -443,6 +445,15 @@ const en: UIStrings = {
     readOut: 'Read the four legible digits to your AI. The analyzer is on the ship\'s side; it will need them exactly.',
     analyzed: 'The analyzer has a name for this plate now. Ask your AI what it found — and then listen to the ship.',
     lowerDeck: 'THE LOWER-DECK BULKHEADS HAVE RELEASED. Reactor room, through engineering. The ship left a door open for exactly this.',
+    stackedDesc: 'Nine slots, one crane, one hook — and a bay re-racked in a hurry: three slots are stacked two high. The hook takes one crate at a time; LOWER parks it on any single-tier slot. Your AI reads the manifest — you drive, lift, park, and lift again.',
+    stackedGridAria: 'cargo bay stack, three by three, some slots stacked two high, with the gantry crane',
+    tierAria: (n) => (n === 2 ? 'two crates high' : 'one crate'),
+    lower: 'Lower',
+    hookLamp: 'HOOK',
+    palletUp: 'A ration pallet swings on the hook. Nothing else lifts until it is parked — drive to a single-tier slot and LOWER.',
+    holdingOne: 'The hook already carries a crate. Park it first.',
+    slotFull: 'That slot is already two high. Find a single-tier slot.',
+    parked: 'Parked. The hook is free.',
   },
   reactor: {
     title: 'Reactor room',
@@ -809,6 +820,15 @@ const ptBR: UIStrings = {
     readOut: 'Leia os quatro dígitos legíveis para sua IA. O analisador fica do lado da nave; ele vai precisar deles exatos.',
     analyzed: 'O analisador agora tem um nome para esta chapa. Pergunte à sua IA o que ela encontrou — e depois escute a nave.',
     lowerDeck: 'OS ANTEPAROS DO CONVÉS INFERIOR ABRIRAM. Sala do reator, pela engenharia. A nave deixou uma porta aberta exatamente para isto.',
+    stackedDesc: 'Nove slots, um guindaste, um gancho — e um porão re-empilhado às pressas: três slots têm dois andares. O gancho leva um caixote por vez; BAIXAR estaciona em qualquer slot de um andar. Sua IA lê o manifesto — você dirige, iça, estaciona e iça de novo.',
+    stackedGridAria: 'pilha do porão de carga, três por três, alguns slots com dois andares, com o guindaste de pórtico',
+    tierAria: (n) => (n === 2 ? 'dois caixotes de altura' : 'um caixote'),
+    lower: 'Baixar',
+    hookLamp: 'GANCHO',
+    palletUp: 'Um palete de ração balança no gancho. Nada mais sobe até ele ser estacionado — vá a um slot de um andar e BAIXAR.',
+    holdingOne: 'O gancho já leva um caixote. Estacione primeiro.',
+    slotFull: 'Esse slot já tem dois andares. Ache um slot de um andar.',
+    parked: 'Estacionado. O gancho está livre.',
   },
   reactor: {
     title: 'Sala do reator',
