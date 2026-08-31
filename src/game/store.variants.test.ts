@@ -2,9 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   gameStore, resetGame, plugCable, energize, seatGear, setPhase, takeStarFix, computeTrajectory,
   unlockDoor, enterRoom, routePower, breakSeal, initiateLaunch, confirmLaunch, holdHandle,
+  startInvestigation, liftDrawing, turnSafeKey, dialSafe, decryptPrivateLog,
+  setIrrigation, runIrrigation, retrieveSpike,
+  moveCrane, liftCrate, lowerCrate, analyzeSample,
 } from './store';
-import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, valvesCorrect } from './derived';
-import { variantFor, variantSecretsFor } from './variants';
+import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, valvesCorrect, sweepDeficitsFor } from './derived';
+import { variantFor, variantSecretsFor, DRAWINGS, tiersFor } from './variants';
 import { STAR_FIX } from './content';
 import { secretsFor } from './secrets';
 
@@ -168,5 +171,149 @@ describe('chapter-1 full walk (seed 8: variant 1 in all three rooms)', () => {
     expect(conf.ok).toBe(true);
     expect(gameStore.getState().won).toBe(true);
     expect(gameStore.getState().ending).toBe('leave_knowing');
+  });
+});
+
+// ---------------------------------------------------------------- chapter 2
+
+const S_KS = findSeed((s) => variantFor(s, 'crew_quarters') === 1);
+const S_HP = findSeed((s) => variantFor(s, 'hydroponics') === 1);
+const S_SD = findSeed((s) => variantFor(s, 'cargo_bay') === 1);
+
+function investigating(seed: number, room: 'crew_quarters' | 'hydroponics' | 'cargo_bay') {
+  resetGame(seed);
+  gameStore.setState({ room: 'bridge', act: 3, trajectorySet: true, sealedLogRead: true });
+  startInvestigation();
+  gameStore.setState({ room });
+}
+
+function driveTo(index: number) {
+  for (let i = 0; i < 2; i++) { moveCrane('up'); moveCrane('left'); } // home
+  for (let r = 0; r < Math.floor(index / 3); r++) moveCrane('down');
+  for (let c = 0; c < index % 3; c++) moveCrane('right');
+}
+
+describe('keyed safe (crew quarters variant 1)', () => {
+  it('exists only on a keyed ship, only in the crew quarters, and the wheels refuse there', () => {
+    investigating(0, 'crew_quarters');
+    expect(liftDrawing(0).ok).toBe(false);
+    expect(turnSafeKey().ok).toBe(false);
+    expect(dialSafe(secretsFor(0).safeCombo).ok).toBe(true); // the classic safe is untouched
+    investigating(S_KS, 'hydroponics');
+    expect(liftDrawing(0).ok).toBe(false);
+    gameStore.setState({ room: 'crew_quarters' });
+    expect(dialSafe(secretsFor(S_KS).safeCombo).ok).toBe(false);
+    expect(dialSafe(secretsFor(S_KS).safeCombo).message).toMatch(/no wheels/);
+    expect(gameStore.getState().chapter2.safeOpened).toBe(false);
+  });
+
+  it('a wrong drawing changes nothing; the right one yields the key; the key opens the safe and the log', () => {
+    investigating(S_KS, 'crew_quarters');
+    const at = variantSecretsFor(S_KS).keyDrawing;
+    const wrong = (at + 1) % DRAWINGS.length;
+    expect(turnSafeKey().ok).toBe(false); // no key yet
+    const miss = liftDrawing(wrong as 0 | 1 | 2 | 3 | 4 | 5);
+    expect(miss.ok).toBe(false);
+    expect(miss.message).toContain(DRAWINGS[wrong]);
+    expect(gameStore.getState().chapter2v.keyFound).toBe(false);
+    expect(liftDrawing(at as 0 | 1 | 2 | 3 | 4 | 5).ok).toBe(true);
+    expect(gameStore.getState().chapter2v.keyFound).toBe(true);
+    expect(decryptPrivateLog().ok).toBe(false); // still locked
+    expect(turnSafeKey().ok).toBe(true);
+    expect(gameStore.getState().chapter2.safeOpened).toBe(true);
+    expect(decryptPrivateLog().ok).toBe(true);
+    expect(turnSafeKey().ok).toBe(true); // idempotent once open
+  });
+});
+
+describe('moisture sweep (hydroponics variant 1)', () => {
+  it('the classic ship never reports deficits', () => {
+    investigating(0, 'hydroponics');
+    expect(runIrrigation()).not.toHaveProperty('deficits');
+  });
+
+  it('closed lines read their deficit, open lines read null; the numbers then solve the manifold', () => {
+    investigating(S_HP, 'hydroponics');
+    const needs = secretsFor(S_HP).waterNeeds;
+    const sweep = runIrrigation();
+    expect(sweep.ok).toBe(true);
+    expect(sweep.deficits).toEqual([...needs]);
+    expect(sweep.beds).toEqual(['dry', 'dry', 'dry']);
+    expect(sweep.solved).toBe(false);
+    expect(sweep.message).toMatch(/Moisture sweep/);
+    expect(gameStore.getState().chapter2.lastCycle).toEqual(['dry', 'dry', 'dry']);
+    setIrrigation(0, needs[0]);
+    const partial = runIrrigation();
+    expect(partial.deficits).toEqual([null, needs[1], needs[2]]);
+    expect(partial.beds[0]).toBe('ok');
+    setIrrigation(1, needs[1]);
+    setIrrigation(2, needs[2]);
+    const done = runIrrigation();
+    expect(done.solved).toBe(true);
+    expect(done.deficits).toEqual([null, null, null]);
+    expect(gameStore.getState().chapter2.irrigationSolved).toBe(true);
+    expect(retrieveSpike().ok).toBe(true);
+    expect(sweepDeficitsFor(S_HP, [0, needs[1], 0])).toEqual([needs[0], null, needs[2]]);
+  });
+});
+
+describe('stacked bay (cargo variant 1)', () => {
+  it('the classic crane has no LOWER and lifts straight from the slot', () => {
+    investigating(0, 'cargo_bay');
+    expect(lowerCrate().ok).toBe(false);
+    expect(gameStore.getState().chapter2v.tiers).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    const q = secretsFor(0).quarantineSlot;
+    driveTo(q.row * 3 + q.col);
+    expect(liftCrate().ok).toBe(true);
+    expect(gameStore.getState().chapter2.crateLifted).toBe(true);
+  });
+
+  it('pallet up, park it, come back, lift the container, name the Kestrel', () => {
+    investigating(S_SD, 'cargo_bay');
+    const q = secretsFor(S_SD).quarantineSlot;
+    const qi = q.row * 3 + q.col;
+    const { stackSlots } = variantSecretsFor(S_SD);
+    expect(gameStore.getState().chapter2v.tiers).toEqual(tiersFor(S_SD));
+    const single = tiersFor(S_SD).findIndex((t, i) => t === 1 && i !== qi);
+    expect(lowerCrate().ok).toBe(false); // nothing on the hook
+    driveTo(qi);
+    const pallet = liftCrate();
+    expect(pallet.ok).toBe(true);
+    expect(gameStore.getState().chapter2.crateLifted).toBe(false);
+    expect(gameStore.getState().chapter2v.held).toBe(true);
+    expect(gameStore.getState().chapter2v.tiers[qi]).toBe(1);
+    expect(liftCrate().ok).toBe(false); // one crate at a time
+    expect(gameStore.getState().chapter2.crateLifted).toBe(false);
+    driveTo(stackSlots[0]);
+    expect(lowerCrate().ok).toBe(false); // that slot is already two high
+    expect(gameStore.getState().chapter2v.held).toBe(true);
+    driveTo(single);
+    expect(lowerCrate().ok).toBe(true);
+    expect(gameStore.getState().chapter2v.held).toBe(false);
+    expect(gameStore.getState().chapter2v.tiers[single]).toBe(2);
+    driveTo(qi);
+    expect(liftCrate().ok).toBe(true);
+    expect(gameStore.getState().chapter2.crateLifted).toBe(true);
+    expect(analyzeSample(secretsFor(S_SD).registryFragment).ok).toBe(true);
+    expect(gameStore.getState().chapter).toBe(3);
+    expect(gameStore.getState().checkpoint).toEqual({ chapter: 3, room: 'cargo_bay' });
+  });
+
+  it('a decoy stack lifts and parks like any pallet; a single wrong crate is refused as before', () => {
+    investigating(S_SD, 'cargo_bay');
+    const q = secretsFor(S_SD).quarantineSlot;
+    const qi = q.row * 3 + q.col;
+    const { stackSlots } = variantSecretsFor(S_SD);
+    const single = tiersFor(S_SD).findIndex((t, i) => t === 1 && i !== qi);
+    driveTo(single);
+    expect(liftCrate().ok).toBe(false); // ordinary crate, one high, wrong slot
+    expect(gameStore.getState().chapter2v.held).toBe(false);
+    driveTo(stackSlots[1]);
+    expect(liftCrate().ok).toBe(true);
+    expect(gameStore.getState().chapter2v.held).toBe(true);
+    driveTo(qi);
+    expect(lowerCrate().ok).toBe(false); // the quarantine slot is still two high
+    driveTo(single);
+    expect(lowerCrate().ok).toBe(true);
   });
 });

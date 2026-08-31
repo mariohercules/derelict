@@ -54,6 +54,13 @@ export function irrigationReport(s: GameState): { beds: BedState[]; total: numbe
   return irrigationReportFor(s.seed, s.chapter2.irrigation);
 }
 
+// Plan F2 (hydroponics variant): the pump's moisture probe reads a bed only
+// while its line is closed — every bed at valve 0 reports its need, the rest null.
+export function sweepDeficitsFor(seed: number, irrigation: [number, number, number]): (number | null)[] {
+  const needs = secretsFor(seed).waterNeeds;
+  return irrigation.map((v, i) => (v === 0 ? needs[i] : null));
+}
+
 export function rackCorrect(s: GameState): boolean {
   const order = secretsFor(s.seed).columnOrder;
   return s.chapter3.rack.every((c, i) => c === order[i]);

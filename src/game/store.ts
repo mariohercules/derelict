@@ -1,15 +1,15 @@
 import { createStore } from 'zustand/vanilla';
 import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter2VariantState, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
 import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
-import { randomSeed, secretsFor } from './secrets';
+import { randomSeed, secretsFor, slotLabel } from './secrets';
 import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
 import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
-import { dishAligned, irrigationReport, nextShieldCost, rackCorrect, stayBlocker } from './derived';
+import { dishAligned, irrigationReport, nextShieldCost, rackCorrect, stayBlocker, sweepDeficitsFor } from './derived';
 import type { StayBlocker } from './derived';
 import { waveAt } from './killswitch';
 import { rulesFor } from './rules';
 import { getMemory } from './meta';
-import { tiersFor, variantFor, variantSecretsFor } from './variants';
+import { DRAWINGS, tiersFor, variantFor, variantSecretsFor } from './variants';
 
 export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
@@ -268,6 +268,7 @@ export function traceCommand(): ActionResult {
 export function dialSafe(combo: [number, number, number]): ActionResult {
   const s = gameStore.getState();
   if (s.room !== 'crew_quarters') return { ok: false, message: 'The safe is in Vasquez\'s cabin.' };
+  if (variantFor(s.seed, 'crew_quarters') === 1) return { ok: false, message: 'This safe has no wheels. It wants a key; the wall has six drawings.' };
   if (s.chapter2.safeOpened) return { ok: true, message: 'The safe is already open.' };
   const target = secretsFor(s.seed).safeCombo;
   if (combo.join('') !== target.join('')) return { ok: false, message: 'The dial clicks past. Nothing gives.' };
@@ -295,7 +296,12 @@ export function setIrrigation(index: 0 | 1 | 2, value: number): void {
   });
 }
 
-export function runIrrigation(): ActionResult & { beds: string[]; solved: boolean } {
+const IRRIGATION_SOLVED =
+  'Cycle complete. Every bed drinks exactly what it needs — and the middle bed drains low enough to show what the vine was hiding. ' +
+  'Tell the crew member to pull the data spike from the middle bed by hand — it is exposed now.';
+const IRRIGATION_WRONG = 'Cycle complete. Some beds are wrong; the crew member sets the valves by hand — read them the bed states.';
+
+export function runIrrigation(): ActionResult & { beds: string[]; solved: boolean; deficits?: (number | null)[] } {
   const s = gameStore.getState();
   if (s.chapter < 2) return { ok: false, message: 'Hydroponics is off the bus.', beds: [], solved: false };
   const r = irrigationReport(s);
@@ -303,15 +309,18 @@ export function runIrrigation(): ActionResult & { beds: string[]; solved: boolea
     return { ok: false, message: `Pump overload: ${r.total}u requested, ${WATER_BUDGET}u available. The cycle aborts before it starts.`, beds: r.beds, solved: false };
   }
   patch2({ irrigationSolved: r.solved, lastCycle: r.beds });
-  return {
-    ok: true,
-    message: r.solved
-      ? 'Cycle complete. Every bed drinks exactly what it needs — and the middle bed drains low enough to show what the vine was hiding. ' +
-        'Tell the crew member to pull the data spike from the middle bed by hand — it is exposed now.'
-      : 'Cycle complete. Some beds are wrong; the crew member sets the valves by hand — read them the bed states.',
-    beds: r.beds,
-    solved: r.solved,
-  };
+  if (variantFor(s.seed, 'hydroponics') === 1) {
+    // The need tags on this ship are corroded; the probe reads closed lines only.
+    const deficits = sweepDeficitsFor(s.seed, s.chapter2.irrigation);
+    const closed = deficits.flatMap((d, i) => (d === null ? [] : [`bed ${i + 1} reads −${d}`]));
+    const message = r.solved
+      ? IRRIGATION_SOLVED
+      : closed.length === 3
+        ? `Moisture sweep: ${closed.join(', ')}. The tags are gone — you are the tags now. Read the crew member the numbers, have them set the valves by hand, then run this cycle again.`
+        : `${IRRIGATION_WRONG}${closed.length ? ` Probe on the closed lines: ${closed.join(', ')}.` : ''}`;
+    return { ok: true, message, beds: r.beds, solved: r.solved, deficits };
+  }
+  return { ok: true, message: r.solved ? IRRIGATION_SOLVED : IRRIGATION_WRONG, beds: r.beds, solved: r.solved };
 }
 
 export function retrieveSpike(): ActionResult {
@@ -336,6 +345,18 @@ export function liftCrate(): ActionResult {
   const s = gameStore.getState();
   if (s.room !== 'cargo_bay') return { ok: false, message: 'The crane controls are in the cargo bay.' };
   const slot = secretsFor(s.seed).quarantineSlot;
+  if (variantFor(s.seed, 'cargo_bay') === 1) {
+    // A re-racked bay: the quarantine container is under a pallet, and the hook takes one crate at a time.
+    if (s.chapter2.crateLifted) return { ok: true, message: 'The quarantine container is already up.' };
+    if (s.chapter2v.held) return { ok: false, message: 'The crane holds one crate. Lower it onto a single-tier slot first.' };
+    const at = s.chapter2.craneAt.row * 3 + s.chapter2.craneAt.col;
+    if (s.chapter2v.tiers[at] === 2) {
+      const tiers = [...s.chapter2v.tiers];
+      tiers[at] = 1;
+      patch2v({ tiers, held: true });
+      return { ok: true, message: 'Ration pallet on the hook. Park it on any single-tier slot before lifting anything else.' };
+    }
+  }
   if (s.chapter2.craneAt.row !== slot.row || s.chapter2.craneAt.col !== slot.col) {
     return { ok: false, message: 'The crane lifts an ordinary crate. Ration bars. Someone\'s spare boots. Not this one.' };
   }
@@ -635,4 +656,45 @@ export function setPhase(index: 0 | 1 | 2, value: number): void {
     phases[index] = v;
     return { chapter1v: { ...s.chapter1v, phases } };
   });
+}
+
+// ---------------------------------------------------------- chapter-2 variants
+
+function patch2v(p: Partial<Chapter2VariantState>): void {
+  gameStore.setState((s) => ({ chapter2v: { ...s.chapter2v, ...p } }));
+}
+
+export function liftDrawing(index: 0 | 1 | 2 | 3 | 4 | 5): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'crew_quarters') !== 1) return { ok: false, message: 'This safe has wheels, not a key. The drawings are just drawings.' };
+  if (s.room !== 'crew_quarters') return { ok: false, message: 'The drawings are on the wall of Okafor\'s cabin.' };
+  if (s.chapter2v.keyFound) return { ok: true, message: 'The key is already in your hand.' };
+  if (index !== variantSecretsFor(s.seed).keyDrawing) {
+    return { ok: false, message: `Nothing behind the ${DRAWINGS[index]}. The tape on the back is old and empty.` };
+  }
+  patch2v({ keyFound: true });
+  return { ok: true, message: `A brass key, taped to the back of the ${DRAWINGS[index]}.` };
+}
+
+export function turnSafeKey(): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'crew_quarters') !== 1) return { ok: false, message: 'This safe has wheels, not a key.' };
+  if (s.room !== 'crew_quarters') return { ok: false, message: 'The safe is in Vasquez\'s cabin.' };
+  if (s.chapter2.safeOpened) return { ok: true, message: 'The safe is already open.' };
+  if (!s.chapter2v.keyFound) return { ok: false, message: 'No key. The lock wants one; the wall has six drawings.' };
+  patch2({ safeOpened: true });
+  return { ok: true, message: 'The bolt slides. Inside: a private log drive, encrypted.' };
+}
+
+export function lowerCrate(): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'cargo_bay') !== 1) return { ok: false, message: 'This crane has no LOWER control; nothing in this bay is stacked.' };
+  if (s.room !== 'cargo_bay') return { ok: false, message: 'The crane controls are in the cargo bay.' };
+  if (!s.chapter2v.held) return { ok: false, message: 'Nothing on the hook.' };
+  const at = s.chapter2.craneAt.row * 3 + s.chapter2.craneAt.col;
+  if (s.chapter2v.tiers[at] !== 1) return { ok: false, message: 'That slot is already two high. Park it on a single-tier slot.' };
+  const tiers = [...s.chapter2v.tiers];
+  tiers[at] = 2;
+  patch2v({ tiers, held: false });
+  return { ok: true, message: `Crate parked at ${slotLabel(s.chapter2.craneAt)}. The hook is free.` };
 }
