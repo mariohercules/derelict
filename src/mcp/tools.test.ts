@@ -665,6 +665,10 @@ describe('remixed ships, chapter 3 — the surface follows the ship, the contrac
     lowerDeckOn(S_DE, 'comms_array');
     const t = secretsFor(S_DE).beaconBearing;
     const step = t.az >= 180 ? -1 : 1; // step away from the bearing without leaving 0–359 (no wrap, like dishAligned)
+    setDish('az', t.az >= 180 ? 0 : 359); setDish('el', t.el);
+    const zero = await call('listen_beacon');
+    expect(zero.signal_strength).toBe(0);
+    expect(zero.message).toMatch(/sweep wide/);
     setDish('az', t.az + 40 * step); setDish('el', t.el);
     const far = await call('listen_beacon');
     expect(far.ok).toBe(false);
@@ -672,6 +676,7 @@ describe('remixed ships, chapter 3 — the surface follows the ship, the contrac
     expect(typeof far.signal_strength).toBe('number');
     expect(far.error_axis).toBe('az');
     expect(far.message).toMatch(/you are the meter/);
+    expect(far.message).not.toMatch(/sweep wide/);
     setDish('az', t.az + 10 * step);
     const near = await call('listen_beacon');
     expect(near.ok).toBe(false);

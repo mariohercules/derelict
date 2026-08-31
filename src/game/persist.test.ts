@@ -331,6 +331,18 @@ describe('persistence', () => {
       storage.set(SAVE_KEY, JSON.stringify(proven));
       expect(loadSavedState()?.chapter3v.seated).toEqual([...secretsFor(0).columnOrder]);
     }
+    // a classic rack already arranged in the sheet's order counts as proof even with no flags set
+    const order = secretsFor(0).columnOrder;
+    const arranged = { ...initialState(0), chapter3: { ...initialState(0).chapter3, rack: [...order] } } as Record<string, unknown>;
+    delete arranged.chapter3v;
+    storage.set(SAVE_KEY, JSON.stringify(arranged));
+    expect(loadSavedState()?.chapter3v.seated).toEqual(order);
+    // a full-but-wrong arrangement (rotated by one) is not proof
+    const rotated = [...order.slice(1), order[0]];
+    const misarranged = { ...initialState(0), chapter3: { ...initialState(0).chapter3, rack: rotated } } as Record<string, unknown>;
+    delete misarranged.chapter3v;
+    storage.set(SAVE_KEY, JSON.stringify(misarranged));
+    expect(loadSavedState()?.chapter3v.seated).toEqual([]);
     const base = initialState(0);
     storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: ['A', 'B', 'C', 'D', 'A'] } }));
     expect(loadSavedState()).toBeNull();

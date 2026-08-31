@@ -168,8 +168,11 @@ export function loadSavedState(): GameState | null {
     // ship that now sequences it; anything else starts with a full tray.
     if (parsed.chapter3v === undefined) {
       const c3 = parsed.chapter3;
-      const proven = c3?.kernelSeated === true || c3?.cacheRead === true || (c3?.fragmentStage ?? 0) > 0;
-      parsed.chapter3v = { seated: proven ? [...secretsFor(parsed.seed as number).columnOrder] : [] };
+      const order = secretsFor(parsed.seed as number).columnOrder;
+      const rack = Array.isArray(c3?.rack) ? (c3!.rack as unknown[]) : [];
+      const arranged = rack.length === 4 && rack.every((c, i) => c === order[i]);
+      const proven = c3?.kernelSeated === true || c3?.cacheRead === true || (c3?.fragmentStage ?? 0) > 0 || arranged;
+      parsed.chapter3v = { seated: proven ? [...order] : [] };
     }
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;

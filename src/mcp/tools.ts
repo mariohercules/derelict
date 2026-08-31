@@ -531,11 +531,12 @@ export function buildTools(): GameTool[] {
           // the agent reads strength and steers them by voice.
           const { strength, axis } = beaconSignalFor(s.seed, s.chapter3.dish);
           const dominant = axis === 'az' ? 'Azimuth error dominates.' : axis === 'el' ? 'Elevation error dominates.' : 'Both axes are off.';
+          const sweep = strength === 0 ? ' No carrier at all here — have them sweep wide before you listen again.' : '';
           return {
             ok: false,
             signal_strength: strength,
             error_axis: axis,
-            message: `Carrier at ${strength}%. ${dominant} The array's encoders are dead — the crew member cannot read degrees; you are the meter: read them the strength, have them move, listen again.`,
+            message: `Carrier at ${strength}%. ${dominant} The array's encoders are dead — the crew member cannot read degrees; you are the meter: read them the strength, have them move, listen again.${sweep}`,
           };
         }
         const b = secretsFor(s.seed).beaconBearing;
