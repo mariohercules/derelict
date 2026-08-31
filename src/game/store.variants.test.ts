@@ -5,11 +5,13 @@ import {
   startInvestigation, liftDrawing, turnSafeKey, dialSafe, decryptPrivateLog,
   setIrrigation, runIrrigation, retrieveSpike,
   moveCrane, liftCrate, lowerCrate, analyzeSample,
+  seatColumn, loadColumn, ejectColumns, seatKernel, readPrimeCache,
 } from './store';
-import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, valvesCorrect, sweepDeficitsFor } from './derived';
+import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, valvesCorrect, sweepDeficitsFor, rackCorrect } from './derived';
 import { variantFor, variantSecretsFor, DRAWINGS, tiersFor } from './variants';
 import { STAR_FIX } from './content';
 import { secretsFor } from './secrets';
+import type { ColumnId } from './types';
 
 function findSeed(pred: (seed: number) => boolean): number {
   for (let seed = 1; seed < 5000; seed++) if (pred(seed)) return seed;
@@ -323,5 +325,71 @@ describe('stacked bay (cargo variant 1)', () => {
     expect(lowerCrate().ok).toBe(false); // the quarantine slot is still two high
     driveTo(single);
     expect(lowerCrate().ok).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------- chapter 3
+
+const S_SR = findSeed((s) => variantFor(s, 'core_vault') === 1);
+
+// Standing in the core vault on the lower deck, kill-switch dormant (its clock is not this test's concern).
+function inVaultOn(seed: number) {
+  resetGame(seed);
+  gameStore.setState({ chapter: 3, act: 3, room: 'core_vault', checkpoint: { chapter: 3, room: 'cargo_bay' } });
+}
+
+describe('sequenced rack (core vault variant 1)', () => {
+  it('exists only on a sequenced ship and only in the vault; the cradles refuse there', () => {
+    inVaultOn(0);
+    expect(loadColumn('A').ok).toBe(false);
+    expect(ejectColumns().ok).toBe(false);
+    const classic = secretsFor(0).columnOrder;
+    classic.forEach((c, i) => seatColumn(i as 0 | 1 | 2 | 3, c));
+    expect(rackCorrect(gameStore.getState())).toBe(true); // the classic rack is untouched
+    inVaultOn(S_SR);
+    gameStore.setState({ room: 'reactor_room' });
+    expect(loadColumn('A').ok).toBe(false);
+    gameStore.setState({ room: 'core_vault' });
+    const refused = seatColumn(0, 'A');
+    expect(refused.ok).toBe(false);
+    expect(refused.message).toMatch(/loads from the tray/);
+    expect(gameStore.getState().chapter3.rack).toEqual([null, null, null, null]);
+  });
+
+  it('a duplicate is refused, a wrong fourth ejects the set, and the tray can be pulled by hand', () => {
+    inVaultOn(S_SR);
+    const order = secretsFor(S_SR).columnOrder;
+    const wrong: ColumnId[] = [order[1], order[2], order[3], order[0]]; // rotated: every position wrong
+    expect(loadColumn(wrong[0]).ok).toBe(true);
+    expect(loadColumn(wrong[0]).ok).toBe(false); // already in the rack
+    expect(gameStore.getState().chapter3v.seated).toEqual([wrong[0]]);
+    expect(loadColumn(wrong[1]).ok).toBe(true);
+    expect(loadColumn(wrong[2]).ok).toBe(true);
+    expect(rackCorrect(gameStore.getState())).toBe(false); // three up is never correct
+    const fourth = loadColumn(wrong[3]);
+    expect(fourth.ok).toBe(false);
+    expect(fourth.message).toMatch(/ejects/);
+    expect(gameStore.getState().chapter3v.seated).toEqual([]);
+    expect(rackCorrect(gameStore.getState())).toBe(false);
+    // manual eject mid-sequence
+    loadColumn(order[0]); loadColumn(order[1]);
+    expect(ejectColumns().ok).toBe(true);
+    expect(gameStore.getState().chapter3v.seated).toEqual([]);
+    expect(ejectColumns().ok).toBe(false); // the tray is already full
+  });
+
+  it('the right order holds the rack; the kernel seats and the cache reads; then the rack is locked', () => {
+    inVaultOn(S_SR);
+    const order = secretsFor(S_SR).columnOrder;
+    expect(readPrimeCache().ok).toBe(false);
+    for (const c of order) expect(loadColumn(c).ok).toBe(true);
+    expect(gameStore.getState().chapter3v.seated).toEqual([...order]);
+    expect(rackCorrect(gameStore.getState())).toBe(true);
+    expect(readPrimeCache().ok).toBe(true);
+    expect(seatKernel(1_000_000).ok).toBe(true);
+    expect(gameStore.getState().chapter3.kernelSeated).toBe(true);
+    expect(loadColumn(order[0]).ok).toBe(false);
+    expect(ejectColumns().ok).toBe(false);
+    expect(gameStore.getState().chapter3v.seated).toEqual([...order]);
   });
 });

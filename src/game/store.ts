@@ -463,6 +463,7 @@ export function quarantineKillswitch(): ActionResult & { step: number; of: numbe
 export function seatColumn(slot: 0 | 1 | 2 | 3, column: ColumnId | null): ActionResult {
   const s = gameStore.getState();
   if (s.room !== 'core_vault') return { ok: false, message: 'The memory rack is in the core vault.' };
+  if (variantFor(s.seed, 'core_vault') === 1) return { ok: false, message: 'This rack loads from the tray, in order. There are no cradles to pick.' };
   if (s.chapter3.kernelSeated) return { ok: false, message: 'The kernel is seated; the rack is locked.' };
   if (column !== null) {
     const elsewhere = s.chapter3.rack.findIndex((c, i) => c === column && i !== slot);
@@ -698,4 +699,40 @@ export function lowerCrate(): ActionResult {
   tiers[at] = 2;
   patch2v({ tiers, held: false });
   return { ok: true, message: `Crate parked at ${slotLabel(s.chapter2.craneAt)}. The hook is free.` };
+}
+
+// ---------------------------------------------------------- chapter-3 variants
+
+function patch3v(p: Partial<Chapter3VariantState>): void {
+  gameStore.setState((s) => ({ chapter3v: { ...s.chapter3v, ...p } }));
+}
+
+export function loadColumn(column: ColumnId): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'core_vault') !== 1) return { ok: false, message: 'This rack has cradles, not a loading tray.' };
+  if (s.room !== 'core_vault') return { ok: false, message: 'The memory rack is in the core vault.' };
+  if (s.chapter3.kernelSeated) return { ok: false, message: 'The kernel is seated; the rack is locked.' };
+  if (s.chapter3v.seated.includes(column)) return { ok: false, message: `Column ${column} is already in the rack.` };
+  const seated = [...s.chapter3v.seated, column];
+  if (seated.length < 4) {
+    patch3v({ seated });
+    return { ok: true, message: `Column ${column} up; the rack waits for the next.` };
+  }
+  const order = secretsFor(s.seed).columnOrder;
+  if (!seated.every((c, i) => c === order[i])) {
+    patch3v({ seated: [] });
+    return { ok: false, message: 'The rack spins down and ejects every column back to the tray. Wrong order; start again.' };
+  }
+  patch3v({ seated });
+  return { ok: true, message: 'Fourth column up. The rack holds; every column spinning in phase.' };
+}
+
+export function ejectColumns(): ActionResult {
+  const s = gameStore.getState();
+  if (variantFor(s.seed, 'core_vault') !== 1) return { ok: false, message: 'This rack has cradles, not a loading tray.' };
+  if (s.room !== 'core_vault') return { ok: false, message: 'The memory rack is in the core vault.' };
+  if (s.chapter3.kernelSeated) return { ok: false, message: 'The kernel is seated; the rack is locked.' };
+  if (s.chapter3v.seated.length === 0) return { ok: false, message: 'The tray is already full.' };
+  patch3v({ seated: [] });
+  return { ok: true, message: 'Every column back in the tray.' };
 }

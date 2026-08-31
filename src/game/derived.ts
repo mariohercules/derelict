@@ -63,6 +63,10 @@ export function sweepDeficitsFor(seed: number, irrigation: [number, number, numb
 
 export function rackCorrect(s: GameState): boolean {
   const order = secretsFor(s.seed).columnOrder;
+  // A sequenced rack (Plan F3) is correct when its loading order is the sheet's order.
+  if (variantFor(s.seed, 'core_vault') === 1) {
+    return s.chapter3v.seated.length === 4 && s.chapter3v.seated.every((c, i) => c === order[i]);
+  }
   return s.chapter3.rack.every((c, i) => c === order[i]);
 }
 
