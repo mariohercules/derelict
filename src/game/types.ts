@@ -78,6 +78,14 @@ export interface Chapter1VariantState {
   phases: [number, number, number]; // coil phase dials, 0–11
 }
 
+// Inputs of the chapter-2 variant puzzles (Plan F2). Outcomes stay in the
+// existing chapter2 flags: safeOpened, crateLifted, irrigationSolved/lastCycle.
+export interface Chapter2VariantState {
+  keyFound: boolean; // crew quarters: the captain's key is out from behind the drawing
+  held: boolean; // cargo bay: the crane's hook carries a crate
+  tiers: number[]; // cargo bay: crates per slot (row*3 + col), nine entries of 1 or 2
+}
+
 export interface GameState {
   seed: number;
   act: 1 | 2 | 3;
@@ -103,4 +111,5 @@ export interface GameState {
   chapter3: Chapter3State;
   ngPlus: boolean; // New Game+: the plus rules profile and a ship that remembers
   chapter1v: Chapter1VariantState;
+  chapter2v: Chapter2VariantState;
 }

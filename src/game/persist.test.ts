@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSavedState, startPersisting, migrateV1, SAVE_KEY, LEGACY_SAVE_KEY } from './persist';
 import { gameStore, resetGame, initialState, tickKillswitch } from './store';
 import { toolAvailability } from '../mcp/tools';
+import { tiersFor, variantFor } from './variants';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -264,6 +265,30 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter1v: { ...c1, sockets: [2, 1, 3], gear: 17 } }));
     expect(loadSavedState()?.chapter1v.gear).toBe(17);
+  });
+
+  it('fills chapter2v for an older save from the seed and rejects malformed shapes', () => {
+    const older = { ...initialState(0) } as Record<string, unknown>;
+    delete older.chapter2v;
+    storage.set(SAVE_KEY, JSON.stringify(older));
+    expect(loadSavedState()?.chapter2v).toEqual({ keyFound: false, held: false, tiers: [1, 1, 1, 1, 1, 1, 1, 1, 1] });
+    // a pre-F2 save of a ship that now rolls a stacked bay gets the bay's layout, not a flat one
+    let stacked = 1;
+    while (variantFor(stacked, 'cargo_bay') !== 1) stacked++;
+    const olderStacked = { ...initialState(stacked) } as Record<string, unknown>;
+    delete olderStacked.chapter2v;
+    storage.set(SAVE_KEY, JSON.stringify(olderStacked));
+    expect(loadSavedState()?.chapter2v.tiers).toEqual(tiersFor(stacked));
+    expect(loadSavedState()?.chapter2v.tiers.filter((t) => t === 2)).toHaveLength(3);
+    const c2v = initialState(0).chapter2v;
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2v: { ...c2v, tiers: [1, 1, 1, 1, 1, 1, 1, 1] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2v: { ...c2v, tiers: [1, 1, 1, 1, 3, 1, 1, 1, 1] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2v: { ...c2v, held: 'yes' } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2v: { ...c2v, keyFound: true } }));
+    expect(loadSavedState()?.chapter2v.keyFound).toBe(true);
   });
 });
 

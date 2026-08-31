@@ -2,6 +2,7 @@ import { gameStore, initialState } from './store';
 import type { BedState, BusId, ColumnId, GameState, RitualId, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
 import { CLASSIC_SEED } from './secrets';
 import { ROOM_IDS } from './rooms';
+import { tiersFor } from './variants';
 
 export const SAVE_KEY = 'derelict-save-v2';
 export const LEGACY_SAVE_KEY = 'derelict-save-v1';
@@ -107,6 +108,12 @@ function validShape(p: Partial<GameState>): boolean {
     if (c1.gear !== null && !isIntInRange(c1.gear, 1, 99)) return false;
     if (!Array.isArray(c1.phases) || c1.phases.length !== 3 || !c1.phases.every((v) => isIntInRange(v, 0, 11))) return false;
   }
+  if (p.chapter2v !== undefined) {
+    const c2v = p.chapter2v as unknown as Record<string, unknown>;
+    if (!c2v || typeof c2v !== 'object') return false;
+    if (typeof c2v.keyFound !== 'boolean' || typeof c2v.held !== 'boolean') return false;
+    if (!Array.isArray(c2v.tiers) || c2v.tiers.length !== 9 || !c2v.tiers.every((t) => isIntInRange(t, 1, 2))) return false;
+  }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
   if (!SUBSYSTEMS.every((k) => isFiniteNumber(alloc[k]))) return false;
@@ -141,6 +148,8 @@ export function loadSavedState(): GameState | null {
     const c2 = parsed.chapter2 as Record<string, unknown> | undefined;
     if (c2 && typeof c2 === 'object' && c2.lastCycle === undefined) c2.lastCycle = null;
     if (!validShape(parsed)) return null;
+    // Pre-F2 saves predate chapter2v; the deck layout follows the (now validated) seed.
+    if (parsed.chapter2v === undefined) parsed.chapter2v = { keyFound: false, held: false, tiers: tiersFor(parsed.seed as number) };
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;
     // Never resurrect an armed ritual: a reload mid-window must not restore a stale

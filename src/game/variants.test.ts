@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { variantFor, variantSecretsFor } from './variants';
+import { DRAWINGS, tiersFor, variantFor, variantSecretsFor } from './variants';
 import type { VariantRoom } from './variants';
+import { secretsFor } from './secrets';
 
-const ROOMS: VariantRoom[] = ['cryo_bay', 'engineering', 'bridge'];
+const ROOMS: VariantRoom[] = ['cryo_bay', 'engineering', 'bridge', 'crew_quarters', 'hydroponics', 'cargo_bay'];
+
+// Frozen from the Plan F build (variantSecretsFor(8) before Plan F2 appended
+// keyDrawing/stackSlots). If this fails, a draw landed before driftFix — move it after.
+const FROZEN_VARIANT_8 = {
+  cableBuses: [3, 1, 2],
+  gearTeeth: { target: 16, decoys: [13, 28] },
+  coilPhases: [0, 7, 3],
+  driftFix: ['57', '16', '38'],
+};
 
 describe('variantFor', () => {
   it('is pure and deterministic', () => {
@@ -55,5 +65,47 @@ describe('variantSecretsFor', () => {
 
   it('is deterministic', () => {
     expect(variantSecretsFor(1234)).toEqual(variantSecretsFor(1234));
+  });
+
+  it('keeps every chapter-1 variant draw of a seeded ship unchanged', () => {
+    const v = variantSecretsFor(8);
+    expect({ cableBuses: v.cableBuses, gearTeeth: v.gearTeeth, coilPhases: v.coilPhases, driftFix: v.driftFix }).toEqual(FROZEN_VARIANT_8);
+  });
+
+  it('draws a key drawing and two decoy stacks that never hide the quarantine slot', () => {
+    for (let seed = 0; seed <= 400; seed++) {
+      const v = variantSecretsFor(seed);
+      expect(v.keyDrawing).toBeGreaterThanOrEqual(0);
+      expect(v.keyDrawing).toBeLessThan(DRAWINGS.length);
+      const q = secretsFor(seed).quarantineSlot;
+      const qIndex = q.row * 3 + q.col;
+      expect(v.stackSlots).toHaveLength(2);
+      expect(v.stackSlots[0]).not.toBe(v.stackSlots[1]);
+      for (const i of v.stackSlots) {
+        expect(i).toBeGreaterThanOrEqual(0);
+        expect(i).toBeLessThanOrEqual(8);
+        expect(i).not.toBe(qIndex);
+      }
+    }
+  });
+});
+
+describe('tiersFor', () => {
+  it('is nine single-tier slots on every unstacked ship, the classic ship included', () => {
+    expect(tiersFor(0)).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    for (let seed = 1; seed <= 200; seed++) {
+      if (variantFor(seed, 'cargo_bay') === 0) expect(tiersFor(seed)).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    }
+  });
+
+  it('stacks exactly the quarantine slot and the two decoys on a stacked ship', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      if (variantFor(seed, 'cargo_bay') !== 1) continue;
+      const tiers = tiersFor(seed);
+      const q = secretsFor(seed).quarantineSlot;
+      const expected = new Set([q.row * 3 + q.col, ...variantSecretsFor(seed).stackSlots]);
+      expect(tiers).toHaveLength(9);
+      tiers.forEach((tier, i) => expect(tier).toBe(expected.has(i) ? 2 : 1));
+    }
   });
 });

@@ -1,5 +1,5 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter2VariantState, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
 import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor } from './secrets';
 import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
@@ -9,7 +9,7 @@ import type { StayBlocker } from './derived';
 import { waveAt } from './killswitch';
 import { rulesFor } from './rules';
 import { getMemory } from './meta';
-import { variantFor, variantSecretsFor } from './variants';
+import { tiersFor, variantFor, variantSecretsFor } from './variants';
 
 export function initialState(seed: number = randomSeed(), ngPlus = false): GameState {
   return {
@@ -45,6 +45,7 @@ export function initialState(seed: number = randomSeed(), ngPlus = false): GameS
     },
     ngPlus,
     chapter1v: { sockets: [null, null, null], energized: false, gear: null, phases: [0, 0, 0] },
+    chapter2v: { keyFound: false, held: false, tiers: tiersFor(seed) },
   };
 }
 
