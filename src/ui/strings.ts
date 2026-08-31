@@ -11,6 +11,10 @@ const DRAWING_NAMES_EN: Record<Drawing, string> = {
 const DRAWING_NAMES_PT: Record<Drawing, string> = {
   rocket: 'o foguete', cake: 'o bolo de aniversário', cat: 'o gato', cormorant: 'a Cormorant', sun: 'o sol', family: 'a família',
 };
+// The same subjects after "de" — Portuguese contracts the article: de + o → do, de + a → da.
+const DRAWING_NAMES_PT_DE: Record<Drawing, string> = {
+  rocket: 'do foguete', cake: 'do bolo de aniversário', cat: 'do gato', cormorant: 'da Cormorant', sun: 'do sol', family: 'da família',
+};
 
 export interface UIStrings {
   app: {
@@ -777,9 +781,9 @@ const ptBR: UIStrings = {
     wallKeyedDesc: 'Seis desenhos, colados na altura de uma criança. Há algo colado atrás de um deles; os registros da nave dizem qual. Levante um desenho para olhar.',
     wallAria: 'seis desenhos da Amara colados na parede da cabine',
     drawing: (d) => DRAWING_NAMES_PT[d],
-    drawingAria: (d) => `levantar o desenho: ${DRAWING_NAMES_PT[d]}`,
-    nothingBehind: (d) => `Nada atrás de ${DRAWING_NAMES_PT[d]}. Fita velha, vazia.`,
-    keyBehind: (d) => `Atrás de ${DRAWING_NAMES_PT[d]}: uma chave de latão, colada rente. Leve ao cofre.`,
+    drawingAria: (d) => `levantar o desenho ${DRAWING_NAMES_PT_DE[d]}`,
+    nothingBehind: (d) => `Nada atrás ${DRAWING_NAMES_PT_DE[d]}. Fita velha, vazia.`,
+    keyBehind: (d) => `Atrás ${DRAWING_NAMES_PT_DE[d]}: uma chave de latão, colada rente. Leve ao cofre.`,
   },
   hydro: {
     title: 'Hidroponia',

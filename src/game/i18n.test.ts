@@ -8,7 +8,7 @@ import {
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
 import { secretsFor, slotLabel } from './secrets';
 import { EMPTY_META } from './meta';
-import { variantFor, variantSecretsFor } from './variants';
+import { DRAWINGS, variantFor, variantSecretsFor } from './variants';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -153,6 +153,10 @@ describe('localized narrative', () => {
     expect(getCrewManifest(S_KS)).toContain('intendência');
     expect(getCrewManifest(S_KS)).not.toContain('três últimos');
     expect(getCrewManifest(S_KS)).toContain(secretsFor(S_KS).commissionNumber);
+    const drawingNamesPT = ['o foguete', 'o bolo de aniversário', 'o gato', 'a Cormorant', 'o sol', 'a família'];
+    expect(drawingNamesPT).toHaveLength(DRAWINGS.length);
+    expect(getCrewManifest(S_KS)).toContain(drawingNamesPT[variantSecretsFor(S_KS).keyDrawing]);
+    expect(getCrewManifest(0)).toContain('três últimos');
     expect(getCargoManifest(S_SD)).toContain('INFERIOR');
     expect(getCargoManifest(S_SD)).toContain(slot);
     setLocale('en');

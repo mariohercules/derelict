@@ -10,6 +10,7 @@ import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
 import { EMPTY_META, metaStore } from '../game/meta';
 import { DRAWINGS, variantFor, variantSecretsFor } from '../game/variants';
 import { secretsFor, slotLabel } from '../game/secrets';
+import { setLocale } from '../game/i18n';
 
 beforeEach(() => resetGame(0));
 
@@ -620,6 +621,13 @@ describe('remixed ships, chapter 2 — the surface follows the ship, the contrac
     const classic = await call('query_manifest');
     expect(classic).not.toHaveProperty('tier');
     expect(classic.quarantine_slot).toBe('C2');
+    resetGame(S_SD);
+    gameStore.setState({ chapter: 2 });
+    setLocale('pt-BR');
+    const stackedPt = await call('query_manifest');
+    expect(stackedPt.tier).toBe('lower');
+    expect(stackedPt.quarantine_slot).toBe(slotLabel(secretsFor(S_SD).quarantineSlot));
+    setLocale('en');
   });
 
   it('the tool contract is pinned: names, descriptions and input schemas', () => {

@@ -317,7 +317,7 @@ export function runIrrigation(): ActionResult & { beds: string[]; solved: boolea
       ? IRRIGATION_SOLVED
       : closed.length === 3
         ? `Moisture sweep: ${closed.join(', ')}. The tags are gone — you are the tags now. Read the crew member the numbers, have them set the valves by hand, then run this cycle again.`
-        : `${IRRIGATION_WRONG}${closed.length ? ` Probe on the closed lines: ${closed.join(', ')}.` : ''}`;
+        : `${IRRIGATION_WRONG}${closed.length ? ` Probe on the closed lines: ${closed.join(', ')}.` : ' The moisture probe reads closed lines only: a bed at valve 0 reports its need.'}`;
     return { ok: true, message, beds: r.beds, solved: r.solved, deficits };
   }
   return { ok: true, message: r.solved ? IRRIGATION_SOLVED : IRRIGATION_WRONG, beds: r.beds, solved: r.solved };

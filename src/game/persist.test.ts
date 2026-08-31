@@ -3,6 +3,7 @@ import { loadSavedState, startPersisting, migrateV1, SAVE_KEY, LEGACY_SAVE_KEY }
 import { gameStore, resetGame, initialState, tickKillswitch } from './store';
 import { toolAvailability } from '../mcp/tools';
 import { tiersFor, variantFor } from './variants';
+import { secretsFor } from './secrets';
 
 const storage = new Map<string, string>();
 vi.stubGlobal('localStorage', {
@@ -289,6 +290,33 @@ describe('persistence', () => {
     expect(loadSavedState()).toBeNull();
     storage.set(SAVE_KEY, JSON.stringify({ ...initialState(0), chapter2v: { ...c2v, keyFound: true } }));
     expect(loadSavedState()?.chapter2v.keyFound).toBe(true);
+  });
+
+  it('fills chapter2v coherently for a pre-F2 save that already finished a puzzle', () => {
+    let stacked = 1;
+    while (variantFor(stacked, 'cargo_bay') !== 1) stacked++;
+    const qIndex = (() => { const q = secretsFor(stacked).quarantineSlot; return q.row * 3 + q.col; })();
+    // a stacked-seed save that had already lifted the quarantine container is no longer under a pallet
+    const olderLifted = { ...initialState(stacked), chapter2: { ...initialState(stacked).chapter2, crateLifted: true } } as Record<string, unknown>;
+    delete olderLifted.chapter2v;
+    storage.set(SAVE_KEY, JSON.stringify(olderLifted));
+    const loadedLifted = loadSavedState();
+    expect(loadedLifted?.chapter2v.tiers[qIndex]).toBe(1);
+    expect(loadedLifted?.chapter2v.tiers.filter((t) => t === 2)).toHaveLength(2);
+    // a save that had already opened the safe must not resurrect the key search
+    const olderSafeOpened = { ...initialState(0), chapter2: { ...initialState(0).chapter2, safeOpened: true } } as Record<string, unknown>;
+    delete olderSafeOpened.chapter2v;
+    storage.set(SAVE_KEY, JSON.stringify(olderSafeOpened));
+    expect(loadSavedState()?.chapter2v.keyFound).toBe(true);
+    // reload mid-lift is coherent: an explicit chapter2v is never touched by the fill
+    const baseTiers = tiersFor(stacked);
+    const lowerIdx = baseTiers.findIndex((t, i) => t === 2 && i !== qIndex);
+    const midLiftTiers = [...baseTiers];
+    midLiftTiers[lowerIdx] = 1;
+    storage.set(SAVE_KEY, JSON.stringify({ ...initialState(stacked), chapter2v: { keyFound: false, held: true, tiers: midLiftTiers } }));
+    const loadedMidLift = loadSavedState();
+    expect(loadedMidLift?.chapter2v.held).toBe(true);
+    expect(loadedMidLift?.chapter2v.tiers).toEqual(midLiftTiers);
   });
 });
 

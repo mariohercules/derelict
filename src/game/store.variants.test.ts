@@ -229,7 +229,9 @@ describe('keyed safe (crew quarters variant 1)', () => {
 describe('moisture sweep (hydroponics variant 1)', () => {
   it('the classic ship never reports deficits', () => {
     investigating(0, 'hydroponics');
-    expect(runIrrigation()).not.toHaveProperty('deficits');
+    const sweep = runIrrigation();
+    expect(sweep).not.toHaveProperty('deficits');
+    expect(sweep.message).not.toMatch(/reads closed lines only/);
   });
 
   it('closed lines read their deficit, open lines read null; the numbers then solve the manifold', () => {
@@ -246,6 +248,12 @@ describe('moisture sweep (hydroponics variant 1)', () => {
     const partial = runIrrigation();
     expect(partial.deficits).toEqual([null, needs[1], needs[2]]);
     expect(partial.beds[0]).toBe('ok');
+    // all three valves open (non-zero, and wrong): no closed lines, so the probe steers back to valve 0
+    const wrong = needs.map((n) => (n === 1 ? 2 : 1));
+    setIrrigation(0, wrong[0]); setIrrigation(1, wrong[1]); setIrrigation(2, wrong[2]);
+    const noClosed = runIrrigation();
+    expect(noClosed.message).toMatch(/reads closed lines only/);
+    setIrrigation(0, needs[0]);
     setIrrigation(1, needs[1]);
     setIrrigation(2, needs[2]);
     const done = runIrrigation();

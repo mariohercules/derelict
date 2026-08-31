@@ -1,6 +1,6 @@
 import { gameStore, initialState } from './store';
 import type { BedState, BusId, ColumnId, GameState, RitualId, RitualPhase, RitualState, RoomId, SubsystemId } from './types';
-import { CLASSIC_SEED } from './secrets';
+import { CLASSIC_SEED, secretsFor } from './secrets';
 import { ROOM_IDS } from './rooms';
 import { tiersFor } from './variants';
 
@@ -149,7 +149,14 @@ export function loadSavedState(): GameState | null {
     if (c2 && typeof c2 === 'object' && c2.lastCycle === undefined) c2.lastCycle = null;
     if (!validShape(parsed)) return null;
     // Pre-F2 saves predate chapter2v; the deck layout follows the (now validated) seed.
-    if (parsed.chapter2v === undefined) parsed.chapter2v = { keyFound: false, held: false, tiers: tiersFor(parsed.seed as number) };
+    if (parsed.chapter2v === undefined) {
+      const seed = parsed.seed as number;
+      const c2 = parsed.chapter2;
+      const tiers = tiersFor(seed);
+      // A container already lifted is no longer under a pallet.
+      if (c2?.crateLifted) { const q = secretsFor(seed).quarantineSlot; tiers[q.row * 3 + q.col] = 1; }
+      parsed.chapter2v = { keyFound: c2?.safeOpened === true, held: false, tiers };
+    }
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;
     // Never resurrect an armed ritual: a reload mid-window must not restore a stale

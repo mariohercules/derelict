@@ -5,13 +5,15 @@ import { secretsFor } from './secrets';
 
 const ROOMS: VariantRoom[] = ['cryo_bay', 'engineering', 'bridge', 'crew_quarters', 'hydroponics', 'cargo_bay'];
 
-// Frozen from the Plan F build (variantSecretsFor(8) before Plan F2 appended
-// keyDrawing/stackSlots). If this fails, a draw landed before driftFix — move it after.
+// Frozen at the Plan F2 build — the full variant secret set of seed 8. Any
+// future field appends after stackSlots; if this fails, a draw moved.
 const FROZEN_VARIANT_8 = {
   cableBuses: [3, 1, 2],
   gearTeeth: { target: 16, decoys: [13, 28] },
   coilPhases: [0, 7, 3],
   driftFix: ['57', '16', '38'],
+  keyDrawing: 2,
+  stackSlots: [4, 0],
 };
 
 describe('variantFor', () => {
@@ -68,8 +70,7 @@ describe('variantSecretsFor', () => {
   });
 
   it('keeps every chapter-1 variant draw of a seeded ship unchanged', () => {
-    const v = variantSecretsFor(8);
-    expect({ cableBuses: v.cableBuses, gearTeeth: v.gearTeeth, coilPhases: v.coilPhases, driftFix: v.driftFix }).toEqual(FROZEN_VARIANT_8);
+    expect(variantSecretsFor(8)).toEqual(FROZEN_VARIANT_8);
   });
 
   it('draws a key drawing and two decoy stacks that never hide the quarantine slot', () => {
