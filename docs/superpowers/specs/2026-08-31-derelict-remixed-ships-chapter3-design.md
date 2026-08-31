@@ -111,3 +111,7 @@ Bezels and inset faces, deterministic SVG, palette tokens, transitions only, per
 4. `SequencedRack.tsx` + swap in `CoreVault.tsx`; strings.
 5. `Dish` dead-encoder branch in `CommsArray.tsx`; strings.
 6. README (structural line gains chapter 3, real test count), spec *Shipped* note, demo seeds, preview, Mario's playthrough, merge + prod on "aprovado".
+
+---
+
+**Shipped 2026-08-31** — 282 tests; chapter-3 structural variants live (sequenced rack / dead-encoder dish; no new secret draw — both reuse the room's classic secret; every puzzle room of the game now varies by seed).
