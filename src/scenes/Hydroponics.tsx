@@ -4,6 +4,7 @@ import { retrieveSpike, setIrrigation } from '../game/store';
 import { irrigationReportFor } from '../game/derived';
 import { secretsFor } from '../game/secrets';
 import { SPIKE_BED, WATER_BUDGET } from '../game/content';
+import { variantFor } from '../game/variants';
 
 function Vine({ x, y, size }: { x: number; y: number; size: number }) {
   // deterministic vine: three bezier stems with leaf ellipses; `size` 0..1 scales it
@@ -22,20 +23,40 @@ function Vine({ x, y, size }: { x: number; y: number; size: number }) {
   );
 }
 
+// Corroded brass plate: pitted, scratched, no legible figure. Wear keyed on bed index only.
+function CorrodedTag({ x, index }: { x: number; index: number }) {
+  const pits = [[6, 5], [14, 8], [25, 4], [30, 9], [10, 10]].slice(0, 3 + (index % 3));
+  return (
+    <g>
+      <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#4a3b22" stroke="var(--brass-lo)" strokeWidth="0.75" />
+      <path d={`M ${x + 33 + index * 2} 143 L ${x + 44 + index} 134 M ${x + 50} 143 L ${x + 58 - index * 2} 135`} stroke="var(--brass-lo)" strokeWidth="0.75" opacity="0.7" />
+      {pits.map(([px, py]) => (
+        <circle key={px} cx={x + 30 + px} cy={132 + py} r="1.1" fill="var(--face-deep)" opacity="0.85" />
+      ))}
+      <rect x={x + 34} y="136" width={8 + (index % 2) * 4} height="3" fill="#6a5630" opacity="0.5" />
+    </g>
+  );
+}
+
 function Beds() {
   const seed = useGame((s) => s.seed);
   const irrigation = useGame((s) => s.chapter2.irrigation);
   const solved = useGame((s) => s.chapter2.irrigationSolved);
   const lastCycle = useGame((s) => s.chapter2.lastCycle);
   const t = useStrings();
-  const needs = secretsFor(seed).waterNeeds;
+  const probeShip = variantFor(seed, 'hydroponics') === 1;
+  // The classic ship prints the needs on brass; a probe ship never reads them here.
+  const needs = probeShip ? null : secretsFor(seed).waterNeeds;
   const report = irrigationReportFor(seed, irrigation); // budget meter only — the lamps never read this
   const total = report.total;
-  const bedsAria = `${t.hydro.bedsTitle} — ${needs.map((n, i) => `${t.hydro.bed(i + 1)}: ${t.hydro.needTag(n)}`).join('; ')}`;
+  const probeLit = probeShip && lastCycle !== null && irrigation.some((v) => v === 0);
+  const bedsAria = needs
+    ? `${t.hydro.bedsTitle} — ${needs.map((n, i) => `${t.hydro.bed(i + 1)}: ${t.hydro.needTag(n)}`).join('; ')}`
+    : t.hydro.bedsAriaProbe;
   return (
     <div className="panel">
       <h2>{t.hydro.bedsTitle}</h2>
-      <p className="status-dim">{t.hydro.bedsDesc}</p>
+      <p className="status-dim">{probeShip ? t.hydro.bedsDescProbe : t.hydro.bedsDesc}</p>
       <svg viewBox="0 0 360 150" width="100%" style={{ maxWidth: 540, display: 'block' }} role="img" aria-label={bedsAria}>
         <defs>
           <linearGradient id="hy-soil" x1="0" y1="0" x2="0" y2="1">
@@ -58,9 +79,15 @@ function Beds() {
               <rect x={x} y="56" width="96" height="70" rx="4" fill="url(#hy-soil)" stroke="var(--line)" />
               <rect x={x + 2} y={124 - 66 * level} width="92" height={66 * level} fill="url(#hy-water)" style={{ transition: 'all 0.4s' }} />
               <Vine x={x + 48} y={120} size={vineSize} />
-              {/* brass need tag */}
-              <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#6a5630" stroke="var(--brass)" strokeWidth="0.75" />
-              <text x={x + 48} y="141" textAnchor="middle" fontSize="7.5" fill="#f0dfb0" letterSpacing="1">{t.hydro.needTag(needs[i])}</text>
+              {needs ? (
+                <>
+                  {/* brass need tag */}
+                  <rect x={x + 30} y="132" width="36" height="12" rx="2" fill="#6a5630" stroke="var(--brass)" strokeWidth="0.75" />
+                  <text x={x + 48} y="141" textAnchor="middle" fontSize="7.5" fill="#f0dfb0" letterSpacing="1">{t.hydro.needTag(needs[i])}</text>
+                </>
+              ) : (
+                <CorrodedTag x={x} index={i} />
+              )}
               <text x={x + 48} y="50" textAnchor="middle" fontSize="7" fill="var(--dim)" letterSpacing="1">{t.hydro.bed(i + 1)}</text>
               {/* bed state lamp: lit only by the last cycle the AI ran */}
               <circle cx={x + 88} cy="62" r="3"
@@ -69,6 +96,14 @@ function Beds() {
             </g>
           );
         })}
+        {probeShip && (
+          <g>
+            {/* moisture probe: bezel, lamp and engraved label on the trough's rim */}
+            <rect x="238" y="20" width="112" height="18" rx="3" fill="var(--face)" stroke="var(--steel)" strokeWidth="1.5" />
+            <circle cx="250" cy="29" r="4" fill={probeLit ? 'var(--amber)' : 'var(--face-deep)'} stroke="var(--steel-hi)" strokeWidth="0.75" />
+            <text x="300" y="32" textAnchor="middle" fontSize="7" letterSpacing="1.5" fill="var(--parchment)" opacity="0.8">{t.hydro.probeLamp}</text>
+          </g>
+        )}
       </svg>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 8 }}>
         {[0, 1, 2].map((i) => (
@@ -79,7 +114,8 @@ function Beds() {
           </div>
         ))}
       </div>
-      {lastCycle === null && <p className="status-dim" style={{ fontSize: 12 }}>{t.hydro.lampsHint}</p>}
+      {lastCycle === null && <p className="status-dim" style={{ fontSize: 12 }}>{probeShip ? t.hydro.probeHint : t.hydro.lampsHint}</p>}
+      {probeLit && <p className="status-dim" style={{ fontSize: 12 }}>{t.hydro.probeRead}</p>}
       {/* budget tank meter */}
       <div style={{ marginTop: 12, maxWidth: 360 }}>
         <div className="status-dim" style={{ fontSize: 12 }}>{t.hydro.budget}: {total}/{WATER_BUDGET}u</div>

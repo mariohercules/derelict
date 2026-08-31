@@ -138,6 +138,7 @@ export interface UIStrings {
     title: string; intro: string; bedsTitle: string; bedsDesc: string; bed: (n: number) => string; needTag: (n: number) => string;
     valveAria: (n: number) => string; lampsHint: string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
     spikeRevealed: string; pullSpike: string; spikePulled: string;
+    bedsDescProbe: string; bedsAriaProbe: string; probeLamp: string; probeHint: string; probeRead: string;
   };
   cargo: {
     title: string; intro: string; craneTitle: string; craneDesc: string; gridAria: string; slotAria: (label: string) => string;
@@ -420,6 +421,11 @@ const en: UIStrings = {
     spikeRevealed: 'The bed drains. In the mud, a ration bag taped shut — and inside it, a data spike.',
     pullSpike: 'Pull the spike out',
     spikePulled: 'Okafor\'s handwriting on the tape: "For the medic\'s AI." Your AI can read it now.',
+    bedsDescProbe: 'Three beds, three valves, one pump with a 10-unit budget per cycle. The brass need tags have corroded to nothing. The pump\'s moisture probe reads a bed only while its line is closed — so: close every valve, have your AI run a cycle, and it will read you what each bed is missing. Then you set the valves and it runs again.',
+    bedsAriaProbe: 'irrigation manifold — three beds with corroded, illegible need tags, and a moisture-probe lamp',
+    probeLamp: 'MOISTURE PROBE',
+    probeHint: 'The probe lamp lights when a cycle ran with at least one valve closed. The numbers it read are on your AI\'s side; the beds do not show them.',
+    probeRead: 'Probe read on the closed lines. Ask your AI for the numbers.',
   },
   cargo: {
     title: 'Cargo bay',
@@ -781,6 +787,11 @@ const ptBR: UIStrings = {
     spikeRevealed: 'O canteiro drena. Na lama, um saco de ração fechado com fita — e dentro, um data spike.',
     pullSpike: 'Puxar o spike',
     spikePulled: 'A letra de Okafor na fita: "Para a IA do médico." Sua IA consegue ler agora.',
+    bedsDescProbe: 'Três canteiros, três válvulas, uma bomba com orçamento de 10 unidades por ciclo. As placas de latão corroeram até sumir. A sonda de umidade da bomba só lê um canteiro com a linha fechada — então: feche todas as válvulas, peça à sua IA para rodar um ciclo, e ela lê para você o que falta em cada canteiro. Depois você ajusta as válvulas e ela roda de novo.',
+    bedsAriaProbe: 'coletor de irrigação — três canteiros com placas corroídas e ilegíveis, e uma lâmpada de sonda de umidade',
+    probeLamp: 'SONDA DE UMIDADE',
+    probeHint: 'A lâmpada da sonda acende quando um ciclo rodou com pelo menos uma válvula fechada. Os números que ela leu ficam do lado da sua IA; os canteiros não os mostram.',
+    probeRead: 'Sonda leu as linhas fechadas. Pergunte os números à sua IA.',
   },
   cargo: {
     title: 'Porão de carga',
