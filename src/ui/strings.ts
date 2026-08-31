@@ -1,5 +1,16 @@
 import type { Locale } from '../game/i18n';
 import type { BusId, RoomId, SubsystemId } from '../game/types';
+import type { Drawing } from '../game/variants';
+
+// The six crew-quarters drawing subjects, named once per locale — indexed by
+// the quarters.drawing / drawingAria / nothingBehind / keyBehind closures
+// below rather than repeated inline in each.
+const DRAWING_NAMES_EN: Record<Drawing, string> = {
+  rocket: 'the rocket', cake: 'the birthday cake', cat: 'the cat', cormorant: 'the Cormorant', sun: 'the sun', family: 'her family',
+};
+const DRAWING_NAMES_PT: Record<Drawing, string> = {
+  rocket: 'o foguete', cake: 'o bolo de aniversário', cat: 'o gato', cormorant: 'a Cormorant', sun: 'o sol', family: 'a família',
+};
 
 export interface UIStrings {
   app: {
@@ -119,6 +130,9 @@ export interface UIStrings {
     title: string; intro: string; safeTitle: string; safeDesc: string; wheelAria: (n: number) => string; tryHandle: string;
     safeOpen: string; safeShut: string; driveNote: string; recorderTitle: string; recorderDesc: string; play: string; playing: string;
     transcriptLabel: string; noSpeech: string; wallTitle: string; wallDesc: string;
+    keyedDesc: string; keyedAria: string; keyedAriaKey: string; keyedAriaOpen: string; turnKey: string; noKey: string; keyInHand: string;
+    wallKeyedDesc: string; wallAria: string; drawing: (d: Drawing) => string; drawingAria: (d: Drawing) => string;
+    nothingBehind: (d: Drawing) => string; keyBehind: (d: Drawing) => string;
   };
   hydro: {
     title: string; intro: string; bedsTitle: string; bedsDesc: string; bed: (n: number) => string; needTag: (n: number) => string;
@@ -375,6 +389,19 @@ const en: UIStrings = {
     noSpeech: 'This browser has no voice. The transcript will have to do.',
     wallTitle: 'The wall',
     wallDesc: 'Drawings. A ship with too many windows. A man with a very large moustache. A birthday cake, every year, the candles counted carefully.',
+    keyedDesc: 'A mechanical lock, brass, the kind that wants a key and nothing else. There is no key in the desk. She would have kept a spare somewhere in these two cabins — and the ship\'s records would know where.',
+    keyedAria: 'the desk safe: a keyed lock, no key',
+    keyedAriaKey: 'the desk safe: a keyed lock with the brass key seated',
+    keyedAriaOpen: 'the desk safe, open',
+    turnKey: 'Turn the key',
+    noKey: 'No key. Ask your AI where she logged the spare.',
+    keyInHand: 'A brass key, warm from the tape. It fits.',
+    wallKeyedDesc: 'Six drawings, taped at a child\'s height. Something is taped behind one of them; the ship\'s records say which. Lift a drawing to look.',
+    wallAria: 'six of Amara\'s drawings taped to the cabin wall',
+    drawing: (d) => DRAWING_NAMES_EN[d],
+    drawingAria: (d) => `lift the drawing of ${DRAWING_NAMES_EN[d]}`,
+    nothingBehind: (d) => `Nothing behind ${DRAWING_NAMES_EN[d]}. Old tape, empty.`,
+    keyBehind: (d) => `Behind ${DRAWING_NAMES_EN[d]}: a brass key, taped flat. Take it to the safe.`,
   },
   hydro: {
     title: 'Hydroponics',
@@ -723,6 +750,19 @@ const ptBR: UIStrings = {
     noSpeech: 'Este navegador não tem voz. A transcrição vai ter que servir.',
     wallTitle: 'A parede',
     wallDesc: 'Desenhos. Uma nave com janelas demais. Um homem com um bigode enorme. Um bolo de aniversário, todo ano, as velas contadas com cuidado.',
+    keyedDesc: 'Uma fechadura mecânica, latão, do tipo que quer uma chave e nada mais. Não há chave na mesa. Ela guardaria uma reserva em algum lugar destas duas cabines — e os registros da nave saberiam onde.',
+    keyedAria: 'o cofre da mesa: fechadura de chave, sem chave',
+    keyedAriaKey: 'o cofre da mesa: fechadura de chave com a chave de latão encaixada',
+    keyedAriaOpen: 'o cofre da mesa, aberto',
+    turnKey: 'Girar a chave',
+    noKey: 'Sem chave. Pergunte à sua IA onde ela registrou a reserva.',
+    keyInHand: 'Uma chave de latão, morna da fita. Encaixa.',
+    wallKeyedDesc: 'Seis desenhos, colados na altura de uma criança. Há algo colado atrás de um deles; os registros da nave dizem qual. Levante um desenho para olhar.',
+    wallAria: 'seis desenhos da Amara colados na parede da cabine',
+    drawing: (d) => DRAWING_NAMES_PT[d],
+    drawingAria: (d) => `levantar o desenho: ${DRAWING_NAMES_PT[d]}`,
+    nothingBehind: (d) => `Nada atrás de ${DRAWING_NAMES_PT[d]}. Fita velha, vazia.`,
+    keyBehind: (d) => `Atrás de ${DRAWING_NAMES_PT[d]}: uma chave de latão, colada rente. Leve ao cofre.`,
   },
   hydro: {
     title: 'Hidroponia',

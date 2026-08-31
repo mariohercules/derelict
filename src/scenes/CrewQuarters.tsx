@@ -3,6 +3,8 @@ import { useGame } from '../ui/useGame';
 import { useLocale, useStrings } from '../ui/useLocale';
 import { dialSafe, playRecorder } from '../game/store';
 import { getRecorderTranscript } from '../game/narrative';
+import { variantFor } from '../game/variants';
+import { DrawingWall, KeyedSafe } from './KeyedSafe';
 import okaforEn from '../assets/okafor-en.mp3';
 import okaforPt from '../assets/okafor-pt.mp3';
 
@@ -241,6 +243,8 @@ function Recorder() {
 }
 
 export function CrewQuarters() {
+  const seed = useGame((s) => s.seed);
+  const keyed = variantFor(seed, 'crew_quarters') === 1;
   const t = useStrings();
   return (
     <div className="scene">
@@ -248,12 +252,16 @@ export function CrewQuarters() {
         <h2>{t.quarters.title}</h2>
         <p>{t.quarters.intro}</p>
       </div>
-      <Safe />
+      {keyed ? <KeyedSafe /> : <Safe />}
       <Recorder />
-      <div className="panel">
-        <h2>{t.quarters.wallTitle}</h2>
-        <p className="status-dim">{t.quarters.wallDesc}</p>
-      </div>
+      {keyed ? (
+        <DrawingWall />
+      ) : (
+        <div className="panel">
+          <h2>{t.quarters.wallTitle}</h2>
+          <p className="status-dim">{t.quarters.wallDesc}</p>
+        </div>
+      )}
     </div>
   );
 }
