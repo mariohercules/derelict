@@ -164,4 +164,16 @@ describe('localized narrative', () => {
     expect(getCargoManifest(S_SD)).toContain(slot);
     expect(getCrewManifest(0)).toContain('last three');
   });
+
+  it('the sequenced rack sheet keeps its order string in pt-BR', () => {
+    const S_SR = (() => { for (let s = 1; s < 5000; s++) if (variantFor(s, 'core_vault') === 1) return s; throw new Error('none'); })();
+    const order = secretsFor(S_SR).columnOrder.join(' · ');
+    setLocale('pt-BR');
+    expect(getRackSchematic(S_SR)).toContain('ORDEM DE CARGA');
+    expect(getRackSchematic(S_SR)).toContain(order);
+    expect(getRackSchematic(0)).toContain('de cima para baixo');
+    setLocale('en');
+    expect(getRackSchematic(S_SR)).toContain('LOAD ORDER');
+    expect(getRackSchematic(S_SR)).toContain(order);
+  });
 });

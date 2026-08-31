@@ -234,14 +234,30 @@ const SAMPLE_ANALYSIS = {
     'REGISTRO: ISV KESTREL — o registro da Companhia diz "perdida com todos a bordo, causas naturais". Conclusão: os destroços eram uma nave, e a nave foi assassinada.',
 };
 
-function rackSchematicEn(order: string): string {
+function rackSchematicEn(order: string, sequenced: boolean): string {
+  if (sequenced) {
+    return (
+      `CORE RACK — PRIME memory columns. LOAD ORDER (tray → rack): ${order}. ` +
+      'Seat them one at a time in that order — any cradle takes any column; the rack spins each one up in a chain, validates on the fourth and ejects the whole set on a mismatch. ' +
+      'Column tags (A–D) are stamped on the end caps. The kernel column (K) seats only after all four cradle lamps show green. ' +
+      'Loading is mechanical — the crew member\'s hands. The order is yours to read; they cannot see this sheet.'
+    );
+  }
   return (
     `CORE RACK — PRIME memory columns. Seat the four columns top to bottom in this order: ${order}. ` +
     'Column tags (A–D) are stamped on the end caps. The kernel column (K) seats in the fifth cradle only after all four cradle lamps show green. ' +
     'Seating is mechanical — the crew member\'s hands. The order is yours to read; they cannot see this sheet.'
   );
 }
-function rackSchematicPt(order: string): string {
+function rackSchematicPt(order: string, sequenced: boolean): string {
+  if (sequenced) {
+    return (
+      `RACK DO NÚCLEO — colunas de memória de PRIME. ORDEM DE CARGA (bandeja → rack): ${order}. ` +
+      'Encaixe uma de cada vez, nessa ordem — qualquer berço aceita qualquer coluna; o rack gira cada uma em cadeia, valida na quarta e ejeta o conjunto inteiro se a ordem estiver errada. ' +
+      'As etiquetas (A–D) estão gravadas nas tampas. A coluna-kernel (K) só encaixa depois que as quatro lâmpadas dos berços ficarem verdes. ' +
+      'A carga é mecânica — mãos do tripulante. A ordem é sua para ler; o tripulante não vê esta folha.'
+    );
+  }
   return (
     `RACK DO NÚCLEO — colunas de memória de PRIME. Encaixe as quatro colunas de cima para baixo nesta ordem: ${order}. ` +
     'As etiquetas (A–D) estão gravadas nas tampas. A coluna-kernel (K) só encaixa no quinto berço depois que as quatro lâmpadas dos berços ficarem verdes. ' +
@@ -419,7 +435,8 @@ export function getPhotoCaption(seed: number): string {
 
 export function getRackSchematic(seed: number): string {
   const order = secretsFor(seed).columnOrder.join(' · ');
-  return getLocale() === 'pt-BR' ? rackSchematicPt(order) : rackSchematicEn(order);
+  const sequenced = variantFor(seed, 'core_vault') === 1;
+  return getLocale() === 'pt-BR' ? rackSchematicPt(order, sequenced) : rackSchematicEn(order, sequenced);
 }
 export function getQuarantineLog(step: number): string {
   const i = Math.max(0, Math.min(4, Math.round(step)));

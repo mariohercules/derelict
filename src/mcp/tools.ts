@@ -6,7 +6,7 @@ import {
   quarantineKillswitch, queryFragmentMemory, readPrimeCache, hearBeacon, confirmMerge, confirmBroadcast,
   hailPodOne, confirmDock,
 } from '../game/store';
-import { coilsCorrect, enginesOnline, gearCorrect, logsAvailable, nextShieldCost, rackCorrect, stayAvailable, stayBlocker, valvesCorrect } from '../game/derived';
+import { beaconSignalFor, coilsCorrect, enginesOnline, gearCorrect, logsAvailable, nextShieldCost, rackCorrect, stayAvailable, stayBlocker, valvesCorrect } from '../game/derived';
 import type { StayBlocker } from '../game/derived';
 import { BUSES, CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game/content';
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
@@ -526,6 +526,18 @@ export function buildTools(): GameTool[] {
         const s = gameStore.getState();
         const r = hearBeacon();
         if (r.ok) return { ok: true, beacon: getBeaconMessage(s.seed, s.ngPlus), message: r.message };
+        if (variantFor(s.seed, 'comms_array') === 1) {
+          // Dead encoders: the crew member cannot read degrees, so the bearing is useless to them —
+          // the agent reads strength and steers them by voice.
+          const { strength, axis } = beaconSignalFor(s.seed, s.chapter3.dish);
+          const dominant = axis === 'az' ? 'Azimuth error dominates.' : axis === 'el' ? 'Elevation error dominates.' : 'Both axes are off.';
+          return {
+            ok: false,
+            signal_strength: strength,
+            error_axis: axis,
+            message: `Carrier at ${strength}%. ${dominant} The array's encoders are dead — the crew member cannot read degrees; you are the meter: read them the strength, have them move, listen again.`,
+          };
+        }
         const b = secretsFor(s.seed).beaconBearing;
         return { ...r, carrier_bearing: `AZ ${b.az} / EL ${b.el}` };
       },

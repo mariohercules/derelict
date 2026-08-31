@@ -636,3 +636,54 @@ describe('remixed ships, chapter 2 — the surface follows the ship, the contrac
     expect(contract).toMatchSnapshot();
   });
 });
+
+describe('remixed ships, chapter 3 — the surface follows the ship, the contract does not move', () => {
+  function findSeed(pred: (seed: number) => boolean): number {
+    for (let seed = 1; seed < 5000; seed++) if (pred(seed)) return seed;
+    throw new Error('no seed found');
+  }
+  const S_SR = findSeed((s) => variantFor(s, 'core_vault') === 1);
+  const S_DE = findSeed((s) => variantFor(s, 'comms_array') === 1);
+  function lowerDeckOn(seed: number, room: 'core_vault' | 'comms_array') {
+    resetGame(seed);
+    gameStore.setState({ chapter: 3, act: 3, room, checkpoint: { chapter: 3, room: 'cargo_bay' } });
+  }
+
+  it('the core rack sheet gives a LOAD ORDER on a sequenced ship and cradles top to bottom otherwise', async () => {
+    lowerDeckOn(S_SR, 'core_vault');
+    const sheet = await call('get_schematic', { system: 'core_rack' });
+    expect(sheet.schematic).toContain('LOAD ORDER');
+    expect(sheet.schematic).toContain(secretsFor(S_SR).columnOrder.join(' · '));
+    expect(sheet.schematic).not.toContain('top to bottom');
+    lowerDeckOn(0, 'core_vault');
+    const classic = await call('get_schematic', { system: 'core_rack' });
+    expect(classic.schematic).toContain('top to bottom');
+    expect(classic.schematic).toContain('C · A · D · B');
+  });
+
+  it('listen_beacon is a meter on a dead-encoder ship and a bearing on the classic one', async () => {
+    lowerDeckOn(S_DE, 'comms_array');
+    const t = secretsFor(S_DE).beaconBearing;
+    const step = t.az >= 180 ? -1 : 1; // step away from the bearing without leaving 0–359 (no wrap, like dishAligned)
+    setDish('az', t.az + 40 * step); setDish('el', t.el);
+    const far = await call('listen_beacon');
+    expect(far.ok).toBe(false);
+    expect(far).not.toHaveProperty('carrier_bearing');
+    expect(typeof far.signal_strength).toBe('number');
+    expect(far.error_axis).toBe('az');
+    expect(far.message).toMatch(/you are the meter/);
+    setDish('az', t.az + 10 * step);
+    const near = await call('listen_beacon');
+    expect(near.ok).toBe(false);
+    expect(near.signal_strength).toBeGreaterThan(far.signal_strength);
+    setDish('az', t.az);
+    const lock = await call('listen_beacon');
+    expect(lock.ok).toBe(true);
+    expect(lock.beacon).toBeDefined();
+    lowerDeckOn(0, 'comms_array');
+    const classic = await call('listen_beacon');
+    expect(classic.ok).toBe(false);
+    expect(classic.carrier_bearing).toBe('AZ 217 / EL 34');
+    expect(classic).not.toHaveProperty('signal_strength');
+  });
+});
