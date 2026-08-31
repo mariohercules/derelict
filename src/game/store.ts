@@ -1,5 +1,5 @@
 import { createStore } from 'zustand/vanilla';
-import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter2VariantState, Chapter3State, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
+import type { ActionResult, BreakerId, BusId, Chapter1VariantState, Chapter2State, Chapter2VariantState, Chapter3State, Chapter3VariantState, ColumnId, DoorId, FuseRating, GameState, RoomId, SubsystemId } from './types';
 import { BUSES, DOORS_REQUIRED, INITIAL_ALLOCATION, LIFE_SUPPORT_MIN, WATER_BUDGET } from './content';
 import { randomSeed, secretsFor, slotLabel } from './secrets';
 import { IDLE_RITUAL, armRitual, confirmRitual } from './ritual';
@@ -46,6 +46,7 @@ export function initialState(seed: number = randomSeed(), ngPlus = false): GameS
     ngPlus,
     chapter1v: { sockets: [null, null, null], energized: false, gear: null, phases: [0, 0, 0] },
     chapter2v: { keyFound: false, held: false, tiers: tiersFor(seed) },
+    chapter3v: { seated: [] },
   };
 }
 

@@ -86,6 +86,12 @@ export interface Chapter2VariantState {
   tiers: number[]; // cargo bay: crates per slot (row*3 + col), nine entries of 1 or 2
 }
 
+// Inputs of the chapter-3 variant puzzle (Plan F3). The outcome is rackCorrect
+// (derived), and through it kernelSeated / fragmentStage / cacheRead as before.
+export interface Chapter3VariantState {
+  seated: ColumnId[]; // sequenced rack: the loading order so far, 0–4 distinct columns
+}
+
 export interface GameState {
   seed: number;
   act: 1 | 2 | 3;
@@ -112,4 +118,5 @@ export interface GameState {
   ngPlus: boolean; // New Game+: the plus rules profile and a ship that remembers
   chapter1v: Chapter1VariantState;
   chapter2v: Chapter2VariantState;
+  chapter3v: Chapter3VariantState;
 }

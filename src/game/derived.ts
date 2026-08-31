@@ -72,6 +72,20 @@ export function dishAligned(s: GameState): boolean {
   return Math.abs(az - target.az) <= DISH_TOLERANCE && Math.abs(el - target.el) <= DISH_TOLERANCE;
 }
 
+// Plan F3 (comms variant): the array's encoders are dead, so the agent is the
+// meter. Strength falls linearly with the angular distance to the carrier — no
+// azimuth wrap, the same arithmetic as dishAligned; axis names the error that
+// dominates by more than the lock tolerance.
+export function beaconSignalFor(seed: number, dish: { az: number; el: number }): { strength: number; axis: 'az' | 'el' | 'both' } {
+  const target = secretsFor(seed).beaconBearing;
+  const daz = Math.abs(dish.az - target.az);
+  const del = Math.abs(dish.el - target.el);
+  const dist = Math.sqrt(daz * daz + del * del);
+  const strength = Math.round(100 * (1 - Math.min(1, dist / 180)));
+  const axis = daz > del + DISH_TOLERANCE ? 'az' : del > daz + DISH_TOLERANCE ? 'el' : 'both';
+  return { strength, axis };
+}
+
 // Isolation power the next breaker will demand: the profile's cost per shielded bus, cumulative.
 export function nextShieldCost(s: GameState): number {
   return rulesFor(s).shieldCost * (s.chapter3.shielded.length + 1);

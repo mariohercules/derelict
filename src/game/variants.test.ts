@@ -3,7 +3,7 @@ import { DRAWINGS, tiersFor, variantFor, variantSecretsFor } from './variants';
 import type { VariantRoom } from './variants';
 import { secretsFor } from './secrets';
 
-const ROOMS: VariantRoom[] = ['cryo_bay', 'engineering', 'bridge', 'crew_quarters', 'hydroponics', 'cargo_bay'];
+const ROOMS: VariantRoom[] = ['cryo_bay', 'engineering', 'bridge', 'crew_quarters', 'hydroponics', 'cargo_bay', 'core_vault', 'comms_array'];
 
 // Frozen at the Plan F2 build — the full variant secret set of seed 8. Any
 // future field appends after stackSlots; if this fails, a draw moved.

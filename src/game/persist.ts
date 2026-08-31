@@ -114,6 +114,12 @@ function validShape(p: Partial<GameState>): boolean {
     if (typeof c2v.keyFound !== 'boolean' || typeof c2v.held !== 'boolean') return false;
     if (!Array.isArray(c2v.tiers) || c2v.tiers.length !== 9 || !c2v.tiers.every((t) => isIntInRange(t, 1, 2))) return false;
   }
+  if (p.chapter3v !== undefined) {
+    const c3v = p.chapter3v as unknown as Record<string, unknown>;
+    if (!c3v || typeof c3v !== 'object') return false;
+    if (!Array.isArray(c3v.seated) || c3v.seated.length > 4 || !c3v.seated.every((c) => COLUMN_IDS.includes(c as ColumnId))) return false;
+    if (new Set(c3v.seated).size !== c3v.seated.length) return false;
+  }
   if (!p.powerAllocation || typeof p.powerAllocation !== 'object') return false;
   const alloc = p.powerAllocation as Record<string, unknown>;
   if (!SUBSYSTEMS.every((k) => isFiniteNumber(alloc[k]))) return false;
@@ -156,6 +162,14 @@ export function loadSavedState(): GameState | null {
       // A container already lifted is no longer under a pallet.
       if (c2?.crateLifted) { const q = secretsFor(seed).quarantineSlot; tiers[q.row * 3 + q.col] = 1; }
       parsed.chapter2v = { keyFound: c2?.safeOpened === true, held: false, tiers };
+    }
+    // Pre-F3 saves predate chapter3v. A save that already proved the rack
+    // (kernel seated, cache read, or the fragment queried) keeps it proven on a
+    // ship that now sequences it; anything else starts with a full tray.
+    if (parsed.chapter3v === undefined) {
+      const c3 = parsed.chapter3;
+      const proven = c3?.kernelSeated === true || c3?.cacheRead === true || (c3?.fragmentStage ?? 0) > 0;
+      parsed.chapter3v = { seated: proven ? [...secretsFor(parsed.seed as number).columnOrder] : [] };
     }
     // Merge over initialState so old saves survive new fields
     const merged = { ...initialState(), ...parsed } as GameState;

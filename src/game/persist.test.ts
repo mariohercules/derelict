@@ -318,6 +318,31 @@ describe('persistence', () => {
     expect(loadedMidLift?.chapter2v.held).toBe(true);
     expect(loadedMidLift?.chapter2v.tiers).toEqual(midLiftTiers);
   });
+
+  it('fills chapter3v for an older save — empty, or the proven order — and rejects malformed shapes', () => {
+    const older = { ...initialState(0) } as Record<string, unknown>;
+    delete older.chapter3v;
+    storage.set(SAVE_KEY, JSON.stringify(older));
+    expect(loadSavedState()?.chapter3v).toEqual({ seated: [] });
+    // a save that already proved the rack keeps it proven on a ship that now sequences it
+    for (const proof of [{ kernelSeated: true }, { cacheRead: true }, { fragmentStage: 2 }]) {
+      const proven = { ...initialState(0), chapter3: { ...initialState(0).chapter3, ...proof } } as Record<string, unknown>;
+      delete proven.chapter3v;
+      storage.set(SAVE_KEY, JSON.stringify(proven));
+      expect(loadSavedState()?.chapter3v.seated).toEqual([...secretsFor(0).columnOrder]);
+    }
+    const base = initialState(0);
+    storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: ['A', 'B', 'C', 'D', 'A'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: ['A', 'A'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: ['E'] } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: 'CADB' } }));
+    expect(loadSavedState()).toBeNull();
+    storage.set(SAVE_KEY, JSON.stringify({ ...base, chapter3v: { seated: ['C', 'A'] } }));
+    expect(loadSavedState()?.chapter3v.seated).toEqual(['C', 'A']);
+  });
 });
 
 describe('v1 → v2 migration', () => {

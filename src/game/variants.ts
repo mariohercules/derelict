@@ -4,7 +4,10 @@
 // variants can never shift a shipped ship's secrets.
 import { CLASSIC_SEED, prng, secretsFor } from './secrets';
 
-export type VariantRoom = 'cryo_bay' | 'engineering' | 'bridge' | 'crew_quarters' | 'hydroponics' | 'cargo_bay';
+export type VariantRoom =
+  | 'cryo_bay' | 'engineering' | 'bridge'
+  | 'crew_quarters' | 'hydroponics' | 'cargo_bay'
+  | 'core_vault' | 'comms_array';
 
 const ROOM_SALTS: Record<VariantRoom, number> = {
   cryo_bay: 0x1a2b3c4d,
@@ -13,6 +16,8 @@ const ROOM_SALTS: Record<VariantRoom, number> = {
   crew_quarters: 0x3d7e9a51,
   hydroponics: 0x92b4c6e8,
   cargo_bay: 0x4f81d2a7,
+  core_vault: 0x6c2e8f13,
+  comms_array: 0xa17d4b59,
 };
 const SECRETS_SALT = 0x7f4a9c31;
 
