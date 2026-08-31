@@ -3,6 +3,7 @@ import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { holdHandle, openBand, setDish } from '../game/store';
 import { dishAligned } from '../game/derived';
+import { variantFor } from '../game/variants';
 
 const CX = 90;
 const CY = 90;
@@ -14,6 +15,8 @@ function polar(r: number, deg: number): [number, number] {
 
 function Dish() {
   const dish = useGame((s) => s.chapter3.dish);
+  const seed = useGame((s) => s.seed);
+  const dead = variantFor(seed, 'comms_array') === 1; // dead encoders: no degree value may reach the DOM
   const aligned = useGame((s) => dishAligned(s));
   const heard = useGame((s) => s.chapter3.beaconHeard);
   const ritual = useGame((s) => s.ritual);
@@ -45,9 +48,9 @@ function Dish() {
   return (
     <div className="panel" style={{ borderColor: aligned ? 'var(--green)' : 'var(--line)' }}>
       <h2>{t.comms.dishTitle}</h2>
-      <p className="status-dim">{t.comms.dishDesc}</p>
+      <p className="status-dim">{dead ? t.comms.dishDescDead : t.comms.dishDesc}</p>
       <svg viewBox="0 0 320 180" width="100%" style={{ maxWidth: 520, display: 'block' }} role="img"
-        aria-label={`${t.comms.dishAria} — ${t.comms.az} ${dish.az}, ${t.comms.el} ${dish.el}`}>
+        aria-label={dead ? t.comms.dishAriaDead : `${t.comms.dishAria} — ${t.comms.az} ${dish.az}, ${t.comms.el} ${dish.el}`}>
         <defs>
           <radialGradient id="ca-face" cx="0.5" cy="0.5" r="0.5">
             <stop offset="0%" stopColor="var(--panel-solid)" />
@@ -69,8 +72,10 @@ function Dish() {
         })}
         <line x1={CX} y1={CY} x2={ax} y2={ay} stroke="var(--amber)" strokeWidth="2.5" />
         <circle cx={CX} cy={CY} r="5" fill="var(--steel-lo)" stroke="var(--steel)" strokeWidth="1.5" />
-        <rect x={CX - 21} y="164" width="42" height="13" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />
-        <text x={CX} y="173.5" textAnchor="middle" fontSize="7" fill="var(--text)" letterSpacing="1">{t.comms.az} {String(dish.az).padStart(3, '0')}</text>
+        <rect x={CX - 21} y="164" width="42" height="13" rx="2" fill="var(--panel-solid)" stroke={dead ? 'var(--amber)' : 'var(--line)'} />
+        <text x={CX} y="173.5" textAnchor="middle" fontSize="7" fill={dead ? 'var(--amber)' : 'var(--text)'} letterSpacing="1">
+          {dead ? t.comms.encFault : `${t.comms.az} ${String(dish.az).padStart(3, '0')}`}
+        </text>
         {/* elevation quadrant */}
         <path d="M 230 150 L 290 150 A 60 60 0 0 0 230 90 Z" fill="var(--face)" stroke="var(--steel)" strokeWidth="3" />
         <path d="M 230 150 L 284 150 A 54 54 0 0 0 230 96 Z" fill="url(#ca-face)" stroke="var(--line)" />
@@ -81,23 +86,27 @@ function Dish() {
         })}
         <line x1="230" y1="150" x2={ex} y2={ey} stroke="var(--amber)" strokeWidth="2.5" />
         <circle cx="230" cy="150" r="4" fill="var(--steel-lo)" stroke="var(--steel)" strokeWidth="1.5" />
-        <rect x="236" y="164" width="42" height="13" rx="2" fill="var(--panel-solid)" stroke="var(--line)" />
-        <text x="257" y="173.5" textAnchor="middle" fontSize="7" fill="var(--text)" letterSpacing="1">{t.comms.el} {String(dish.el).padStart(2, '0')}</text>
+        <rect x="236" y="164" width="42" height="13" rx="2" fill="var(--panel-solid)" stroke={dead ? 'var(--amber)' : 'var(--line)'} />
+        <text x="257" y="173.5" textAnchor="middle" fontSize="7" fill={dead ? 'var(--amber)' : 'var(--text)'} letterSpacing="1">
+          {dead ? t.comms.encFault : `${t.comms.el} ${String(dish.el).padStart(2, '0')}`}
+        </text>
         {/* lock lamp */}
         <circle cx="280" cy="30" r="9" fill="var(--face)" stroke="var(--steel)" strokeWidth="2" />
         <circle className={aligned && !heard ? 'beacon-halo' : undefined} cx="280" cy="30" r="6" fill={lampColor} opacity={aligned ? 0.95 : 0.35} />
       </svg>
       <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
         <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ width: 64 }}>{t.comms.az} {dish.az}°</span>
-          <input type="range" min={0} max={359} value={dish.az} onChange={(e) => setDish('az', Number(e.target.value))} style={{ flex: 1 }} aria-label={t.comms.azAria} />
+          <span style={{ width: 64 }}>{t.comms.az} {dead ? '—' : `${dish.az}°`}</span>
+          <input type="range" min={0} max={359} value={dish.az} onChange={(e) => setDish('az', Number(e.target.value))} style={{ flex: 1 }}
+            aria-label={t.comms.azAria} aria-valuetext={dead ? t.comms.encoderDead : undefined} />
         </label>
         <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ width: 64 }}>{t.comms.el} {dish.el}°</span>
-          <input type="range" min={0} max={90} value={dish.el} onChange={(e) => setDish('el', Number(e.target.value))} style={{ flex: 1 }} aria-label={t.comms.elAria} />
+          <span style={{ width: 64 }}>{t.comms.el} {dead ? '—' : `${dish.el}°`}</span>
+          <input type="range" min={0} max={90} value={dish.el} onChange={(e) => setDish('el', Number(e.target.value))} style={{ flex: 1 }}
+            aria-label={t.comms.elAria} aria-valuetext={dead ? t.comms.encoderDead : undefined} />
         </label>
       </div>
-      <p className={aligned ? 'status-ok' : 'status-dim'} style={{ marginTop: 8 }}>{aligned ? t.comms.locked : t.comms.carrier}</p>
+      <p className={aligned ? 'status-ok' : 'status-dim'} style={{ marginTop: 8 }}>{aligned ? t.comms.locked : dead ? t.comms.carrierDead : t.comms.carrier}</p>
     </div>
   );
 }

@@ -171,6 +171,7 @@ export interface UIStrings {
     carrier: string; locked: string; beaconTitle: string; beaconDesc: string; beaconHeard: string; beaconAria: string;
     bandTitle: string; bandDesc: string; openBand: string; bandNoEvidence: string; bandNotAligned: string; anotherRitual: string; bandOpen: string;
     lockHold: string; lockHolding: string; windowElapsed: string; twoOp: string; next: string;
+    dishDescDead: string; dishAriaDead: string; encFault: string; encoderDead: string; carrierDead: string;
   };
 }
 
@@ -556,6 +557,11 @@ const en: UIStrings = {
     windowElapsed: 'Window elapsed. Open the band again when you are both ready.',
     twoOp: 'TWO-OPERATOR RULE: hold the lock and keep it held while your AI transmits. Let go and the dish walks off the bearing.',
     next: 'Three ways off this ship, and none of them is quiet. The pod on the bridge. The kernel in the vault. The band, here.',
+    dishDescDead: 'Azimuth and elevation, by hand — and blind. The encoders burned with the servos: no degrees on the face, no numbers anywhere. Your AI can hear how strong the carrier is where you are pointing. Move, ask, move again; it is the meter now.',
+    dishAriaDead: 'Dish steering: azimuth rose and elevation quadrant, encoders dead — no readout',
+    encFault: 'ENC FAULT',
+    encoderDead: 'encoder dead — no reading',
+    carrierDead: 'CARRIER — somewhere in the sky. The encoders are dead; your AI is the meter. Move, ask, move.',
   },
 };
 
@@ -942,6 +948,11 @@ const ptBR: UIStrings = {
     windowElapsed: 'Janela expirada. Abra a banda de novo quando os dois estiverem prontos.',
     twoOp: 'REGRA DOS DOIS OPERADORES: segure a trava e mantenha segurada enquanto sua IA transmite. Solte e a antena sai da marcação.',
     next: 'Três saídas desta nave, e nenhuma é silenciosa. O pod na ponte. O kernel no cofre. A banda, aqui.',
+    dishDescDead: 'Azimute e elevação, na mão — e às cegas. Os encoders queimaram com os servos: nenhum grau no mostrador, nenhum número em lugar nenhum. Sua IA consegue ouvir quão forte está a portadora onde você aponta. Mova, pergunte, mova de novo; ela é o medidor agora.',
+    dishAriaDead: 'Apontamento da antena: rosa de azimute e quadrante de elevação, encoders mortos — sem leitura',
+    encFault: 'ENC FAULT',
+    encoderDead: 'encoder morto — sem leitura',
+    carrierDead: 'PORTADORA — em algum lugar do céu. Os encoders estão mortos; sua IA é o medidor. Mova, pergunte, mova.',
   },
 };
 
