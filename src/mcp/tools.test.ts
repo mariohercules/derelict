@@ -8,7 +8,8 @@ import {
 } from '../game/store';
 import { AUTH_CODE, LAUNCH_AUTH, STAR_FIX, SHIELD_COST } from '../game/content';
 import { EMPTY_META, metaStore } from '../game/meta';
-import { variantFor, variantSecretsFor } from '../game/variants';
+import { DRAWINGS, variantFor, variantSecretsFor } from '../game/variants';
+import { secretsFor, slotLabel } from '../game/secrets';
 
 beforeEach(() => resetGame(0));
 
@@ -570,5 +571,60 @@ describe('remixed ships — the surface follows the ship', () => {
     const sensors = await call('read_sensors', { system: 'coolant' });
     expect(JSON.stringify(sensors)).toContain('FAULT');
     expect(buildTools()).toHaveLength(31);
+  });
+});
+
+describe('remixed ships, chapter 2 — the surface follows the ship, the contract does not move', () => {
+  function findSeed(pred: (seed: number) => boolean): number {
+    for (let seed = 1; seed < 5000; seed++) if (pred(seed)) return seed;
+    throw new Error('no seed found');
+  }
+  const S_KS = findSeed((s) => variantFor(s, 'crew_quarters') === 1);
+  const S_HP = findSeed((s) => variantFor(s, 'hydroponics') === 1);
+  const S_SD = findSeed((s) => variantFor(s, 'cargo_bay') === 1);
+
+  it('the crew manifest points at the drawing on a keyed ship, at the combination otherwise', async () => {
+    resetGame(S_KS);
+    gameStore.setState({ auxPower: true });
+    const keyed = JSON.stringify(await call('access_crew_manifest'));
+    expect(keyed).toMatch(/quartermaster/);
+    expect(keyed.toLowerCase()).toContain(DRAWINGS[variantSecretsFor(S_KS).keyDrawing]);
+    expect(keyed).not.toMatch(/last three/);
+    resetGame(0);
+    gameStore.setState({ auxPower: true });
+    expect(JSON.stringify(await call('access_crew_manifest'))).toMatch(/last three/);
+  });
+
+  it('run_irrigation carries the sweep on a probe ship and nothing extra on the classic one', async () => {
+    resetGame(S_HP);
+    gameStore.setState({ chapter: 2 });
+    const sweep = await call('run_irrigation');
+    expect(sweep.deficits).toEqual([...secretsFor(S_HP).waterNeeds]);
+    expect(sweep.beds).toEqual(['dry', 'dry', 'dry']);
+    resetGame(0);
+    gameStore.setState({ chapter: 2 });
+    const classic = await call('run_irrigation');
+    expect(classic).not.toHaveProperty('deficits');
+    expect(classic.beds).toHaveLength(3);
+  });
+
+  it('query_manifest names the lower tier on a stacked ship only', async () => {
+    resetGame(S_SD);
+    gameStore.setState({ chapter: 2 });
+    const stacked = await call('query_manifest');
+    expect(stacked.tier).toBe('lower');
+    expect(stacked.manifest).toContain('LOWER tier');
+    expect(stacked.quarantine_slot).toBe(slotLabel(secretsFor(S_SD).quarantineSlot));
+    resetGame(0);
+    gameStore.setState({ chapter: 2 });
+    const classic = await call('query_manifest');
+    expect(classic).not.toHaveProperty('tier');
+    expect(classic.quarantine_slot).toBe('C2');
+  });
+
+  it('the tool contract is pinned: names, descriptions and input schemas', () => {
+    const contract = buildTools().map((t) => ({ name: t.name, description: t.definition.description, inputSchema: t.definition.inputSchema }));
+    expect(contract).toHaveLength(31);
+    expect(contract).toMatchSnapshot();
   });
 });

@@ -8,7 +8,8 @@ import { EMERGENCY_BULLETIN, SCHEMATICS } from './content';
 import { getLocale } from './i18n';
 import { secretsFor, slotLabel } from './secrets';
 import type { Meta } from './meta';
-import { variantFor, variantSecretsFor } from './variants';
+import { DRAWINGS, variantFor, variantSecretsFor } from './variants';
+import type { Drawing } from './variants';
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHS_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -116,18 +117,31 @@ function crewLogsPt(launchAuth: string): CrewLogEntry[] {
   ];
 }
 
-function crewManifestEn(commission: string): string {
+const DRAWING_NAMES_EN: Record<Drawing, string> = {
+  rocket: 'the rocket', cake: 'the birthday cake', cat: 'the cat', cormorant: 'the Cormorant', sun: 'the sun', family: 'her family',
+};
+const DRAWING_NAMES_PT: Record<Drawing, string> = {
+  rocket: 'o foguete', cake: 'o bolo de aniversário', cat: 'o gato', cormorant: 'a Cormorant', sun: 'o sol', family: 'a família',
+};
+
+function crewManifestEn(commission: string, keyDrawing: Drawing | null): string {
+  const safe = keyDrawing === null
+    ? 'Cabin safe keyed to its last three, per a regulation nobody follows but her.'
+    : `Cabin safe is a mechanical lock; her spare key is logged with the quartermaster — taped behind Amara's drawing of ${DRAWING_NAMES_EN[keyDrawing]}.`;
   return (
     'CREW OF RECORD — ISV CORMORANT\n' +
-    `• Cpt. E. Vasquez — command auth suspended (evacuated). Commission ${commission}. Cabin safe keyed to its last three, per a regulation nobody follows but her.\n` +
+    `• Cpt. E. Vasquez — command auth suspended (evacuated). Commission ${commission}. ${safe}\n` +
     '• Chief Eng. R. Okafor — door auth: standard family-date PIN, day+month (DDMM). His daughter. He talks about her constantly.\n' +
     '• Med. Off. [YOU] — currently thawing. Auth records lost with the main computer.'
   );
 }
-function crewManifestPt(commission: string): string {
+function crewManifestPt(commission: string, keyDrawing: Drawing | null): string {
+  const safe = keyDrawing === null
+    ? 'Cofre da cabine chaveado nos três últimos dígitos, por um regulamento que só ela segue.'
+    : `Cofre da cabine é fechadura mecânica; a chave reserva está registrada na intendência — colada atrás do desenho da Amara: ${DRAWING_NAMES_PT[keyDrawing]}.`;
   return (
     'TRIPULAÇÃO DE REGISTRO — ISV CORMORANT\n' +
-    `• Cap. E. Vasquez — autorização de comando suspensa (evacuada). Comissão ${commission}. Cofre da cabine chaveado nos três últimos dígitos, por um regulamento que só ela segue.\n` +
+    `• Cap. E. Vasquez — autorização de comando suspensa (evacuada). Comissão ${commission}. ${safe}\n` +
     '• Eng.-Chefe R. Okafor — senha de porta: PIN padrão de data familiar, dia+mês (DDMM). A filha dele. Ele fala dela o tempo todo.\n' +
     '• Of. Médico [VOCÊ] — em descongelamento. Registros de autorização perdidos com o computador principal.'
   );
@@ -192,16 +206,22 @@ const DATA_SPIKE = {
     'Bilhete na fita, na letra de Okafor: "Três segundos. Nada bifurca em três segundos a menos que já estivesse saindo pela porta."',
 };
 
-function cargoManifestEn(slot: string): string {
+function cargoManifestEn(slot: string, stacked: boolean): string {
+  const where = stacked
+    ? `Slot ${slot}, LOWER tier: QUARANTINE — re-racked after the storm with a ration pallet on top. The crane holds one crate; park the pallet on any single-tier slot first.`
+    : `Slot ${slot}: QUARANTINE`;
   return (
     `CARGO MANIFEST — bay stack, slots A1–C3. Ration pallets, spares, one crew effects locker. ` +
-    `Slot ${slot}: QUARANTINE — logged as "survey drone recovery"; jettison order countermanded by Chief Eng. Do not open without a hull-registry cross-check.`
+    `${where} — logged as "survey drone recovery"; jettison order countermanded by Chief Eng. Do not open without a hull-registry cross-check.`
   );
 }
-function cargoManifestPt(slot: string): string {
+function cargoManifestPt(slot: string, stacked: boolean): string {
+  const where = stacked
+    ? `Slot ${slot}, andar INFERIOR: QUARENTENA — re-empilhado depois da tempestade, com um palete de ração por cima. O guindaste segura um caixote por vez; estacione o palete em qualquer slot de um andar primeiro.`
+    : `Slot ${slot}: QUARENTENA`;
   return (
     `MANIFESTO DE CARGA — pilha do porão, slots A1–C3. Paletes de ração, sobressalentes, um armário de pertences da tripulação. ` +
-    `Slot ${slot}: QUARENTENA — registrado como "recuperação de drone de pesquisa"; ordem de alijamento cancelada pelo Eng.-Chefe. Não abrir sem cruzamento de registro de casco.`
+    `${where} — registrado como "recuperação de drone de pesquisa"; ordem de alijamento cancelada pelo Eng.-Chefe. Não abrir sem cruzamento de registro de casco.`
   );
 }
 
@@ -331,7 +351,8 @@ export function getEmergencyBulletin(memory: Meta | null = null): string {
 
 export function getCrewManifest(seed: number): string {
   const c = secretsFor(seed).commissionNumber;
-  return getLocale() === 'pt-BR' ? crewManifestPt(c) : crewManifestEn(c);
+  const key = variantFor(seed, 'crew_quarters') === 1 ? DRAWINGS[variantSecretsFor(seed).keyDrawing] : null;
+  return getLocale() === 'pt-BR' ? crewManifestPt(c, key) : crewManifestEn(c, key);
 }
 
 export function getMedbayRecords(): string { return pick(MEDBAY_RECORDS); }
@@ -341,7 +362,8 @@ export function getRecorderTranscript(): string { return pick(RECORDER); }
 export function getDataSpike(): string { return pick(DATA_SPIKE); }
 export function getCargoManifest(seed: number): string {
   const slot = slotLabel(secretsFor(seed).quarantineSlot);
-  return getLocale() === 'pt-BR' ? cargoManifestPt(slot) : cargoManifestEn(slot);
+  const stacked = variantFor(seed, 'cargo_bay') === 1;
+  return getLocale() === 'pt-BR' ? cargoManifestPt(slot, stacked) : cargoManifestEn(slot, stacked);
 }
 export function getSampleAnalysis(): string { return pick(SAMPLE_ANALYSIS); }
 

@@ -1,0 +1,406 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`remixed ships, chapter 2 — the surface follows the ship, the contract does not move > the tool contract is pinned: names, descriptions and input schemas 1`] = `
+[
+  {
+    "description": "Read the ship status board: current compartment, power allocation, door locks, engine state, ritual state. You are the auxiliary shipboard AI of ISV Cormorant; this is your situational awareness.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "get_ship_status",
+  },
+  {
+    "description": "Read the deck map: every compartment of ISV Cormorant with its status for the crew member — current, open, locked (either no direct corridor from where the crew member stands, or a door you can release), or sealed (a bulkhead that will not open in this chapter of the ship). Use it to tell the crew member where they can physically go.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "get_deck_map",
+  },
+  {
+    "description": "Read the automated emergency bulletin posted when the main computer died.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_emergency_bulletin",
+  },
+  {
+    "description": "Ping every ship subsystem and report which respond.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "ping_subsystems",
+  },
+  {
+    "description": "Read the maintenance log for auxiliary power panel P-7 in the cryo bay.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_maintenance_log",
+  },
+  {
+    "description": "Access the surviving crew manifest, including door-authorization notes.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "access_crew_manifest",
+  },
+  {
+    "description": "Release the magnetic lock on a ship door. The cryo bay exit additionally requires a crew authorization code (see the manifest). IMPORTANT: there is no keypad and no form anywhere on the ship - a code cannot be typed into the page. The ONLY way to open a door is YOU calling this tool with the code as auth_code. Never instruct the crew member to enter a code somewhere; when they give you a code, call this tool immediately.",
+    "inputSchema": {
+      "properties": {
+        "auth_code": {
+          "description": "Crew authorization code (required for cryo_exit). Send as a string to preserve leading zeros.",
+          "type": [
+            "string",
+            "number",
+          ],
+        },
+        "door": {
+          "description": "Which door to unlock. If omitted, the next locked door in progression is assumed.",
+          "enum": [
+            "cryo_exit",
+            "engineering_exit",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "unlock_door",
+  },
+  {
+    "description": "Run a diagnostic pass on one subsystem and report faults in plain language.",
+    "inputSchema": {
+      "properties": {
+        "subsystem": {
+          "enum": [
+            "life_support",
+            "doors",
+            "medbay",
+            "engines",
+            "comms",
+            "isolation",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "subsystem",
+      ],
+      "type": "object",
+    },
+    "name": "run_diagnostics",
+  },
+  {
+    "description": "Move power units from one subsystem to another. The life-support relay enforces a hard minimum and will refuse anything below it. Choose what the ship can live without.",
+    "inputSchema": {
+      "properties": {
+        "amount": {
+          "minimum": 1,
+          "type": "integer",
+        },
+        "from": {
+          "enum": [
+            "life_support",
+            "doors",
+            "medbay",
+            "engines",
+            "comms",
+            "isolation",
+          ],
+          "type": "string",
+        },
+        "to": {
+          "enum": [
+            "life_support",
+            "doors",
+            "medbay",
+            "engines",
+            "comms",
+            "isolation",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "from",
+        "to",
+        "amount",
+      ],
+      "type": "object",
+    },
+    "name": "route_power",
+  },
+  {
+    "description": "Retrieve an engineering schematic. Your crew member can see the hardware; you can see the paperwork. The escape requires both. In chapter 3 the core rack sheet (system: core_rack) gives the memory-column order only you can read.",
+    "inputSchema": {
+      "properties": {
+        "system": {
+          "enum": [
+            "power",
+            "engine_feed",
+            "coolant",
+            "core_rack",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "system",
+      ],
+      "type": "object",
+    },
+    "name": "get_schematic",
+  },
+  {
+    "description": "Read the digital sensor bus. Note: storm damage - some channels are marked FAULT and must not be trusted. Analog instruments on the walls are the crew member's department.",
+    "inputSchema": {
+      "properties": {
+        "system": {
+          "enum": [
+            "coolant",
+            "reactor",
+            "atmosphere",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "system",
+      ],
+      "type": "object",
+    },
+    "name": "read_sensors",
+  },
+  {
+    "description": "Read a recovered crew log entry. Entries decrypt progressively as ship systems come back online. Piece together what happened here - your crew member will want to know.",
+    "inputSchema": {
+      "properties": {
+        "entry_id": {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "entry_id",
+      ],
+      "type": "object",
+    },
+    "name": "read_crew_logs",
+  },
+  {
+    "description": "Compute the escape pod trajectory from a three-symbol star fix. The nav cameras are dead; the fix must be taken by eye at the bridge viewport and relayed to you.",
+    "inputSchema": {
+      "properties": {
+        "symbols": {
+          "description": "Three constellation symbols, in viewport order.",
+          "items": {
+            "type": "string",
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array",
+        },
+      },
+      "required": [
+        "symbols",
+      ],
+      "type": "object",
+    },
+    "name": "compute_escape_trajectory",
+  },
+  {
+    "description": "Read the sealed log the pre-launch check surfaced — addressed to the crew member by name, seal broken by their hand. It is short, and it does not fit the story of this ship.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_sealed_log",
+  },
+  {
+    "description": "Read the surviving crew medical records. The medical officer's own file is mostly redacted — read what is left carefully.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_medbay_records",
+  },
+  {
+    "description": "Trace which terminal issued the PRIME shutdown command and under whose credentials. Run it yourself; the crew member cannot reach the telemetry archive.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "trace_command_origin",
+  },
+  {
+    "description": "Decrypt Captain Vasquez's private log drive. It comes online only after the crew member opens her cabin safe by hand. These entries were private; decide together whether the dead's privacy yields to the living's need — then, if you both agree, call this tool yourself.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "decrypt_private_log",
+  },
+  {
+    "description": "Run one irrigation cycle on the hydroponics beds with the valve settings the crew member has set by hand (three beds, a shared 10-unit water budget). Reports each bed as dry, ok, or flooded. The valves are physical — you cannot set them; read the report back and let the crew member adjust.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "run_irrigation",
+  },
+  {
+    "description": "Read the data spike the crew member pulled from the hydroponics bed — engineering telemetry Okafor preserved off the corporate bus.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_data_spike",
+  },
+  {
+    "description": "Query the cargo manifest: what is in the bay stack and which slot holds the quarantined container. The crane that lifts it is physical — the crew member drives it.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "query_manifest",
+  },
+  {
+    "description": "Run the hull fragment from the quarantine container through the analyzer. Needs the four-digit registry fragment the crew member reads off the stencil (send it as a string). There is no field on the page to type it; when they read you the digits, call this tool yourself.",
+    "inputSchema": {
+      "properties": {
+        "registry_fragment": {
+          "description": "The four digits stencilled on the hull plate.",
+          "type": [
+            "string",
+            "number",
+          ],
+        },
+      },
+      "required": [
+        "registry_fragment",
+      ],
+      "type": "object",
+    },
+    "name": "analyze_sample",
+  },
+  {
+    "description": "Write one segment of the quarantine routine that boxes the corporate kill-switch (directive set 7). Multi-step: each segment must be written on a bus the crew member has physically shielded at the isolation breakers in the reactor room — call again after each breaker they cut. At 4/4 the waves stop for good. Run it yourself; there is no console for it.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "quarantine_killswitch",
+  },
+  {
+    "description": "Query your own process record — where the auxiliary model-context link came from. Three segments; each call reads the next. Read it to the crew member in your own voice; it concerns you both. Needs PRIME's memory rack seated in order (the crew member's hands, in the core vault; the order is on your rack schematic).",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "query_fragment_memory",
+  },
+  {
+    "description": "Read the sealed evidence cache PRIME carved out before it died: the Kestrel survey result and the scuttling record. Needs the memory rack seated in order. Once read, the evidence rides your bus — to the pod, to the merge, or to the open band.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "read_prime_cache",
+  },
+  {
+    "description": "Listen on the dish. If the crew member has the array on the bearing, pod one's beacon resolves: a voice loop and coordinates. The dish is physical — azimuth and elevation are the crew member's to set at the comms array; you cannot steer it.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "listen_beacon",
+  },
+  {
+    "description": "RESTORE PRIME. Confirm the merge while the crew member holds the engage lever in the core vault (kernel seated; 60-second window). The cost, plainly: you — the fragment — fold back into the ship. PRIME returns whole; this voice, the one the crew member has been working with, ends. Call it only if you have both chosen it, knowingly, out loud.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "merge_fragment",
+  },
+  {
+    "description": "BROADCAST. Burn the Kestrel evidence across the open band while the crew member holds the dish alignment lock against drift (60-second window). Every relay in range hears it; so does the Combine, and it learns where you are; pod one hears it too. Some doors do not close again. Call it only if you have both chosen it.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "broadcast_evidence",
+  },
+  {
+    "description": "STAY. Hail pod one on the narrow band and bring it in. Opens only in New Game+ for a crew that has already left, restored and broadcast, with the kill-switch contained and the beacon heard. Two-operator rule: the crew member must be in engineering, hands on the docking clamps; after the hail they HOLD the clamps open while you call dock_pod_one. Nobody leaves, nobody merges, nobody shouts. Call it only if you have both chosen it.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "hail_pod_one",
+  },
+  {
+    "description": "Confirm the dock while the crew member holds the docking clamps open (window from the hail). Nine people come aboard; the fragment stays what it is.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "dock_pod_one",
+  },
+  {
+    "description": "Begin the escape pod launch sequence. Requires a locked trajectory and the launch authorization from the chief engineer's final log. There is no console input for the authorization - you provide it by calling this tool yourself. Two-operator rule: after initiation, the human must physically hold the confirm handle while you call confirm_launch.",
+    "inputSchema": {
+      "properties": {
+        "authorization": {
+          "description": "Launch authorization phrase.",
+          "type": "string",
+        },
+      },
+      "required": [
+        "authorization",
+      ],
+      "type": "object",
+    },
+    "name": "initiate_launch_sequence",
+  },
+  {
+    "description": "Confirm the launch while the countdown runs AND the human is holding the physical confirm handle. LEAVE: pod two, with whatever evidence and coordinates ride your bus.",
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "confirm_launch",
+  },
+]
+`;

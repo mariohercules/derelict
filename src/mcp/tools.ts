@@ -458,7 +458,13 @@ export function buildTools(): GameTool[] {
       inChapter2, noInput,
       () => {
         const s = gameStore.getState();
-        return { ok: true, manifest: getCargoManifest(s.seed), quarantine_slot: slotLabel(secretsFor(s.seed).quarantineSlot) };
+        const stacked = variantFor(s.seed, 'cargo_bay') === 1;
+        return {
+          ok: true,
+          manifest: getCargoManifest(s.seed),
+          quarantine_slot: slotLabel(secretsFor(s.seed).quarantineSlot),
+          ...(stacked ? { tier: 'lower' } : {}),
+        };
       },
       true
     ),

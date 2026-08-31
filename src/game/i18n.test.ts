@@ -6,7 +6,7 @@ import {
   getBeaconMessage, getFragmentMemory, getPrimeCache, getQuarantineLog, getRackSchematic, endingLabel,
 } from './narrative';
 import { AUTH_CODE, EMERGENCY_BULLETIN, LAUNCH_AUTH } from './content';
-import { secretsFor } from './secrets';
+import { secretsFor, slotLabel } from './secrets';
 import { EMPTY_META } from './meta';
 import { variantFor, variantSecretsFor } from './variants';
 
@@ -143,5 +143,21 @@ describe('localized narrative', () => {
     expect(getMaintenanceLog(S_PB)).toContain(String(variantSecretsFor(S_PB).cableBuses[2]));
     expect(getSchematics(S_GC).engine_feed).toContain(String(variantSecretsFor(S_GC).gearTeeth.target));
     setLocale('en');
+  });
+
+  it('chapter-2 variant content keeps its machine values in pt-BR', () => {
+    const S_KS = (() => { for (let s = 1; s < 5000; s++) if (variantFor(s, 'crew_quarters') === 1) return s; throw new Error('none'); })();
+    const S_SD = (() => { for (let s = 1; s < 5000; s++) if (variantFor(s, 'cargo_bay') === 1) return s; throw new Error('none'); })();
+    const slot = slotLabel(secretsFor(S_SD).quarantineSlot);
+    setLocale('pt-BR');
+    expect(getCrewManifest(S_KS)).toContain('intendência');
+    expect(getCrewManifest(S_KS)).not.toContain('três últimos');
+    expect(getCrewManifest(S_KS)).toContain(secretsFor(S_KS).commissionNumber);
+    expect(getCargoManifest(S_SD)).toContain('INFERIOR');
+    expect(getCargoManifest(S_SD)).toContain(slot);
+    setLocale('en');
+    expect(getCargoManifest(S_SD)).toContain('LOWER tier');
+    expect(getCargoManifest(S_SD)).toContain(slot);
+    expect(getCrewManifest(0)).toContain('last three');
   });
 });
