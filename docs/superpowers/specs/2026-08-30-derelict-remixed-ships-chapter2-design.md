@@ -140,3 +140,7 @@ Every new graphic meets the instrument standard: steel/brass/parchment palette t
 5. `CorrodedTags` + MOISTURE PROBE in `Hydroponics.tsx`.
 6. `StackedDeck`, swapped into `CargoBay.tsx`.
 7. README ("every ship is unique" gains chapter 2, real test count), spec *Shipped* note, demo seeds, preview, Mario's playthrough, merge + prod on "aprovado".
+
+---
+
+**Shipped 2026-08-31** — 271 tests; chapter-2 structural variants live (keyed safe / moisture sweep / stacked bay, one per room, drawn after `driftFix` on the dedicated PRNG stream; seed 0 and every chapter-1 draw untouched — `FROZEN_VARIANT_8` now pins the full seed-8 variant set).

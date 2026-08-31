@@ -81,8 +81,11 @@ Two layers of asymmetry make the tools necessary rather than decorative:
   and the registry fragment stencilled on the hull plate — and, in Chapter 3, the core
   vault's memory-column order and pod one's beacon bearing. And the seed redraws structure, not just numbers: a ship may wake
   with a patch bay where the cryo breakers would be, a coil drive in place of the coolant
-  valves, or a drifting nav fix instead of the parallax star fix — each rolled
-  independently, each a different puzzle with its own logs, schematics and instruments.
+  valves, or a drifting nav fix instead of the parallax star fix; deeper in, a keyed safe
+  whose key hides behind one of Amara's drawings, a hydroponics manifold whose need tags
+  have corroded away, a cargo bay re-racked with the quarantine container under a pallet —
+  each rolled independently, each a different puzzle with its own logs, schematics and
+  instruments.
   Nothing is memorizable, and the answers are not sitting in this repository.
 
 Tool descriptions are written in-fiction — the agent is addressed directly as the ship's
@@ -108,7 +111,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 253 tests)
+npm test       # run the test suite (Vitest, 271 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.
