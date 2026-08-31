@@ -163,6 +163,8 @@ export interface UIStrings {
     empty: string; column: (tag: string) => string; rackWrong: string; rackRight: string; kernelTitle: string; kernelDesc: string; seatKernel: string;
     kernelSeated: string; anotherRitual: string; leverHold: string; leverHolding: string; windowElapsed: string; twoOp: string;
     consoleTitle: string; consoleDesc: string; consoleAria: string; stage: (n: number) => string; cacheLamp: string; next: string;
+    seqDesc: string; seqAria: (n: number) => string; load: (tag: string) => string; loadAria: (tag: string) => string; eject: string;
+    tripLamp: string; spinGauge: string; trayLabel: string; seqWaiting: (n: number) => string; seqTripped: string; seqLive: string;
   };
   comms: {
     title: string; intro: string; dishTitle: string; dishDesc: string; dishAria: string; azAria: string; elAria: string; az: string; el: string;
@@ -514,6 +516,17 @@ const en: UIStrings = {
     stage: (n) => `${n} of 3 record segments read`,
     cacheLamp: 'CACHE',
     next: 'The choice is not made in this room alone. The pod is still on the bridge. The band is still closed at the comms array.',
+    seqDesc: 'A loading tray and four cradles. Any cradle takes any column — this rack cares about the order you load them, not where. It spins each column up in a chain and checks the sequence on the fourth: wrong, and it ejects all four back to the tray. The order is on a schematic only the ship can read — ask your AI.',
+    seqAria: (n) => `sequenced memory rack: ${n} of 4 columns loaded`,
+    load: (tag) => `Load ${tag}`,
+    loadAria: (tag) => `load column ${tag} into the rack`,
+    eject: 'Eject tray',
+    tripLamp: 'TRIP',
+    spinGauge: 'SPIN-UP',
+    trayLabel: 'TRAY',
+    seqWaiting: (n) => `${n} of 4 up. The rack waits for the next column.`,
+    seqTripped: 'The rack spins down and ejects every column. Wrong order — start again from the tray.',
+    seqLive: 'Fourth column up. Four lamps, green together. The rack is in order; the kernel cradle wakes.',
   },
   comms: {
     title: 'Comms array',
@@ -889,6 +902,17 @@ const ptBR: UIStrings = {
     stage: (n) => `${n} de 3 segmentos do registro lidos`,
     cacheLamp: 'CACHE',
     next: 'A escolha não se faz só nesta sala. O pod ainda está na ponte. A banda ainda está fechada na antena.',
+    seqDesc: 'Uma bandeja de carga e quatro berços. Qualquer berço aceita qualquer coluna — este rack liga para a ordem em que você carrega, não para onde. Ele gira cada coluna em cadeia e confere a sequência na quarta: errada, ejeta as quatro de volta para a bandeja. A ordem está num esquema que só a nave lê — pergunte à sua IA.',
+    seqAria: (n) => `rack de memória sequenciado: ${n} de 4 colunas carregadas`,
+    load: (tag) => `Carregar ${tag}`,
+    loadAria: (tag) => `carregar a coluna ${tag} no rack`,
+    eject: 'Ejetar bandeja',
+    tripLamp: 'TRIP',
+    spinGauge: 'SPIN-UP',
+    trayLabel: 'BANDEJA',
+    seqWaiting: (n) => `${n} de 4 em cima. O rack espera a próxima coluna.`,
+    seqTripped: 'O rack gira para baixo e ejeta todas as colunas. Ordem errada — comece de novo pela bandeja.',
+    seqLive: 'Quarta coluna em cima. Quatro lâmpadas, verdes juntas. O rack está em ordem; o berço do kernel acorda.',
   },
   comms: {
     title: 'Antena de comunicações',

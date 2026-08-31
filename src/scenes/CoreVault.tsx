@@ -4,6 +4,8 @@ import { useStrings } from '../ui/useLocale';
 import { holdHandle, seatColumn, seatKernel } from '../game/store';
 import { rackCorrect } from '../game/derived';
 import type { ColumnId } from '../game/types';
+import { variantFor } from '../game/variants';
+import { SequencedRack } from './SequencedRack';
 
 const CYCLE: (ColumnId | null)[] = [null, 'A', 'B', 'C', 'D'];
 const CRADLE_H = 34;
@@ -170,6 +172,8 @@ function KernelCradle() {
 }
 
 export function CoreVault() {
+  const seed = useGame((s) => s.seed);
+  const sequenced = variantFor(seed, 'core_vault') === 1;
   const t = useStrings();
   return (
     <div className="scene">
@@ -177,7 +181,7 @@ export function CoreVault() {
         <h2>{t.vault.title}</h2>
         <p>{t.vault.intro}</p>
       </div>
-      <Rack />
+      {sequenced ? <SequencedRack /> : <Rack />}
       <FragmentConsole />
       <KernelCradle />
       <p className="status-dim">{t.vault.next}</p>
