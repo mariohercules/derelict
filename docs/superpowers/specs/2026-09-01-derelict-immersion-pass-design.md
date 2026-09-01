@@ -115,6 +115,7 @@ export interface MixTargets {
   lowpassHz: number;        // ambience bus filter: 12000 open, 2400 warning, 400 active wave
   tremoloHz: number;        // 0 off; 6 during an active wave
   reactorPulseHz: number;   // 0.8 calm, 1.6 warning, 2.4 active, 0.6 contained
+  vaultCharged: boolean;    // chapter3.kernelSeated — the core vault's whine
   ritualTick: boolean;      // ritual.phase === 'armed'
 }
 export function mixFor(s: GameState): MixTargets;
