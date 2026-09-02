@@ -5,3 +5,4 @@ dist/
 
 # macOS Finder metadata
 .DS_Store
+.superpowers/sdd/
