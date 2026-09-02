@@ -4,7 +4,7 @@ import { gameStore, initialState, removeGrate, resetGame } from '../game/store';
 import { buildTools } from '../mcp/tools';
 
 describe('isFreshRun', () => {
-  it('is true on a fresh ship, classic or plus, and false once anything has happened', async () => {
+  it('is true on a fresh ship, classic or plus, and stays true when only the agent has acted; false once the human has', async () => {
     expect(isFreshRun(initialState(0))).toBe(true);
     expect(isFreshRun(initialState(177, true))).toBe(true);
     resetGame(0);
@@ -12,7 +12,7 @@ describe('isFreshRun', () => {
     expect(isFreshRun(gameStore.getState())).toBe(false);
     resetGame(0);
     await buildTools().find((t) => t.name === 'get_ship_status')!.definition.execute({});
-    expect(isFreshRun(gameStore.getState())).toBe(false);
+    expect(isFreshRun(gameStore.getState())).toBe(true);
     expect(isFreshRun({ ...initialState(0), checkpoint: { chapter: 1, room: 'bridge' } })).toBe(false);
     expect(isFreshRun({ ...initialState(0), won: true })).toBe(false);
     expect(isFreshRun({ ...initialState(0), room: 'medbay' })).toBe(false);

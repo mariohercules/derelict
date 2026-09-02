@@ -18,7 +18,10 @@ export function Bulkhead({ room }: { room: RoomId }) {
   const t = useStrings();
 
   useEffect(() => {
-    if (room === shown) return;
+    if (room === shown) {
+      if (phase !== 'idle') setPhase('idle'); // a reversal landed us back where we started
+      return;
+    }
     if (reducedMotion()) {
       setShown(room);
       return;

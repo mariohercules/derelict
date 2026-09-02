@@ -5,7 +5,7 @@ import { prng } from '../game/secrets';
 
 export function isFreshRun(s: GameState): boolean {
   return s.chapter === 1 && s.room === 'cryo_bay' && !s.grateRemoved && s.breakersFlipped.length === 0
-    && s.toolCalls === 0 && s.checkpoint === null && !s.won;
+    && s.checkpoint === null && !s.won;
 }
 
 export type ColdOpenStepId = 'vitals' | 'frost' | 'bulletin' | 'open';

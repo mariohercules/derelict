@@ -39,8 +39,6 @@ export default function App() {
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
   const seed = useGame((s) => s.seed);
-  const fresh = useGame(isFreshRun);
-  const [thawed, setThawed] = useState<Set<number>>(() => new Set());
   const t = useStrings();
   const [mc, setMc] = useState(() => detectModelContext());
   // A ship invite on the URL is read once and stripped, so a reload does not re-offer it.
@@ -116,6 +114,13 @@ export default function App() {
     return () => clearInterval(timer);
   }, [killswitch, won]);
 
+  // The thaw is decided once, when a run starts or a new ship wakes — never by
+  // a live subscription, so the agent's own calls cannot cut it short.
+  const [thawing, setThawing] = useState(false);
+  useEffect(() => {
+    if (started) setThawing(isFreshRun(gameStore.getState()));
+  }, [started, seed]);
+
   if (!started) {
     return (
       <div className="scene" style={{ marginTop: '15vh', textAlign: 'center' }}>
@@ -162,7 +167,7 @@ export default function App() {
     );
   }
 
-  const showColdOpen = !won && fresh && !thawed.has(seed);
+  const showColdOpen = !won && thawing;
   return (
     <>
       <HUD linked={mc !== null} />
@@ -175,7 +180,7 @@ export default function App() {
           <Bulkhead room={room} />
         </>
       )}
-      {showColdOpen && <ColdOpen onDone={() => setThawed((prev) => new Set(prev).add(seed))} />}
+      {showColdOpen && <ColdOpen onDone={() => setThawing(false)} />}
       <BuildTag />
     </>
   );
