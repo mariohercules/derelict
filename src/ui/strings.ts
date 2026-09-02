@@ -29,6 +29,9 @@ export interface UIStrings {
   };
   hud: {
     engines: string;
+    sound: string;
+    soundOn: string;
+    soundOff: string;
     ailinkTitle: string;
     rooms: Record<RoomId, string>;
     waveWarning: (secs: number) => string;
@@ -200,6 +203,9 @@ const en: UIStrings = {
   },
   hud: {
     engines: 'ENGINES',
+    sound: 'SOUND',
+    soundOn: 'Turn the ship\'s sound on',
+    soundOff: 'Mute the ship',
     ailinkTitle: 'Ship systems currently exposed to your AI via WebMCP',
     rooms: {
       cryo_bay: 'cryo bay', engineering: 'engineering', bridge: 'bridge',
@@ -606,6 +612,9 @@ const ptBR: UIStrings = {
   },
   hud: {
     engines: 'MOTORES',
+    sound: 'SOM',
+    soundOn: 'Ligar o som da nave',
+    soundOff: 'Silenciar a nave',
     ailinkTitle: 'Sistemas da nave atualmente expostos à sua IA via WebMCP',
     rooms: {
       cryo_bay: 'baia criogênica', engineering: 'engenharia', bridge: 'ponte',

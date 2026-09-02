@@ -3,6 +3,7 @@ import { useGame } from './useGame';
 import { enginesOnline } from '../game/derived';
 import { useStrings } from './useLocale';
 import { LocaleToggle } from './LocaleToggle';
+import { SoundToggle } from './SoundToggle';
 import { LinkConsole } from './LinkConsole';
 import { secondsToNextPhase } from '../game/killswitch';
 import { rulesFor } from '../game/rules';
@@ -51,6 +52,7 @@ export function HUD({ linked }: { linked: boolean }) {
           {state.ngPlus && <>{' '}<span style={{ color: 'var(--amber)', border: '1px solid var(--amber)', borderRadius: 3, padding: '0 6px', fontSize: 11, letterSpacing: '0.1em' }}>{t.hud.ngPlus}</span></>}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+          <SoundToggle />
           <LocaleToggle />
         </div>
       </header>

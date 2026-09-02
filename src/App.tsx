@@ -10,7 +10,8 @@ import { buildTools } from './mcp/tools';
 import { gameStore, resetGame, tickKillswitch } from './game/store';
 import { pushLinkEvent } from './game/link';
 import { loadSavedState } from './game/persist';
-import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme, startAmbience } from './audio/sound';
+import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme } from './audio/sound';
+import { startMixer } from './audio/mixer';
 import { SCENES } from './scenes/registry';
 import { Epilogue } from './scenes/Epilogue';
 import { DeckMap } from './ui/DeckMap';
@@ -47,7 +48,7 @@ export default function App() {
     if (!invite || !invite.ok) return;
     resetGame(invite.seed, { ngPlus: invite.ngPlus && runs >= 1 });
     setSaved(null);
-    startAmbience();
+    startMixer(gameStore);
     playBlip();
     setStarted(true);
   };
@@ -134,7 +135,7 @@ export default function App() {
         <div>
           <button
             onClick={() => {
-              startAmbience();
+              startMixer(gameStore);
               playBlip();
               setStarted(true);
             }}

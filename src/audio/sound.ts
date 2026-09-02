@@ -1,24 +1,58 @@
 let ctx: AudioContext | null = null;
+let master: GainNode | null = null;
+let muted = false;
 
 function ensureCtx(): AudioContext | null {
   try {
-    ctx ??= new AudioContext();
+    if (!ctx) {
+      ctx = new AudioContext();
+      master = ctx.createGain();
+      master.gain.value = muted ? 0 : 1;
+      master.connect(ctx.destination);
+    }
     return ctx;
   } catch {
     return null;
   }
 }
 
+// The mixer hangs its graph off the same master, so one mute silences everything.
+export function getAudioContext(): AudioContext | null {
+  return ensureCtx();
+}
+
+export function getMaster(): GainNode | null {
+  ensureCtx();
+  return master;
+}
+
+export function setMuted(next: boolean): void {
+  muted = next;
+  if (!ctx || !master) return;
+  master.gain.setTargetAtTime(next ? 0 : 1, ctx.currentTime, 0.02);
+}
+
+export function isMuted(): boolean {
+  return muted;
+}
+
+export function noiseBuffer(c: AudioContext, seconds: number): AudioBuffer {
+  const buf = c.createBuffer(1, Math.max(1, Math.floor(c.sampleRate * seconds)), c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
 function tone(freq: number, durationMs: number, type: OscillatorType, gainValue: number): void {
   const c = ensureCtx();
-  if (!c) return;
+  if (!c || !master) return;
   const osc = c.createOscillator();
   const gain = c.createGain();
   osc.type = type;
   osc.frequency.value = freq;
   gain.gain.setValueAtTime(gainValue, c.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + durationMs / 1000);
-  osc.connect(gain).connect(c.destination);
+  osc.connect(gain).connect(master);
   osc.start();
   osc.stop(c.currentTime + durationMs / 1000);
 }
@@ -51,14 +85,25 @@ export function playBeaconPing(): void {
   setTimeout(() => tone(1320, 70, 'sine', 0.03), 160);
 }
 
-export function startAmbience(): void {
+// A relay closing somewhere in the wall: the sound of the agent acting.
+export function playRelayClick(): void {
+  tone(1800, 25, 'square', 0.02);
+}
+
+// A bulkhead cycling: servo hiss, then the thunk of the leaves meeting.
+export function playBulkhead(): void {
   const c = ensureCtx();
-  if (!c) return;
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = 55; // low ship hum
-  gain.gain.value = 0.015;
-  osc.connect(gain).connect(c.destination);
-  osc.start();
+  if (!c || !master) return;
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer(c, 0.4);
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 900;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.05, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.4);
+  src.connect(lp).connect(g).connect(master);
+  src.start();
+  src.stop(c.currentTime + 0.4);
+  setTimeout(() => tone(70, 220, 'sine', 0.08), 180);
 }
