@@ -8,6 +8,7 @@ import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
 import { gameStore, resetGame, tickKillswitch } from './game/store';
+import { pushLinkEvent } from './game/link';
 import { loadSavedState } from './game/persist';
 import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme, startAmbience } from './audio/sound';
 import { SCENES } from './scenes/registry';
@@ -71,7 +72,7 @@ export default function App() {
 
   useEffect(() => {
     if (!mc) return;
-    const registry = createToolRegistry(mc, buildTools(), gameStore);
+    const registry = createToolRegistry(mc, buildTools(), gameStore, (change) => pushLinkEvent({ kind: 'link', at: Date.now(), ...change }));
     return () => registry.dispose();
   }, [mc]);
 

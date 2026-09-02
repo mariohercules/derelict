@@ -80,9 +80,6 @@ button:disabled { color: var(--dim); border-color: var(--dim); cursor: not-allow
 }
 .deckmap g[role='button']:focus-visible rect { stroke: var(--amber); stroke-width: 2; }
 
-.ailink { display: flex; flex-wrap: wrap; gap: 6px 12px; }
-.ailink .tool { white-space: nowrap; }
-
 .scene { max-width: 960px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
 
 @keyframes blink { 50% { opacity: 0.35; } }
@@ -173,3 +170,16 @@ button:focus-visible {
 /* Engraved plates (title invite, flight record) */
 .plate { display: inline-block; text-align: left; margin: 12px auto; padding: 10px 14px; border: 2px solid var(--steel); border-radius: 6px; background: var(--face); box-shadow: inset 0 0 0 1px var(--line); }
 .plate-engraved { color: var(--parchment); letter-spacing: 0.2em; font-size: 11px; margin-bottom: 6px; }
+
+/* AUX LINK console — a bezel strip under the header: lamp banks by bus, then the ticker */
+.linkconsole { border-bottom: 1px solid var(--line); background: var(--face); padding: 6px 16px; font-size: 11px; }
+.linkconsole .bezel { border: 2px solid var(--steel); border-radius: 6px; background: var(--face-deep); box-shadow: inset 0 0 0 1px var(--line), inset 0 2px 6px rgba(0, 0, 0, 0.6); padding: 6px 10px; }
+.linkconsole .row { display: flex; gap: 4px 12px; align-items: center; flex-wrap: wrap; padding: 2px 0; }
+.linkconsole .engraved { color: var(--parchment); letter-spacing: 0.18em; font-size: 10px; min-width: 64px; }
+.linkconsole .tool { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.linkconsole .tag { border: 1px solid var(--brass-mid); color: var(--brass-hi); border-radius: 2px; padding: 0 4px; font-size: 9px; letter-spacing: 0.15em; }
+.linkconsole .fold { margin-left: auto; padding: 0 8px; font-size: 11px; line-height: 18px; }
+.linkconsole .ticker { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; display: grid; gap: 2px; }
+.linkconsole .line { display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; }
+.linkconsole .line .body { overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.linkconsole .line .word { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.1em; }

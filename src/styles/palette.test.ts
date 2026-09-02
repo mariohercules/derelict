@@ -8,7 +8,7 @@ const TOKENIZED = ['#3a4a40', '#7a8f82', '#4a5a50', '#1d2620', '#0c110e', '#080b
 // Raw sources, resolved at build time by Vite — no Node fs needed.
 const sources: Record<string, string> = {
   ...import.meta.glob('../scenes/*.tsx', { query: '?raw', import: 'default', eager: true }),
-  ...import.meta.glob('../ui/DeckMap.tsx', { query: '?raw', import: 'default', eager: true }),
+  ...import.meta.glob('../ui/*.tsx', { query: '?raw', import: 'default', eager: true }),
 } as Record<string, string>;
 const css = (import.meta.glob('./theme.css', { query: '?raw', import: 'default', eager: true }) as Record<string, string>)['./theme.css'];
 

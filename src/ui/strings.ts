@@ -30,7 +30,6 @@ export interface UIStrings {
   hud: {
     engines: string;
     ailinkTitle: string;
-    severed: string;
     rooms: Record<RoomId, string>;
     waveWarning: (secs: number) => string;
     waveActive: (secs: number) => string;
@@ -130,6 +129,12 @@ export interface UIStrings {
     received: (code: string) => string; wakeOn: (code: string) => string; abandons: string;
     unreadable: string; plusNeedsRun: string;
   };
+  link: {
+    title: string; region: string; linked: string; severed: string; online: (n: number, total: number) => string;
+    shielded: string; lamp: (tool: string, state: 'lit' | 'dark' | 'silenced') => string;
+    ok: string; refused: string; error: string; onlineWord: string; offlineWord: string; linkWord: string;
+    collapse: string; expand: string; last: string; empty: string;
+  };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -196,7 +201,6 @@ const en: UIStrings = {
   hud: {
     engines: 'ENGINES',
     ailinkTitle: 'Ship systems currently exposed to your AI via WebMCP',
-    severed: 'severed',
     rooms: {
       cryo_bay: 'cryo bay', engineering: 'engineering', bridge: 'bridge',
       medbay: 'medbay', crew_quarters: 'crew quarters', hydroponics: 'hydroponics', cargo_bay: 'cargo bay',
@@ -378,6 +382,16 @@ const en: UIStrings = {
     abandons: 'Waking on this hull abandons the run in progress.',
     unreadable: 'Hull number unreadable. The ship you wake on is your own.',
     plusNeedsRun: 'The plus profile needs a completed run on this device; this hull wakes classic.',
+  },
+  link: {
+    title: 'AUX LINK',
+    region: 'AI link console: one lamp per ship system your AI can reach, by bus, and its last calls',
+    linked: 'LINKED', severed: 'SEVERED', online: (n, total) => `ONLINE ${n}/${total}`,
+    shielded: 'SHIELDED',
+    lamp: (tool, state) => `${tool} — ${state === 'lit' ? 'online' : state === 'silenced' ? 'silenced by the kill-switch' : 'offline'}`,
+    ok: 'OK', refused: 'REFUSED', error: 'ERROR', onlineWord: 'ONLINE', offlineWord: 'OFFLINE', linkWord: 'LINK',
+    collapse: 'Fold the link console', expand: 'Unfold the link console', last: 'last:',
+    empty: 'No calls yet. The ship is listening.',
   },
   medbay: {
     title: 'Medbay',
@@ -593,7 +607,6 @@ const ptBR: UIStrings = {
   hud: {
     engines: 'MOTORES',
     ailinkTitle: 'Sistemas da nave atualmente expostos à sua IA via WebMCP',
-    severed: 'rompido',
     rooms: {
       cryo_bay: 'baia criogênica', engineering: 'engenharia', bridge: 'ponte',
       medbay: 'enfermaria', crew_quarters: 'cabines', hydroponics: 'hidroponia', cargo_bay: 'porão de carga',
@@ -776,6 +789,16 @@ const ptBR: UIStrings = {
     abandons: 'Acordar neste casco abandona a jornada em andamento.',
     unreadable: 'Número de casco ilegível. A nave em que você acorda é a sua.',
     plusNeedsRun: 'O perfil plus precisa de uma jornada completa neste dispositivo; este casco acorda clássico.',
+  },
+  link: {
+    title: 'AUX LINK',
+    region: 'Console do link com a IA: uma lâmpada por sistema da nave ao alcance da sua IA, por barramento, e as últimas chamadas',
+    linked: 'LIGADO', severed: 'ROMPIDO', online: (n, total) => `ONLINE ${n}/${total}`,
+    shielded: 'BLINDADO',
+    lamp: (tool, state) => `${tool} — ${state === 'lit' ? 'online' : state === 'silenced' ? 'silenciada pelo kill-switch' : 'offline'}`,
+    ok: 'OK', refused: 'RECUSADO', error: 'ERRO', onlineWord: 'ONLINE', offlineWord: 'OFFLINE', linkWord: 'LINK',
+    collapse: 'Recolher o console do link', expand: 'Expandir o console do link', last: 'última:',
+    empty: 'Nenhuma chamada ainda. A nave está escutando.',
   },
   medbay: {
     title: 'Enfermaria',

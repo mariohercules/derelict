@@ -87,4 +87,17 @@ describe('createToolRegistry', () => {
     store.setState({ auxPower: true });
     expect(registered.size).toBe(0);
   });
+
+  it('reports what came online and what was revoked, once per sync, only when something changed', () => {
+    const { mc } = fakeMc();
+    const changes: { online: string[]; offline: string[] }[] = [];
+    createToolRegistry(mc, [tool('always', () => true), tool('gated', (s) => s.auxPower)], store, (c) => changes.push(c));
+    expect(changes).toEqual([{ online: ['always'], offline: [] }]);
+    store.setState({ toolCalls: 1 });
+    expect(changes).toHaveLength(1);
+    store.setState({ auxPower: true });
+    expect(changes[1]).toEqual({ online: ['gated'], offline: [] });
+    store.setState({ auxPower: false });
+    expect(changes[2]).toEqual({ online: [], offline: ['gated'] });
+  });
 });

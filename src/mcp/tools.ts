@@ -12,6 +12,8 @@ import { BUSES, CORRECT_FUSE, ENGINES_REQUIRED, LIFE_SUPPORT_MIN } from '../game
 import { ROOMS, edgeBetween, roomStatus } from '../game/rooms';
 import { isArmed } from '../game/ritual';
 import { suppressed } from '../game/killswitch';
+import type { ToolMeta } from '../game/killswitch';
+import { pushLinkEvent, summarizeInput } from '../game/link';
 import { getMemory } from '../game/meta';
 import { variantFor } from '../game/variants';
 import {
@@ -25,7 +27,15 @@ function result(data: unknown): ToolResult {
   return { content: [{ type: 'text', text: JSON.stringify(data) }] };
 }
 
-function mkTool(
+export interface ShipTool extends GameTool {
+  meta: ToolMeta;
+  baseAvailable(s: GameState): boolean; // availability before the kill-switch has its say
+}
+
+const refused = (out: unknown): boolean => typeof out === 'object' && out !== null && (out as { ok?: unknown }).ok === false;
+
+// Exported for tests (an exploding handler); the game builds tools through buildTools().
+export function mkTool(
   name: string,
   description: string,
   availableWhen: (s: GameState) => boolean,
@@ -33,10 +43,12 @@ function mkTool(
   run: (input: Record<string, unknown>) => unknown,
   readOnly = false,
   bus: BusId = 'nav'
-): GameTool {
-  const meta = { name, bus, readOnly };
+): ShipTool {
+  const meta: ToolMeta = { name, bus, readOnly };
   return {
     name,
+    meta,
+    baseAvailable: availableWhen,
     // The kill-switch composes here, not in the registry: a suppressed tool is
     // simply "not available", and the registry revokes it like any other.
     availableWhen: (s) => availableWhen(s) && !suppressed(s, meta),
@@ -47,9 +59,14 @@ function mkTool(
       annotations: readOnly ? { readOnlyHint: true } : undefined,
       async execute(input: unknown): Promise<ToolResult> {
         bumpToolCalls();
+        const args = (input ?? {}) as Record<string, unknown>;
+        const summary = summarizeInput(args);
         try {
-          return result(run((input ?? {}) as Record<string, unknown>));
+          const out = run(args);
+          pushLinkEvent({ kind: 'call', at: Date.now(), tool: name, input: summary, status: refused(out) ? 'refused' : 'ok' });
+          return result(out);
         } catch (e) {
+          pushLinkEvent({ kind: 'call', at: Date.now(), tool: name, input: summary, status: 'error' });
           return result({ ok: false, message: `Subsystem error: ${String(e)}` });
         }
       },
@@ -70,7 +87,7 @@ const inAct2 = (s: GameState) => s.act >= 2;
 const onBridge = (s: GameState) => s.room === 'bridge';
 const inChapter2 = (s: GameState) => s.chapter >= 2;
 
-export function buildTools(): GameTool[] {
+export function buildTools(): ShipTool[] {
   return [
     mkTool(
       'get_ship_status',
@@ -599,6 +616,17 @@ export function buildTools(): GameTool[] {
   ];
 }
 
-export function toolAvailability(s: GameState): { name: string; online: boolean }[] {
-  return buildTools().map((t) => ({ name: t.name, online: t.availableWhen(s) }));
+export interface ToolLamp {
+  name: string;
+  online: boolean;
+  bus: BusId;
+  readOnly: boolean;
+  silenced: boolean; // would be online but for the kill-switch's wave
+}
+
+export function toolAvailability(s: GameState): ToolLamp[] {
+  return buildTools().map((t) => {
+    const online = t.availableWhen(s);
+    return { name: t.name, online, bus: t.meta.bus, readOnly: t.meta.readOnly, silenced: !online && t.baseAvailable(s) && suppressed(s, t.meta) };
+  });
 }

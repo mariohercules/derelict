@@ -7,6 +7,7 @@ import { ROOM_BY_ID, edgeBetween, roomStatus } from './rooms';
 import { dishAligned, irrigationReport, nextShieldCost, rackCorrect, stayBlocker, sweepDeficitsFor } from './derived';
 import type { StayBlocker } from './derived';
 import { waveAt } from './killswitch';
+import { clearLink } from './link';
 import { rulesFor } from './rules';
 import { getMemory } from './meta';
 import { DRAWINGS, tiersFor, variantFor, variantSecretsFor } from './variants';
@@ -53,6 +54,7 @@ export function initialState(seed: number = randomSeed(), ngPlus = false): GameS
 export const gameStore = createStore<GameState>(() => initialState());
 
 export function resetGame(seed?: number, opts: { ngPlus?: boolean } = {}): void {
+  clearLink();
   gameStore.setState(initialState(seed, opts.ngPlus ?? false), true);
 }
 

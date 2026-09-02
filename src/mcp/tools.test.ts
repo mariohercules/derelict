@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { buildTools, toolAvailability } from './tools';
+import { buildTools, mkTool, toolAvailability } from './tools';
 import {
   gameStore, resetGame, flipBreaker, breakSeal,
   startInvestigation, moveCrane, liftCrate, setIrrigation, retrieveSpike,
@@ -11,6 +11,7 @@ import { EMPTY_META, metaStore } from '../game/meta';
 import { DRAWINGS, variantFor, variantSecretsFor } from '../game/variants';
 import { secretsFor, slotLabel } from '../game/secrets';
 import { setLocale } from '../game/i18n';
+import { linkStore } from '../game/link';
 
 beforeEach(() => resetGame(0));
 
@@ -313,6 +314,28 @@ describe('chapter 3 tools', () => {
     gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
     expect(online()).toContain('route_power');
     expect(online()).not.toContain('quarantine_killswitch'); // CORE still bare
+  });
+
+  it('toolAvailability names each tool\'s bus and flags what a wave silenced, not what is merely offline', async () => {
+    await lowerDeck();
+    gameStore.setState({ room: 'engineering' });
+    enterRoom('reactor_room', T0);
+    const calm = toolAvailability(gameStore.getState());
+    expect(calm.find((t) => t.name === 'merge_fragment')).toMatchObject({ bus: 'core', readOnly: false, online: false, silenced: false });
+    expect(calm.find((t) => t.name === 'read_prime_cache')).toMatchObject({ bus: 'core', readOnly: true });
+    expect(calm.find((t) => t.name === 'route_power')).toMatchObject({ bus: 'nav', online: true, silenced: false });
+    expect(calm.every((t) => !t.silenced)).toBe(true);
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
+    const during = toolAvailability(gameStore.getState());
+    expect(during.find((t) => t.name === 'route_power')).toMatchObject({ online: false, silenced: true });
+    expect(during.find((t) => t.name === 'quarantine_killswitch')).toMatchObject({ bus: 'core', online: false, silenced: true });
+    expect(during.find((t) => t.name === 'get_ship_status')).toMatchObject({ online: true, silenced: false }); // immune
+    expect(during.find((t) => t.name === 'merge_fragment')).toMatchObject({ online: false, silenced: false }); // offline regardless
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'calm' } }));
+    routePower('comms', 'isolation', SHIELD_COST);
+    expect(cutIsolation('nav').ok).toBe(true);
+    gameStore.setState((s) => ({ chapter3: { ...s.chapter3, wave: 'active' } }));
+    expect(toolAvailability(gameStore.getState()).find((t) => t.name === 'route_power')).toMatchObject({ online: true, silenced: false });
   });
 
   it('get_ship_status carries a kill-switch report in chapter 3', async () => {
@@ -690,5 +713,30 @@ describe('remixed ships, chapter 3 — the surface follows the ship, the contrac
     expect(classic.ok).toBe(false);
     expect(classic.carrier_bearing).toBe('AZ 217 / EL 34');
     expect(classic).not.toHaveProperty('signal_strength');
+  });
+});
+
+describe('the AUX LINK — every call leaves a trace the human can read', () => {
+  it('records the tool, a summary of the input, and OK — never the payload', async () => {
+    powerOn();
+    await call('unlock_door', { door: 'cryo_exit', auth_code: AUTH_CODE });
+    const events = linkStore.getState().events;
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ kind: 'call', tool: 'unlock_door', input: `door=cryo_exit auth_code=${AUTH_CODE}`, status: 'ok' });
+    expect(JSON.stringify(events[0])).not.toMatch(/message|unlocked/i);
+  });
+
+  it('marks a refusal, and keeps the ship\'s reply out of the event', async () => {
+    powerOn();
+    await call('unlock_door', { door: 'cryo_exit', auth_code: '0000' });
+    expect(linkStore.getState().events[0]).toMatchObject({ tool: 'unlock_door', status: 'refused', input: 'door=cryo_exit auth_code=0000' });
+    expect(JSON.stringify(linkStore.getState().events[0])).not.toMatch(/rejected/i);
+  });
+
+  it('an exploding handler is an ERROR on the link, and the ship still answers in-fiction', async () => {
+    const boom = mkTool('boom', 'test', () => true, { type: 'object', properties: {}, required: [] }, () => { throw new Error('kaput'); });
+    const out = JSON.parse((await boom.definition.execute({})).content[0].text);
+    expect(out).toMatchObject({ ok: false });
+    expect(linkStore.getState().events.at(-1)).toMatchObject({ kind: 'call', tool: 'boom', status: 'error', input: '' });
   });
 });

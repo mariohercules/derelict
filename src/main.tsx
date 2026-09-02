@@ -3,6 +3,7 @@ import App from './App';
 import { gameStore } from './game/store';
 import { loadSavedState, startPersisting } from './game/persist';
 import { hydrateMeta, startRecordingRuns } from './game/meta';
+import { hydratePrefs } from './game/prefs';
 import './styles/theme.css';
 
 // Hydrate the store before startPersisting() and before App mounts: the sound
@@ -13,6 +14,7 @@ import './styles/theme.css';
 // seen; the recorder subscribes after hydration so a loaded `won` save is not
 // counted twice.
 hydrateMeta();
+hydratePrefs();
 const saved = loadSavedState();
 if (saved) gameStore.setState(saved, true);
 startPersisting();

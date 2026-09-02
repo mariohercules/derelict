@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useGame } from './useGame';
-import { toolAvailability } from '../mcp/tools';
 import { enginesOnline } from '../game/derived';
 import { useStrings } from './useLocale';
 import { LocaleToggle } from './LocaleToggle';
+import { LinkConsole } from './LinkConsole';
 import { secondsToNextPhase } from '../game/killswitch';
 import { rulesFor } from '../game/rules';
 
@@ -36,8 +36,6 @@ function WaveBanner() {
 export function HUD({ linked }: { linked: boolean }) {
   const state = useGame((s) => s);
   const t = useStrings();
-  const tools = toolAvailability(state);
-  const onlineCount = tools.filter((tool) => tool.online).length;
   return (
     <>
       <header className="hud">
@@ -52,22 +50,11 @@ export function HUD({ linked }: { linked: boolean }) {
           </span>
           {state.ngPlus && <>{' '}<span style={{ color: 'var(--amber)', border: '1px solid var(--amber)', borderRadius: 3, padding: '0 6px', fontSize: 11, letterSpacing: '0.1em' }}>{t.hud.ngPlus}</span></>}
         </div>
-        <div className="ailink" title={linked ? t.hud.ailinkTitle : undefined}>
-          {linked ? (
-            <>
-              <span className="status-dim">AI LINK {onlineCount}/{tools.length} · status:</span>
-              {tools.map((tool) => (
-                <span key={tool.name} className={`tool ${tool.online ? 'status-ok' : 'status-dim'}`}>
-                  {tool.online ? '●' : '○'} {tool.name}
-                </span>
-              ))}
-            </>
-          ) : (
-            <span className="status-bad">AI LINK · {t.hud.severed}</span>
-          )}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+          <LocaleToggle />
         </div>
-        <LocaleToggle />
       </header>
+      <LinkConsole linked={linked} />
       <WaveBanner />
     </>
   );
