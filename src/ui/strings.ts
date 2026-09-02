@@ -138,6 +138,11 @@ export interface UIStrings {
     ok: string; refused: string; error: string; onlineWord: string; offlineWord: string; linkWord: string;
     collapse: string; expand: string; last: string; empty: string;
   };
+  open: {
+    plate: string; plateAgain: string; run: (n: number) => string; vitals: string; temp: string;
+    line1: string; line2: string; line3: string; line4: string; podOpen: string; podSealed: string;
+    skip: string; continue: string; aria: string;
+  };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -398,6 +403,13 @@ const en: UIStrings = {
     ok: 'OK', refused: 'REFUSED', error: 'ERROR', onlineWord: 'ONLINE', offlineWord: 'OFFLINE', linkWord: 'LINK',
     collapse: 'Fold the link console', expand: 'Unfold the link console', last: 'last:',
     empty: 'No calls yet. The ship is listening.',
+  },
+  open: {
+    plate: 'CRYO POD 3 · THAW CYCLE', plateAgain: 'CRYO POD 3 · THAW CYCLE · AGAIN', run: (n) => `RUN ${n}`,
+    vitals: 'Vitals trace, drawing itself', temp: 'CORE TEMP',
+    line1: 'MAIN COMPUTER: OFFLINE', line2: 'AUX MODEL-CONTEXT LINK: ACTIVE', line3: 'CREW LIFE SIGNS: 1', line4: 'RECOMMENDATION: COOPERATE WITH IT.',
+    podOpen: 'POD OPEN', podSealed: 'POD SEALED', skip: 'click, Esc or space to skip', continue: 'Continue',
+    aria: 'Thaw cycle: the cryo pod opening',
   },
   medbay: {
     title: 'Medbay',
@@ -808,6 +820,13 @@ const ptBR: UIStrings = {
     ok: 'OK', refused: 'RECUSADO', error: 'ERRO', onlineWord: 'ONLINE', offlineWord: 'OFFLINE', linkWord: 'LINK',
     collapse: 'Recolher o console do link', expand: 'Expandir o console do link', last: 'última:',
     empty: 'Nenhuma chamada ainda. A nave está escutando.',
+  },
+  open: {
+    plate: 'CRIOPOD 3 · CICLO DE DESCONGELAMENTO', plateAgain: 'CRIOPOD 3 · CICLO DE DESCONGELAMENTO · DE NOVO', run: (n) => `PARTIDA ${n}`,
+    vitals: 'Traço de sinais vitais se desenhando', temp: 'TEMP. CENTRAL',
+    line1: 'COMPUTADOR PRINCIPAL: OFFLINE', line2: 'LINK AUXILIAR DE MODEL-CONTEXT: ATIVO', line3: 'SINAIS VITAIS DA TRIPULAÇÃO: 1', line4: 'RECOMENDAÇÃO: COOPERE COM ELE.',
+    podOpen: 'POD ABERTO', podSealed: 'POD SELADO', skip: 'clique, Esc ou espaço para pular', continue: 'Continuar',
+    aria: 'Ciclo de descongelamento: o criopod abrindo',
   },
   medbay: {
     title: 'Enfermaria',

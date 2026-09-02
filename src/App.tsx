@@ -12,12 +12,14 @@ import { pushLinkEvent } from './game/link';
 import { loadSavedState } from './game/persist';
 import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme } from './audio/sound';
 import { startMixer } from './audio/mixer';
-import { SCENES } from './scenes/registry';
 import { Epilogue } from './scenes/Epilogue';
 import { DeckMap } from './ui/DeckMap';
 import { shipFromSearch } from './game/shipcode';
 import { InvitePlate } from './ui/InvitePlate';
 import { useMeta } from './ui/useMeta';
+import { Bulkhead } from './ui/Bulkhead';
+import { ColdOpen } from './ui/ColdOpen';
+import { isFreshRun } from './ui/thaw';
 
 function BuildTag() {
   return (
@@ -36,6 +38,9 @@ export default function App() {
   const hasSave = saved !== null;
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
+  const seed = useGame((s) => s.seed);
+  const fresh = useGame(isFreshRun);
+  const [thawed, setThawed] = useState<Set<number>>(() => new Set());
   const t = useStrings();
   const [mc, setMc] = useState(() => detectModelContext());
   // A ship invite on the URL is read once and stripped, so a reload does not re-offer it.
@@ -111,8 +116,6 @@ export default function App() {
     return () => clearInterval(timer);
   }, [killswitch, won]);
 
-  const Scene = SCENES[room];
-
   if (!started) {
     return (
       <div className="scene" style={{ marginTop: '15vh', textAlign: 'center' }}>
@@ -159,6 +162,7 @@ export default function App() {
     );
   }
 
+  const showColdOpen = !won && fresh && !thawed.has(seed);
   return (
     <>
       <HUD linked={mc !== null} />
@@ -168,9 +172,10 @@ export default function App() {
       ) : (
         <>
           <DeckMap />
-          <Scene />
+          <Bulkhead room={room} />
         </>
       )}
+      {showColdOpen && <ColdOpen onDone={() => setThawed((prev) => new Set(prev).add(seed))} />}
       <BuildTag />
     </>
   );
