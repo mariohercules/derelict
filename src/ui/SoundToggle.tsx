@@ -8,8 +8,9 @@ export function SoundToggle() {
   return (
     <button
       onClick={() => setPref('muted', !muted)}
-      aria-label={muted ? t.hud.soundOn : t.hud.soundOff}
+      aria-label={t.hud.sound}
       aria-pressed={!muted}
+      title={muted ? t.hud.soundOn : t.hud.soundOff}
       style={{ padding: '4px 10px', fontSize: 11, color: muted ? 'var(--dim)' : undefined, borderColor: muted ? 'var(--dim)' : undefined }}
     >
       {t.hud.sound} {muted ? '○' : '●'}

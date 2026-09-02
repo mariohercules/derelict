@@ -34,8 +34,14 @@ describe('mixFor — the ship sounds like its state', () => {
 
   it('ticks only while a ritual is armed', () => {
     expect(mixFor(base()).ritualTick).toBe(false);
-    expect(mixFor(base({ ritual: { active: 'launch', phase: 'armed', endsAt: 1, held: false } })).ritualTick).toBe(true);
+    // the clock is inside the window (the deadline itself still counts)
+    expect(mixFor(base({ ritual: { active: 'launch', phase: 'armed', endsAt: 1, held: false } }), 1).ritualTick).toBe(true);
     expect(mixFor(base({ ritual: { active: 'launch', phase: 'done', endsAt: 1, held: false } })).ritualTick).toBe(false);
+    const armed = { active: 'launch' as const, phase: 'armed' as const, endsAt: 100_000, held: false };
+    expect(mixFor(base({ ritual: armed }), 99_000).ritualTick).toBe(true);   // window open
+    expect(mixFor(base({ ritual: armed }), 100_001).ritualTick).toBe(false); // window lapsed, phase still 'armed'
+    expect(mixFor(base({ ritual: armed, won: true }), 99_000).ritualTick).toBe(false); // a finished game never ticks
+    expect(mixFor(base({ ritual: { ...armed, endsAt: null } }), 99_000).ritualTick).toBe(true); // no deadline recorded → armed is armed
   });
 
   it('the comms array never sounds different for where the dish points or whether the beacon was heard', () => {

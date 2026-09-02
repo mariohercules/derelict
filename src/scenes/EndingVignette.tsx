@@ -6,7 +6,7 @@ import { reducedMotion } from '../ui/motion';
 import { useStrings } from '../ui/useLocale';
 
 // RESTORE: the lights come back from the core vault outward, deck by deck, the bridge last.
-const RESTORE_ORDER: RoomId[] = ['core_vault', 'reactor_room', 'engineering', 'cargo_bay', 'comms_array', 'cryo_bay', 'medbay', 'crew_quarters', 'hydroponics', 'bridge'];
+export const RESTORE_ORDER: RoomId[] = ['core_vault', 'reactor_room', 'engineering', 'cargo_bay', 'comms_array', 'cryo_bay', 'medbay', 'crew_quarters', 'hydroponics', 'bridge'];
 
 // The same ship shows the same sky.
 function stars(seed: number, n = 46): { x: number; y: number; r: number }[] {

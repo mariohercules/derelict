@@ -7,6 +7,7 @@ import { useGame } from './useGame';
 import { useLink } from './useLink';
 import { usePrefs } from './usePrefs';
 import { useStrings } from './useLocale';
+import type { UIStrings } from './strings';
 
 type LampState = 'lit' | 'dark' | 'silenced';
 const lampOf = (l: ToolLamp): LampState => (l.online ? 'lit' : l.silenced ? 'silenced' : 'dark');
@@ -24,13 +25,20 @@ export function Lamp({ fill, lit, blink = false }: { fill: string; lit: boolean;
 
 const clock = (at: number) => new Date(at).toTimeString().slice(0, 8);
 
-function TickerLine({ e }: { e: LinkEvent }) {
-  const t = useStrings();
+// The lamp and the word an event wears — the ticker's full line and the folded
+// line read the same status off one derivation.
+function statusOf(e: LinkEvent, t: UIStrings): { word: string; fill: string } {
   const word =
     e.kind === 'call'
       ? e.status === 'ok' ? t.link.ok : e.status === 'refused' ? t.link.refused : t.link.error
       : e.online.length > 0 && e.offline.length > 0 ? `${t.link.onlineWord}/${t.link.offlineWord}` : e.online.length > 0 ? t.link.onlineWord : t.link.offlineWord;
   const fill = e.kind === 'link' ? 'var(--dim)' : e.status === 'ok' ? 'var(--green)' : e.status === 'refused' ? 'var(--amber)' : 'var(--red)';
+  return { word, fill };
+}
+
+function TickerLine({ e }: { e: LinkEvent }) {
+  const t = useStrings();
+  const { word, fill } = statusOf(e, t);
   const body =
     e.kind === 'call'
       ? `${e.tool}  ${e.input}`
@@ -54,6 +62,7 @@ export function LinkConsole({ linked }: { linked: boolean }) {
   const onlineCount = lamps.filter((l) => l.online).length;
   const recent = [...events].reverse().slice(0, 3);
   const last = recent[0];
+  const lastStatus = last ? statusOf(last, t) : null;
   return (
     <section className="linkconsole" aria-label={t.link.region} title={t.hud.ailinkTitle}>
       <div className="bezel">
@@ -63,9 +72,11 @@ export function LinkConsole({ linked }: { linked: boolean }) {
             <Lamp fill={linked ? 'var(--green)' : 'var(--red)'} lit /> {linked ? t.link.linked : t.link.severed}
           </span>
           <span className="status-dim">{t.link.online(onlineCount, lamps.length)}</span>
-          {collapsed && last && (
+          {collapsed && last && lastStatus && (
             <span className="status-dim tool">
               {t.link.last} {last.kind === 'call' ? last.tool : t.link.linkWord}
+              {' '}
+              <span className="word" style={{ color: lastStatus.fill }}><Lamp fill={lastStatus.fill} lit /> {lastStatus.word}</span>
             </span>
           )}
           <button className="fold" onClick={() => setPref('linkCollapsed', !collapsed)} aria-label={collapsed ? t.link.expand : t.link.collapse} aria-expanded={!collapsed}>

@@ -3,7 +3,8 @@ import App from './App';
 import { gameStore } from './game/store';
 import { loadSavedState, startPersisting } from './game/persist';
 import { hydrateMeta, startRecordingRuns } from './game/meta';
-import { hydratePrefs } from './game/prefs';
+import { hydratePrefs, prefsStore } from './game/prefs';
+import { setMuted } from './audio/sound';
 import './styles/theme.css';
 
 // Hydrate the store before startPersisting() and before App mounts: the sound
@@ -15,6 +16,10 @@ import './styles/theme.css';
 // counted twice.
 hydrateMeta();
 hydratePrefs();
+// Arms the mute before the first gesture: with no AudioContext yet, setMuted()
+// only sets the flag that ensureCtx() later reads into master.gain — no context
+// is created outside the gesture, and a muted player hears no WAKE UP blip.
+setMuted(prefsStore.getState().muted);
 const saved = loadSavedState();
 if (saved) gameStore.setState(saved, true);
 startPersisting();

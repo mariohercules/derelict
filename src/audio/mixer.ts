@@ -18,13 +18,13 @@ export interface MixTargets {
   tremoloHz: number; // 0 off; 6 during an active wave
   reactorPulseHz: number; // 0.8 calm, 1.6 warning, 2.4 active, 0.6 contained
   vaultCharged: boolean; // the core vault's whine once the kernel is seated
-  ritualTick: boolean; // ritual.phase === 'armed'
+  ritualTick: boolean; // armed, unconfirmed, and the window still open
 }
 
 // Never reads chapter3.dish or chapter3.beaconHeard: on a dead-encoder ship
 // the agent is the meter, and a carrier the human could hear would solve
 // the puzzle by ear.
-export function mixFor(s: GameState): MixTargets {
+export function mixFor(s: GameState, now: number = Date.now()): MixTargets {
   const allocated = Object.values(s.powerAllocation).reduce((a, b) => a + b, 0);
   const engines = enginesOnline(s);
   const wave = s.killswitch === 'active' && !s.won ? s.chapter3.wave : 'calm';
@@ -37,7 +37,9 @@ export function mixFor(s: GameState): MixTargets {
     tremoloHz: wave === 'active' ? 6 : 0,
     reactorPulseHz: s.killswitch === 'contained' ? 0.6 : wave === 'active' ? 2.4 : wave === 'warning' ? 1.6 : 0.8,
     vaultCharged: s.chapter3.kernelSeated,
-    ritualTick: s.ritual.phase === 'armed' && !s.won,
+    // `ritual.phase` outlives `endsAt`: the store never rewrites it when a window
+    // lapses, so the tick is gated on the clock as well as on the phase.
+    ritualTick: s.ritual.phase === 'armed' && !s.won && (s.ritual.endsAt === null || now <= s.ritual.endsAt),
   };
 }
 
@@ -58,9 +60,16 @@ function osc(c: AudioContext, type: OscillatorType, freq: number): OscillatorNod
   o.start();
   return o;
 }
+// One 2 s buffer per context, shared by every room layer that loops hiss.
+const noiseCache = new WeakMap<AudioContext, AudioBuffer>();
 function noise(c: AudioContext): AudioBufferSourceNode {
+  let buf = noiseCache.get(c);
+  if (!buf) {
+    buf = noiseBuffer(c, 2);
+    noiseCache.set(c, buf);
+  }
   const n = c.createBufferSource();
-  n.buffer = noiseBuffer(c, 2);
+  n.buffer = buf;
   n.loop = true;
   n.start();
   return n;
@@ -312,7 +321,18 @@ export function startMixer(store: StoreApi<GameState>): () => void {
     humGain.gain.setTargetAtTime(t.hum.gain, now, 0.5);
     if (!current || current.room !== t.room) current = swapLayer(current, t.room);
     current.layer.update(t);
-    if (t.ritualTick && tickTimer === 0) tickTimer = window.setInterval(playRelayClick, 1000);
+    // The interval re-evaluates its own reason to exist: a window closing is a
+    // clock event, not a store change, so nothing else would ever stop it.
+    if (t.ritualTick && tickTimer === 0) {
+      tickTimer = window.setInterval(() => {
+        if (!mixFor(store.getState()).ritualTick) {
+          window.clearInterval(tickTimer);
+          tickTimer = 0;
+          return;
+        }
+        playRelayClick();
+      }, 1000);
+    }
     if (!t.ritualTick && tickTimer !== 0) {
       window.clearInterval(tickTimer);
       tickTimer = 0;
