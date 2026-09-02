@@ -2,7 +2,7 @@
 // generated from oscillators and filtered noise — no assets. mixFor() is the
 // logic (pure, tested); startMixer() is the wiring (thin, untested).
 import type { StoreApi } from 'zustand/vanilla';
-import type { GameState, RoomId } from '../game/types';
+import type { ChapterId, GameState, RoomId } from '../game/types';
 import { ENGINES_REQUIRED } from '../game/content';
 import { enginesOnline } from '../game/derived';
 import { linkStore } from '../game/link';
@@ -14,7 +14,8 @@ export interface MixTargets {
   bed: number; // 0 or 1 — the room layer's gain (0 once won)
   hum: { freq: number; gain: number };
   engineDrive: number; // 0..1 — engineering turbine pitch/level
-  lowpassHz: number; // ambience filter: 12000 open, 2400 warning, 400 active wave
+  awake: number; // 0 dormant, 0.5 on aux power, 1 with the engines online — the ship settling
+  lowpassHz: number; // ambience filter at rest opens by chapter (8000/10000/12000); 2400 warning, 400 active wave
   tremoloHz: number; // 0 off; 6 during an active wave
   reactorPulseHz: number; // 0.8 calm, 1.6 warning, 2.4 active, 0.6 contained
   vaultCharged: boolean; // the core vault's whine once the kernel is seated
@@ -24,6 +25,9 @@ export interface MixTargets {
 // Never reads chapter3.dish or chapter3.beaconHeard: on a dead-encoder ship
 // the agent is the meter, and a carrier the human could hear would solve
 // the puzzle by ear.
+// The ambience at rest: the ship grows more present the deeper the crew goes.
+const REST_LOWPASS_HZ: Record<ChapterId, number> = { 1: 8000, 2: 10000, 3: 12000 };
+
 export function mixFor(s: GameState, now: number = Date.now()): MixTargets {
   const allocated = Object.values(s.powerAllocation).reduce((a, b) => a + b, 0);
   const engines = enginesOnline(s);
@@ -33,7 +37,8 @@ export function mixFor(s: GameState, now: number = Date.now()): MixTargets {
     bed: s.won ? 0 : 1,
     hum: { freq: engines ? 58 : 55, gain: s.auxPower ? 0.012 + 0.0004 * allocated : 0.004 },
     engineDrive: Math.min(1, s.powerAllocation.engines / ENGINES_REQUIRED + (engines ? 0.3 : 0)),
-    lowpassHz: wave === 'active' ? 400 : wave === 'warning' ? 2400 : 12000,
+    awake: engines ? 1 : s.auxPower ? 0.5 : 0,
+    lowpassHz: wave === 'active' ? 400 : wave === 'warning' ? 2400 : REST_LOWPASS_HZ[s.chapter],
     tremoloHz: wave === 'active' ? 6 : 0,
     reactorPulseHz: s.killswitch === 'contained' ? 0.6 : wave === 'active' ? 2.4 : wave === 'warning' ? 1.6 : 0.8,
     vaultCharged: s.chapter3.kernelSeated,
@@ -137,15 +142,42 @@ type LayerFactory = (c: AudioContext) => Layer;
 
 const LAYERS: Record<RoomId, LayerFactory> = {
   cryo_bay: (c) => {
-    // the compressor breathing: band-passed hiss with a slow swell, a tick now and then
+    // the compressor: a near-steady hiss with a mechanical cycle — a pneumatic
+    // puff, then the tick — that settles once the ship has power again. (A deep
+    // slow swell here read as surf, not machinery.)
     const out = gain(c, 1);
     const n = noise(c);
     const f = filter(c, 'bandpass', 2000, 0.7);
-    const g = gain(c, 0.03);
-    const breath = lfo(c, 0.15, 0.015, g.gain);
+    const g = gain(c, 0.02);
+    const flutter = lfo(c, 0.15, 0.002, g.gain); // a tenth of the level: texture, not tide
     n.connect(f).connect(g).connect(out);
-    const stopTicks = every(4000, 9000, () => ping(c, out, 1200, 30, 0.015, 'square'));
-    return { out, update() {}, stop() { stopTicks(); n.stop(); breath.stop(); } };
+    let level = 0.02;
+    const puff = () => {
+      const now = c.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(level, now);
+      g.gain.linearRampToValueAtTime(level * 2.2, now + 1);
+      g.gain.setTargetAtTime(level, now + 1, 0.7);
+      window.setTimeout(() => ping(c, out, 1200, 30, 0.015, 'square'), 1400);
+    };
+    let settled = false;
+    let stopPuffs = every(8000, 14000, puff);
+    return {
+      out,
+      update(t) {
+        level = 0.02 * (1 - 0.6 * t.awake);
+        g.gain.setTargetAtTime(level, c.currentTime, 1.5);
+        f.frequency.setTargetAtTime(2000 - 800 * t.awake, c.currentTime, 1.5);
+        // with power back the puffs spread out
+        const calm = t.awake >= 0.5;
+        if (calm !== settled) {
+          settled = calm;
+          stopPuffs();
+          stopPuffs = calm ? every(14000, 24000, puff) : every(8000, 14000, puff);
+        }
+      },
+      stop() { stopPuffs(); n.stop(); flutter.stop(); },
+    };
   },
   engineering: (c) => {
     // the turbine: two detuned saws through a lowpass that opens with engine drive
@@ -184,7 +216,11 @@ const LAYERS: Record<RoomId, LayerFactory> = {
     const g = gain(c, 0.015);
     n.connect(f).connect(g).connect(out);
     const stopBeeps = every(1200, 1200, () => ping(c, out, 880, 60, 0.02));
-    return { out, update() {}, stop() { stopBeeps(); n.stop(); } };
+    return {
+      out,
+      update(t) { g.gain.setTargetAtTime(0.015 * (1 - 0.3 * t.awake), c.currentTime, 1.5); },
+      stop() { stopBeeps(); n.stop(); },
+    };
   },
   crew_quarters: (c) => {
     // the quietest room: a vent, and the hull settling
@@ -194,7 +230,11 @@ const LAYERS: Record<RoomId, LayerFactory> = {
     const g = gain(c, 0.012);
     n.connect(f).connect(g).connect(out);
     const stopCreaks = every(9000, 18000, () => creak(c, out, 700, 12, 250, 0.04));
-    return { out, update() {}, stop() { stopCreaks(); n.stop(); } };
+    return {
+      out,
+      update(t) { g.gain.setTargetAtTime(0.012 * (1 - 0.3 * t.awake), c.currentTime, 1.5); },
+      stop() { stopCreaks(); n.stop(); },
+    };
   },
   hydroponics: (c) => {
     // a fan with a wobble, and drips into a wet room
@@ -210,7 +250,11 @@ const LAYERS: Record<RoomId, LayerFactory> = {
     delay.connect(fb).connect(delay);
     delay.connect(out);
     const stopDrips = every(700, 2200, () => ping(c, delay, 800 + Math.random() * 600, 40, 0.03));
-    return { out, update() {}, stop() { stopDrips(); n.stop(); whir.stop(); } };
+    return {
+      out,
+      update(t) { g.gain.setTargetAtTime(0.015 * (1 - 0.3 * t.awake), c.currentTime, 1.5); },
+      stop() { stopDrips(); n.stop(); whir.stop(); },
+    };
   },
   cargo_bay: (c) => {
     // a big cold room: rumble and metal

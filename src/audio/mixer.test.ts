@@ -24,12 +24,28 @@ describe('mixFor — the ship sounds like its state', () => {
   });
 
   it('the wave closes the filter and shakes the bed; containment slows the reactor; a won game is still', () => {
-    expect(mixFor(base({ killswitch: 'active', chapter3: ch3({ wave: 'calm' }) }))).toMatchObject({ lowpassHz: 12000, tremoloHz: 0, reactorPulseHz: 0.8 });
+    expect(mixFor(base({ killswitch: 'active', chapter3: ch3({ wave: 'calm' }) }))).toMatchObject({ lowpassHz: 8000, tremoloHz: 0, reactorPulseHz: 0.8 });
     expect(mixFor(base({ killswitch: 'active', chapter3: ch3({ wave: 'warning' }) }))).toMatchObject({ lowpassHz: 2400, tremoloHz: 0, reactorPulseHz: 1.6 });
     expect(mixFor(base({ killswitch: 'active', chapter3: ch3({ wave: 'active' }) }))).toMatchObject({ lowpassHz: 400, tremoloHz: 6, reactorPulseHz: 2.4 });
     expect(mixFor(base({ killswitch: 'contained' })).reactorPulseHz).toBe(0.6);
-    expect(mixFor(base({ won: true, killswitch: 'active', chapter3: ch3({ wave: 'active' }) }))).toMatchObject({ bed: 0, lowpassHz: 12000, tremoloHz: 0, ritualTick: false });
+    expect(mixFor(base({ won: true, killswitch: 'active', chapter3: ch3({ wave: 'active' }) }))).toMatchObject({ bed: 0, lowpassHz: 8000, tremoloHz: 0, ritualTick: false });
     expect(mixFor(base({ chapter3: ch3({ kernelSeated: true }) })).vaultCharged).toBe(true);
+  });
+
+  it('the ship wakes in steps: dormant, on aux power, engines online', () => {
+    expect(mixFor(base()).awake).toBe(0);
+    expect(mixFor(base({ auxPower: true })).awake).toBe(0.5);
+    expect(mixFor(base({
+      auxPower: true, fuseInstalled: '10A', valveSettings: [6, 3, 7],
+      powerAllocation: { life_support: 15, medbay: 0, comms: 0, doors: 5, engines: 20, isolation: 0 },
+    })).awake).toBe(1);
+  });
+
+  it('the ambience opens chapter by chapter at rest, and the wave still closes it', () => {
+    expect(mixFor(base({ chapter: 1 })).lowpassHz).toBe(8000);
+    expect(mixFor(base({ chapter: 2 })).lowpassHz).toBe(10000);
+    expect(mixFor(base({ chapter: 3 })).lowpassHz).toBe(12000);
+    expect(mixFor(base({ chapter: 3, killswitch: 'active', chapter3: ch3({ wave: 'active' }) })).lowpassHz).toBe(400);
   });
 
   it('ticks only while a ritual is armed', () => {
