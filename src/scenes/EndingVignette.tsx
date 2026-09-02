@@ -1,9 +1,12 @@
-import { ROOMS } from '../game/rooms';
+import { ROOM_BY_ID } from '../game/rooms';
 import { prng } from '../game/secrets';
-import type { EndingId } from '../game/types';
+import type { EndingId, RoomId } from '../game/types';
 import { HULL_PATH } from '../ui/DeckMap';
 import { reducedMotion } from '../ui/motion';
 import { useStrings } from '../ui/useLocale';
+
+// RESTORE: the lights come back from the core vault outward, deck by deck, the bridge last.
+const RESTORE_ORDER: RoomId[] = ['core_vault', 'reactor_room', 'engineering', 'cargo_bay', 'comms_array', 'cryo_bay', 'medbay', 'crew_quarters', 'hydroponics', 'bridge'];
 
 // The same ship shows the same sky.
 function stars(seed: number, n = 46): { x: number; y: number; r: number }[] {
@@ -31,10 +34,13 @@ export function EndingVignette({ ending, seed, beaconHeard }: { ending: EndingId
       {kind === 'leave' && beaconHeard && <circle cx="12" cy="18" r="2.5" fill="var(--green)" className="beacon-halo" />}
       <g transform="translate(40 30)">
         <path d={HULL_PATH} fill="url(#ev-hull)" stroke="var(--steel)" strokeWidth="2" />
-        {kind === 'restore' && ROOMS.map((r, i) => (
-          <rect key={r.id} x={r.x - 22} y={r.y - 10} width="44" height="20" rx="2" fill="var(--green)" stroke="var(--line)"
-            className={reduced ? undefined : 'ev-room'} style={reduced ? { opacity: 1 } : { animationDelay: `${0.4 + i * 0.35}s` }} />
-        ))}
+        {kind === 'restore' && RESTORE_ORDER.map((id, i) => {
+          const r = ROOM_BY_ID[id];
+          return (
+            <rect key={id} x={r.x - 22} y={r.y - 10} width="44" height="20" rx="2" fill="var(--green)" stroke="var(--line)"
+              className={reduced ? undefined : 'ev-room'} style={reduced ? { opacity: 1 } : { animationDelay: `${0.4 + i * 0.35}s` }} />
+          );
+        })}
         {kind === 'leave' && (
           <g className={reduced ? undefined : 'ev-drift'} style={reduced ? { transform: 'translateX(70px)' } : undefined}>
             <circle cx="360" cy="45" r="3" fill="var(--amber)" />

@@ -57,7 +57,7 @@ export function FlightRecord({ compact = false }: { compact?: boolean }) {
             {copied === 'copied' ? t.record.copied : t.record.copyLink}
           </button>
         </div>
-        {copied === 'manual' && <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label={t.record.linkAria(code)} />}
+        {copied === 'manual' && <input readOnly autoFocus value={link} onFocus={(e) => e.currentTarget.select()} aria-label={t.record.linkAria(code)} />}
         <div className="r"><span className="k">{t.record.run}</span><span className="v">{runNumber}</span></div>
         {!compact && (
           <>
