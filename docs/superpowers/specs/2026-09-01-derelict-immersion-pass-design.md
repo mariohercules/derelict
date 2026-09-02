@@ -245,3 +245,14 @@ One plan, tasks in this order, each leaving the game playable and green:
 4. `coldOpen.ts` + `ColdOpen.tsx`; `Bulkhead.tsx` around the scene; strings.
 5. `EndingVignette.tsx` + `HULL_PATH`; `FlightRecord.tsx` (full and compact) + `COPY LINK`; epilogue and title layout.
 6. README (console, sound, ship codes, test count), spec *Shipped* note, preview deploy, Mario's playthrough, merge + prod on "aprovado".
+
+## 12. Amendments (Sep 1, implementation)
+
+- **§5.1 file name:** the pure thaw module is `src/ui/thaw.ts` (tests in `src/ui/thaw.test.ts`), not `coldOpen.ts` — TypeScript resolves `./ui/ColdOpen` to a sibling `coldOpen.ts` before `ColdOpen.tsx` on a case-insensitive filesystem. Every exported symbol and the component name `ColdOpen` are as specified.
+- **§5.1 freshness and the latch:** `isFreshRun` no longer requires `toolCalls === 0` — freshness is the human's progress (chapter 1, cryo bay, grate in place, no breakers flipped, no checkpoint, not won); the agent acts on its own clock, and a `get_ship_status` before WAKE UP must not skip the thaw. The overlay is decided once per wake or seed change (a `thawing` latch set from `isFreshRun(gameStore.getState())` in an effect on `[started, seed]`), never by a live subscription, so an agent call during the thaw cannot cut it short. The session set of thawed seeds is gone; a resumed fresh save still replays the thaw.
+- **§6.1 RESTORE order:** the ten room boxes light in an explicit `RESTORE_ORDER` — the lower deck from the core vault outward (core vault, reactor room, engineering, cargo bay, comms array), then the upper deck (cryo bay, medbay, crew quarters, hydroponics), the bridge last — rather than `ROOMS` array order, where the bridge sits fifth.
+- **Shared helpers:** `reducedMotion()` lives once in `src/ui/motion.ts` (ColdOpen, Bulkhead and EndingVignette import it); the lamp glyph is `Lamp`, exported from `src/ui/LinkConsole.tsx` and rendered by the FLIGHT RECORD's `RecordLamp`.
+
+---
+
+**Shipped 2026-09-01** — 308 tests; the Immersion Pass is live (AUX LINK console, diegetic mixer, cold open + bulkheads, ending vignettes + FLIGHT RECORD, ship codes).

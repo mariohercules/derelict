@@ -44,6 +44,11 @@ Chapter 2 opens from the bridge once the sealed log is read. Chapter 3 opens whe
 Kestrel is named; the lower deck is the reactor room, the core vault and the comms array,
 and the game ends at one of the joint rituals.
 
+Every ship has a **hull number** — `CMR-` and the seed in base 36, `CMR-4X+` for New
+Game+ — on the title screen and the FLIGHT RECORD at the end. **COPY LINK** gives a
+`?ship=` URL; whoever opens it wakes on the same ship, and the record's four ending lamps
+show what this device's crew has seen. The **SOUND** toggle in the header mutes the ship.
+
 Finish a run and the epilogue offers **New Game+**: a fresh ship on a tighter clock — shorter
 ritual windows, faster kill-switch waves that wake the moment the Kestrel is named, costlier
 bus shielding — and a ship that remembers the run you do not: the bulletin, the sealed log,
@@ -55,15 +60,17 @@ open and bring pod one home.
 
 The game registers and revokes tools live, in step with the ship. A subsystem that has no
 power has no tools — the agent starts with just 5 tools online, and when the human restores
-aux power, new tools visibly light up on the in-game **AI LINK** panel, and the agent can
-suddenly act where it couldn't a second ago. Across all three chapters the game defines 31
-tools in total, gated open and closed by ship state: reading the ship's status and logs,
-unlocking doors, routing power, running diagnostics, pulling schematics and sensor data,
-computing a nav fix, shielding data buses against a corporate kill-switch, and — in three
-two-operator finales — initiating and confirming the escape pod launch, seating PRIME's
-kernel, or opening the transmission band, each requiring the human to be physically holding
-a confirm handle in the UI at the same moment the agent calls `confirm_launch`,
-`merge_fragment`, or `broadcast_evidence`.
+aux power, the agent can suddenly act where it couldn't a second ago: new tools visibly
+light up on the in-game **AUX LINK** console — one lamp per tool, grouped by data bus, with
+a ticker of the agent's last calls (tool, input and OK/REFUSED, never the ship's reply) —
+and during a kill-switch wave the human watches the lamps on unshielded buses go red.
+Across all three chapters the game defines 31 tools in total, gated open and closed by
+ship state: reading the ship's status and logs, unlocking doors, routing power, running
+diagnostics, pulling schematics and sensor data, computing a nav fix, shielding data buses
+against a corporate kill-switch, and — in three two-operator finales — initiating and
+confirming the escape pod launch, seating PRIME's kernel, or opening the transmission
+band, each requiring the human to be physically holding a confirm handle in the UI at the
+same moment the agent calls `confirm_launch`, `merge_fragment`, or `broadcast_evidence`.
 
 Two layers of asymmetry make the tools necessary rather than decorative:
 
@@ -112,7 +119,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 282 tests)
+npm test       # run the test suite (Vitest, 308 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.
