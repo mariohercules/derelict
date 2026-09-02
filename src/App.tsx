@@ -13,6 +13,9 @@ import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme, startA
 import { SCENES } from './scenes/registry';
 import { Epilogue } from './scenes/Epilogue';
 import { DeckMap } from './ui/DeckMap';
+import { shipFromSearch } from './game/shipcode';
+import { InvitePlate } from './ui/InvitePlate';
+import { useMeta } from './ui/useMeta';
 
 function BuildTag() {
   return (
@@ -33,6 +36,20 @@ export default function App() {
   const won = useGame((s) => s.won);
   const t = useStrings();
   const [mc, setMc] = useState(() => detectModelContext());
+  // A ship invite on the URL is read once and stripped, so a reload does not re-offer it.
+  const [invite] = useState(() => shipFromSearch(window.location.search));
+  const runs = useMeta((m) => m.runsCompleted);
+  useEffect(() => {
+    if (window.location.search) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  }, []);
+  const wakeOnInvite = () => {
+    if (!invite || !invite.ok) return;
+    resetGame(invite.seed, { ngPlus: invite.ngPlus && runs >= 1 });
+    setSaved(null);
+    startAmbience();
+    playBlip();
+    setStarted(true);
+  };
 
   // Some hosts (extension bridges, agents attaching after page load) inject
   // modelContext only after React mounts — poll briefly instead of deciding
@@ -112,6 +129,7 @@ export default function App() {
         {saved?.checkpoint && !saved.won && (
           <p className="status-dim">{t.app.checkpoint(saved.checkpoint.chapter, t.hud.rooms[saved.checkpoint.room])}</p>
         )}
+        {invite && <InvitePlate invite={invite} hasSave={hasSave} plusAllowed={runs >= 1} onWake={wakeOnInvite} />}
         <div>
           <button
             onClick={() => {

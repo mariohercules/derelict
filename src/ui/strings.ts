@@ -126,6 +126,10 @@ export interface UIStrings {
     wakeAgainPlus: string; docked: string; outroStay: string; statsStay: (toolCalls: number) => string; runNumber: (n: number) => string;
   };
   deck: { title: string; legendOpen: string; legendLocked: string; legendSealed: string };
+  ship: {
+    received: (code: string) => string; wakeOn: (code: string) => string; abandons: string;
+    unreadable: string; plusNeedsRun: string;
+  };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -368,6 +372,13 @@ const en: UIStrings = {
     runNumber: (n) => `Run ${n} of the ISV Cormorant.`,
   },
   deck: { title: 'Deck map', legendOpen: 'open', legendLocked: 'locked', legendSealed: 'sealed' },
+  ship: {
+    received: (code) => `HULL ${code} RECEIVED`,
+    wakeOn: (code) => `Wake on ${code}`,
+    abandons: 'Waking on this hull abandons the run in progress.',
+    unreadable: 'Hull number unreadable. The ship you wake on is your own.',
+    plusNeedsRun: 'The plus profile needs a completed run on this device; this hull wakes classic.',
+  },
   medbay: {
     title: 'Medbay',
     intro: 'Your own bay. The pod you thawed in is here, lid up, and the terminal beside it has been dark since before you woke.',
@@ -759,6 +770,13 @@ const ptBR: UIStrings = {
     runNumber: (n) => `Partida ${n} da ISV Cormorant.`,
   },
   deck: { title: 'Mapa do convés', legendOpen: 'aberto', legendLocked: 'trancado', legendSealed: 'selado' },
+  ship: {
+    received: (code) => `CASCO ${code} RECEBIDO`,
+    wakeOn: (code) => `Acordar no ${code}`,
+    abandons: 'Acordar neste casco abandona a jornada em andamento.',
+    unreadable: 'Número de casco ilegível. A nave em que você acorda é a sua.',
+    plusNeedsRun: 'O perfil plus precisa de uma jornada completa neste dispositivo; este casco acorda clássico.',
+  },
   medbay: {
     title: 'Enfermaria',
     intro: 'A sua própria baia. O pod em que você descongelou está aqui, tampa aberta, e o terminal ao lado está apagado desde antes de você acordar.',
