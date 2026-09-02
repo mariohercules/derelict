@@ -8,6 +8,13 @@ export function isFreshRun(s: GameState): boolean {
     && s.checkpoint === null && !s.won;
 }
 
+// The pod opens for a ship drawn in this session, never for a save resumed —
+// a reload must read as a resume, not as a new run with the same PIN.
+// `resumedSeed` is the seed of the save the app loaded (null when none).
+export function shouldThaw(s: GameState, resumedSeed: number | null): boolean {
+  return s.seed !== resumedSeed && isFreshRun(s);
+}
+
 export type ColdOpenStepId = 'vitals' | 'frost' | 'bulletin' | 'open';
 export interface ColdOpenStep { id: ColdOpenStepId; at: number }
 export const COLD_OPEN_DONE_MS = 7000;

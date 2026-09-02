@@ -119,7 +119,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 312 tests)
+npm test       # run the test suite (Vitest, 316 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.

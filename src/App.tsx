@@ -20,7 +20,7 @@ import { FlightRecord } from './ui/FlightRecord';
 import { useMeta } from './ui/useMeta';
 import { Bulkhead } from './ui/Bulkhead';
 import { ColdOpen } from './ui/ColdOpen';
-import { isFreshRun } from './ui/thaw';
+import { shouldThaw } from './ui/thaw';
 
 function BuildTag() {
   return (
@@ -116,11 +116,14 @@ export default function App() {
   }, [killswitch, won]);
 
   // The thaw is decided once, when a run starts or a new ship wakes — never by
-  // a live subscription, so the agent's own calls cannot cut it short.
+  // a live subscription, so the agent's own calls cannot cut it short — and
+  // only for a ship drawn now: a resumed save, even one still in the pod, is a
+  // resume, not a new run.
+  const resumedSeed = saved?.seed ?? null;
   const [thawing, setThawing] = useState(false);
   useEffect(() => {
-    if (started) setThawing(isFreshRun(gameStore.getState()));
-  }, [started, seed]);
+    if (started) setThawing(shouldThaw(gameStore.getState(), resumedSeed));
+  }, [started, seed, resumedSeed]);
 
   if (!started) {
     return (

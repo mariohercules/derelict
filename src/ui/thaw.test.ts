@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COLD_OPEN_DONE_MS, coldOpenSchedule, crystalPoints, frostCrystals, isFreshRun, thawTemp } from './thaw';
+import { COLD_OPEN_DONE_MS, coldOpenSchedule, crystalPoints, frostCrystals, isFreshRun, shouldThaw, thawTemp } from './thaw';
 import { gameStore, initialState, removeGrate, resetGame } from '../game/store';
 import { buildTools } from '../mcp/tools';
 
@@ -16,6 +16,24 @@ describe('isFreshRun', () => {
     expect(isFreshRun({ ...initialState(0), checkpoint: { chapter: 1, room: 'bridge' } })).toBe(false);
     expect(isFreshRun({ ...initialState(0), won: true })).toBe(false);
     expect(isFreshRun({ ...initialState(0), room: 'medbay' })).toBe(false);
+  });
+});
+
+describe('shouldThaw — the pod opens for a ship drawn now, never for a save resumed', () => {
+  it('plays for a fresh ship when no save was loaded', () => {
+    expect(shouldThaw(initialState(177), null)).toBe(true);
+  });
+
+  it('does not play when the loaded save is this very ship, even if it never left the pod', () => {
+    expect(shouldThaw(initialState(177), 177)).toBe(false);
+  });
+
+  it('plays again once a new ship is drawn after a resumed one', () => {
+    expect(shouldThaw(initialState(1000), 177)).toBe(true);
+  });
+
+  it('never plays for a ship that has already left the pod', () => {
+    expect(shouldThaw({ ...initialState(177), grateRemoved: true }, null)).toBe(false);
   });
 });
 
