@@ -3,6 +3,8 @@ import { enterRoom } from '../game/store';
 import { useGame } from './useGame';
 import { useStrings } from './useLocale';
 
+export const HULL_PATH = 'M 14 30 L 40 14 L 370 14 L 392 45 L 392 105 L 370 128 L 40 128 L 14 110 Z';
+
 const FILL = { current: 'var(--amber)', open: 'var(--steel-lo)', locked: '#10151a', sealed: '#0b0e0c' } as const;
 const STROKE = { current: 'var(--amber)', open: 'var(--green)', locked: 'var(--dim)', sealed: 'var(--line)' } as const;
 
@@ -34,7 +36,7 @@ export function DeckMap() {
     <div className="deckmap" aria-label={t.deck.title}>
       <svg viewBox="0 0 400 140" width="100%" role="group">
         {/* hull silhouette */}
-        <path d="M 14 30 L 40 14 L 370 14 L 392 45 L 392 105 L 370 128 L 40 128 L 14 110 Z" fill="var(--hull)" stroke="var(--line)" strokeWidth="2" />
+        <path d={HULL_PATH} fill="var(--hull)" stroke="var(--line)" strokeWidth="2" />
         <line x1="20" y1="72" x2="388" y2="72" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" />
         {EDGES.map((e) => {
           const a = ROOM_BY_ID[e.a];

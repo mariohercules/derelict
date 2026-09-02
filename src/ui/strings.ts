@@ -143,6 +143,12 @@ export interface UIStrings {
     line1: string; line2: string; line3: string; line4: string; podOpen: string; podSealed: string;
     skip: string; continue: string; aria: string;
   };
+  record: {
+    title: string; hull: string; run: string; profile: string; classic: string; plus: string; calls: string; best: string; waves: string;
+    proof: string; beacon: string; contained: string; endings: string; leave: string; restore: string; broadcast: string; stay: string; unknown: string;
+    copyLink: string; copied: string; linkAria: (code: string) => string;
+    ariaLeave: string; ariaRestore: string; ariaBroadcast: string; ariaStay: string;
+  };
   medbay: {
     title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
@@ -410,6 +416,16 @@ const en: UIStrings = {
     line1: 'MAIN COMPUTER: OFFLINE', line2: 'AUX MODEL-CONTEXT LINK: ACTIVE', line3: 'CREW LIFE SIGNS: 1', line4: 'RECOMMENDATION: COOPERATE WITH IT.',
     podOpen: 'POD OPEN', podSealed: 'POD SEALED', skip: 'click, Esc or space to skip', continue: 'Continue',
     aria: 'Thaw cycle: the cryo pod opening',
+  },
+  record: {
+    title: 'FLIGHT RECORD · ISV CORMORANT', hull: 'HULL', run: 'RUN', profile: 'PROFILE', classic: 'CLASSIC', plus: 'PLUS',
+    calls: 'CALLS', best: 'BEST', waves: 'WAVES', proof: 'PROOF', beacon: 'BEACON', contained: 'CONTAINED', endings: 'Endings seen',
+    leave: 'LEAVE', restore: 'RESTORE', broadcast: 'BROADCAST', stay: 'STAY', unknown: '—',
+    copyLink: 'COPY LINK', copied: 'COPIED', linkAria: (code) => `Copy a link to ship ${code}`,
+    ariaLeave: 'The Cormorant receding; pod two drifting away',
+    ariaRestore: 'The Cormorant lighting up deck by deck',
+    ariaBroadcast: 'Rings spreading from the comms array; relays lighting to the edge',
+    ariaStay: 'Pod one docking at the engineering clamps',
   },
   medbay: {
     title: 'Medbay',
@@ -827,6 +843,16 @@ const ptBR: UIStrings = {
     line1: 'COMPUTADOR PRINCIPAL: OFFLINE', line2: 'LINK AUXILIAR DE MODEL-CONTEXT: ATIVO', line3: 'SINAIS VITAIS DA TRIPULAÇÃO: 1', line4: 'RECOMENDAÇÃO: COOPERE COM ELE.',
     podOpen: 'POD ABERTO', podSealed: 'POD SELADO', skip: 'clique, Esc ou espaço para pular', continue: 'Continuar',
     aria: 'Ciclo de descongelamento: o criopod abrindo',
+  },
+  record: {
+    title: 'REGISTRO DE VOO · ISV CORMORANT', hull: 'CASCO', run: 'PARTIDA', profile: 'PERFIL', classic: 'CLÁSSICO', plus: 'PLUS',
+    calls: 'CHAMADAS', best: 'MELHOR', waves: 'ONDAS', proof: 'PROVA', beacon: 'FAROL', contained: 'CONTIDO', endings: 'Finais vistos',
+    leave: 'PARTIR', restore: 'RESTAURAR', broadcast: 'TRANSMITIR', stay: 'FICAR', unknown: '—',
+    copyLink: 'COPIAR LINK', copied: 'COPIADO', linkAria: (code) => `Copiar um link para a nave ${code}`,
+    ariaLeave: 'A Cormorant se afastando; o pod dois à deriva',
+    ariaRestore: 'A Cormorant acendendo convés por convés',
+    ariaBroadcast: 'Anéis se espalhando do arranjo de comms; relés acendendo até a borda',
+    ariaStay: 'O pod um acoplando nas garras da engenharia',
   },
   medbay: {
     title: 'Enfermaria',

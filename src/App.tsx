@@ -16,6 +16,7 @@ import { Epilogue } from './scenes/Epilogue';
 import { DeckMap } from './ui/DeckMap';
 import { shipFromSearch } from './game/shipcode';
 import { InvitePlate } from './ui/InvitePlate';
+import { FlightRecord } from './ui/FlightRecord';
 import { useMeta } from './ui/useMeta';
 import { Bulkhead } from './ui/Bulkhead';
 import { ColdOpen } from './ui/ColdOpen';
@@ -140,6 +141,7 @@ export default function App() {
           <p className="status-dim">{t.app.checkpoint(saved.checkpoint.chapter, t.hud.rooms[saved.checkpoint.room])}</p>
         )}
         {invite && <InvitePlate invite={invite} hasSave={hasSave} plusAllowed={runs >= 1} onWake={wakeOnInvite} />}
+        {(hasSave || runs > 0) && <div><FlightRecord compact /></div>}
         <div>
           <button
             onClick={() => {

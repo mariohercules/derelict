@@ -2,9 +2,12 @@ import { useGame } from '../ui/useGame';
 import { useMeta } from '../ui/useMeta';
 import { useStrings } from '../ui/useLocale';
 import { resetGame } from '../game/store';
+import { EndingVignette } from './EndingVignette';
+import { FlightRecord } from '../ui/FlightRecord';
 
 export function Epilogue() {
   const toolCalls = useGame((s) => s.toolCalls);
+  const seed = useGame((s) => s.seed);
   const ending = useGame((s) => s.ending);
   const ngPlus = useGame((s) => s.ngPlus);
   const proof = useGame((s) => s.chapter2.sampleAnalyzed);
@@ -27,8 +30,9 @@ export function Epilogue() {
     : t.epilogue.outroUnknowing;
   const stats = ending === 'restore' ? t.epilogue.statsRestore(toolCalls) : ending === 'stay' ? t.epilogue.statsStay(toolCalls) : t.epilogue.stats(toolCalls);
   return (
-    <div className="scene" style={{ marginTop: '10vh', textAlign: 'center' }}>
+    <div className="scene" style={{ marginTop: '6vh', textAlign: 'center' }}>
       <h1 style={{ letterSpacing: '0.4em', color: ending === 'broadcast' ? 'var(--amber)' : 'var(--green)' }}>{title}</h1>
+      <EndingVignette ending={ending} seed={seed} beaconHeard={beacon} />
       <div className="panel" style={{ textAlign: 'left' }}>
         <p>{outro}</p>
         {leaving && proof && <p className="status-dim">{t.epilogue.withProof}</p>}
@@ -38,6 +42,7 @@ export function Epilogue() {
         <p className="status-dim">{stats}</p>
         {ngPlus && <p className="status-dim">{t.epilogue.runNumber(runs)}</p>}
       </div>
+      <FlightRecord />
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => resetGame()}>{t.epilogue.wakeAgain}</button>
         {runs >= 1 && (
