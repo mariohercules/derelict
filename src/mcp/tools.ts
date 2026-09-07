@@ -14,6 +14,7 @@ import { isArmed } from '../game/ritual';
 import { suppressed } from '../game/killswitch';
 import type { ToolMeta } from '../game/killswitch';
 import { pushLinkEvent, summarizeInput } from '../game/link';
+import { normalizeAuthCode } from '../game/authcode';
 import { getMemory } from '../game/meta';
 import { variantFor } from '../game/variants';
 import {
@@ -248,9 +249,28 @@ export function buildTools(): ShipTool[] {
               'for the cryo bay exit, or unlock_door({door: "engineering_exit"}) for the bridge hatch.',
           };
         }
-        // Agents sometimes send the code as a number, which eats the leading zero.
-        const auth = input.auth_code == null ? undefined : String(input.auth_code).padStart(4, '0');
-        return unlockDoor(door, auth);
+        // Formatting is not a wrong code: only the digits are compared. A missing or
+        // malformed code gets a steer, not "rejected" — that word sends agents guessing.
+        const auth = normalizeAuthCode(input.auth_code);
+        if (door === 'cryo_exit' && !s.doors.cryo_exit && s.auxPower) {
+          if (auth === null) {
+            return {
+              ok: false,
+              message:
+                'No authorization code was sent. The cryo exit takes the crew PIN: the day, then the month (DDMM) of Okafor\'s daughter\'s birthday. ' +
+                'The crew member can read that date off the photo pinned above the bunk — ask them for it, then call this tool again with auth_code.',
+            };
+          }
+          if (auth.length !== 4) {
+            return {
+              ok: false,
+              message:
+                `"${auth}" is not a PIN. The door controller takes exactly four digits: two for the day, two for the month (DDMM). ` +
+                'Send the day and month only — no year.',
+            };
+          }
+        }
+        return unlockDoor(door, auth ?? undefined);
       }
     ),
     mkTool(

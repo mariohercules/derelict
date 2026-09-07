@@ -740,3 +740,54 @@ describe('the AUX LINK — every call leaves a trace the human can read', () => 
     expect(linkStore.getState().events.at(-1)).toMatchObject({ kind: 'call', tool: 'boom', status: 'error', input: '' });
   });
 });
+
+describe('unlock_door — the PIN is digits, not a format', () => {
+  async function tryCode(auth_code: unknown) {
+    resetGame(0);
+    powerOn();
+    const out = await call('unlock_door', { door: 'cryo_exit', auth_code });
+    return { ok: out.ok as boolean, message: String(out.message), open: gameStore.getState().doors.cryo_exit };
+  }
+
+  it('opens on every formatting an agent is likely to send for the right PIN', async () => {
+    for (const form of ['0407', 407, '04/07', '04-07', '04 07', '4/7', ' 0407 ', '0407.', 'code 0407']) {
+      const r = await tryCode(form);
+      expect(r.ok, `form ${JSON.stringify(form)}`).toBe(true);
+      expect(r.open, `form ${JSON.stringify(form)}`).toBe(true);
+    }
+  });
+
+  it('still refuses the wrong PIN — month-day is wrong, and says so as the door controller', async () => {
+    const r = await tryCode('0704');
+    expect(r.ok).toBe(false);
+    expect(r.open).toBe(false);
+    expect(r.message).toMatch(/rejected/i);
+  });
+
+  it('steers a full date back to four digits, day then month', async () => {
+    const r = await tryCode('04/07/2098');
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/four digits/i);
+    expect(r.message).toMatch(/day.*month/i);
+    expect(r.message).not.toMatch(/rejected/i);
+  });
+
+  it('names the missing code and where the crew member finds it, instead of calling it wrong', async () => {
+    resetGame(0);
+    powerOn();
+    const out = await call('unlock_door', { door: 'cryo_exit' });
+    expect(out.ok).toBe(false);
+    expect(String(out.message)).toMatch(/no authorization code/i);
+    expect(String(out.message)).toMatch(/photo/i);
+    expect(String(out.message)).not.toMatch(/rejected/i);
+  });
+
+  it('does not ask for a code once the door is open, or for the bridge hatch', async () => {
+    resetGame(0);
+    powerOn();
+    await call('unlock_door', { door: 'cryo_exit', auth_code: AUTH_CODE });
+    expect((await call('unlock_door', { door: 'cryo_exit' })).message).toMatch(/already unlocked/i);
+    const hatch = await call('unlock_door', { door: 'engineering_exit' });
+    expect(hatch.message).not.toMatch(/authorization code/i);
+  });
+});
