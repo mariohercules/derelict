@@ -1,4 +1,6 @@
 import { useGame } from '../ui/useGame';
+import { inspect } from '../ui/inspect';
+import { RoomPlate } from '../ui/RoomPlate';
 import { useStrings } from '../ui/useLocale';
 import { examineMedband } from '../game/store';
 import medbayRoom from '../assets/medbay-room.webp';
@@ -91,19 +93,11 @@ function BurnedTerminal({ burnIn, aria }: { burnIn: string; aria: string }) {
 export function Medbay() {
   const t = useStrings();
   const examined = useGame((s) => s.chapter2.medbandExamined);
-  const inspect = (id: string) => {
-    const target = document.getElementById(id);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: 'start' });
-  };
   return (
     <div className="scene medbay-scene">
       <header className="medbay-heading"><div><span className="scene-eyebrow">{t.medbay.sector}</span><h1>{t.medbay.title}</h1></div><span className="medbay-state">CMR / MED-07</span></header>
       <div className="medbay-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${medbayRoomSmall} 960w, ${medbayRoom} 1672w`} sizes="100vw" />
-          <img src={medbayRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={medbayRoom} small={medbayRoomSmall} />
         <div className="medbay-haze" aria-hidden="true" />
         <span className="medbay-serial" aria-hidden="true">CMR / MEDICAL</span>
         <p className="medbay-caption">{t.medbay.intro}</p>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
@@ -181,19 +183,11 @@ export function CoreVault() {
   const correct = useGame(rackCorrect);
   const armed = useRitualLive('restore');
   const t = useStrings();
-  const inspect = (id: string) => {
-    const target = document.getElementById(id);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: 'start' });
-  };
   return (
     <div className={`scene vault-scene${armed ? ' vault-armed' : correct ? ' vault-ready' : ''}`}>
       <header className="vault-heading"><div><span className="scene-eyebrow">{t.vault.sector}</span><h1>{t.vault.title}</h1></div><span className="vault-state">PRIME / MEMORY</span></header>
       <div className="vault-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${vaultRoomSmall} 960w, ${vaultRoom} 1672w`} sizes="100vw" />
-          <img src={vaultRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={vaultRoom} small={vaultRoomSmall} />
         <div className="vault-dust" aria-hidden="true" />
         <span className="vault-serial" aria-hidden="true">CMR / PRIME</span>
         <p className="vault-caption">{t.vault.intro}</p>

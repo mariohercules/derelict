@@ -1,4 +1,6 @@
 import { useGame } from '../ui/useGame';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useStrings } from '../ui/useLocale';
 import { retrieveSpike, setIrrigation } from '../game/store';
 import { irrigationReportFor } from '../game/derived';
@@ -162,10 +164,7 @@ export function Hydroponics() {
         <span className={solved ? 'hydro-state status-ok' : 'hydro-state'} role="status">{solved ? t.hydro.flowBalanced : cycled ? t.hydro.cycleRecorded : t.hydro.awaitingCycle}</span>
       </header>
       <div className="hydro-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${hydroRoomSmall} 960w, ${hydroRoom} 1672w`} sizes="100vw" />
-          <img src={hydroRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={hydroRoom} small={hydroRoomSmall} />
         <div className="hydro-haze" aria-hidden="true" />
         <span className="hydro-serial" aria-hidden="true">CMR / CULTIVATION</span>
         <p className="hydro-caption">{t.hydro.intro}</p>
@@ -174,11 +173,7 @@ export function Hydroponics() {
         {[
           ['hydro-irrigation', t.hydro.bedsTitle],
           ['hydro-middle', t.hydro.spikeTitle],
-        ].map(([id, label], index) => <button key={id} onClick={() => {
-          const target = document.getElementById(id);
-          target?.focus({ preventScroll: true });
-          target?.scrollIntoView({ block: 'start' });
-        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+        ].map(([id, label], index) => <button key={id} onClick={() => inspect(id)}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
       </nav>
       <div className="hydro-instruments">
         <section id="hydro-irrigation" tabIndex={-1} aria-label={t.hydro.bedsTitle}><Beds /></section>

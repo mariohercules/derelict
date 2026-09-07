@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useLocale, useStrings } from '../ui/useLocale';
 import { dialSafe, playRecorder } from '../game/store';
@@ -178,10 +180,7 @@ export function CrewQuarters() {
         <span className="quarters-residents">VASQUEZ / OKAFOR</span>
       </header>
       <div className="quarters-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${quartersRoomSmall} 960w, ${quartersRoom} 1672w`} sizes="100vw" />
-          <img src={quartersRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={quartersRoom} small={quartersRoomSmall} />
         <div className="quarters-lamplight" aria-hidden="true" />
         <span className="quarters-serial" aria-hidden="true">CMR / HABITAT</span>
         <p className="quarters-caption">{t.quarters.intro}</p>
@@ -191,11 +190,7 @@ export function CrewQuarters() {
           ['quarters-safe', t.quarters.safeTitle],
           ['quarters-recorder', t.quarters.recorderTitle],
           ['quarters-drawings', t.quarters.wallTitle],
-        ].map(([id, label], index) => <button key={id} onClick={() => {
-          const target = document.getElementById(id);
-          target?.focus({ preventScroll: true });
-          target?.scrollIntoView({ block: 'start' });
-        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+        ].map(([id, label], index) => <button key={id} onClick={() => inspect(id)}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
       </nav>
       <div className="quarters-objects">
         <section id="quarters-safe" tabIndex={-1} aria-label={t.quarters.safeTitle}>{keyed ? <KeyedSafe /> : <Safe />}</section>

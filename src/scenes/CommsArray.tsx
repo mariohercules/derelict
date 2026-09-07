@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
@@ -196,19 +198,11 @@ export function CommsArray() {
   const aligned = useGame(dishAligned);
   const heard = useGame((s) => s.chapter3.beaconHeard);
   const armed = useRitualLive('broadcast');
-  const inspect = (id: string) => {
-    const target = document.getElementById(id);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: 'start' });
-  };
   return (
     <div className={`scene comms-scene${armed ? ' comms-armed' : aligned ? ' comms-locked' : ''}`}>
       <header className="comms-heading"><div><span className="scene-eyebrow">{t.comms.sector}</span><h1>{t.comms.title}</h1></div><span className="comms-state">CMR / COMMS</span></header>
       <div className="comms-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${commsRoomSmall} 960w, ${commsRoom} 1672w`} sizes="100vw" />
-          <img src={commsRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={commsRoom} small={commsRoomSmall} />
         <div className="comms-reflection" aria-hidden="true" />
         <span className="comms-serial" aria-hidden="true">CMR / UPLINK</span>
         <p className="comms-caption">{t.comms.intro}</p>

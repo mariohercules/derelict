@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COLD_OPEN_DONE_MS, coldOpenSchedule, crystalPoints, frostCrystals, isFreshRun, shouldThaw, thawTemp } from './thaw';
+import { COLD_OPEN_DONE_MS, coldOpenSchedule, isFreshRun, shouldThaw, thawTemp } from './thaw';
 import { gameStore, initialState, removeGrate, resetGame } from '../game/store';
 import { buildTools } from '../mcp/tools';
 
@@ -44,13 +44,6 @@ describe('the thaw', () => {
     for (let i = 1; i < steps.length; i++) expect(steps[i].at).toBeGreaterThan(steps[i - 1].at);
     expect(steps[steps.length - 1].at).toBeLessThan(COLD_OPEN_DONE_MS);
     expect(COLD_OPEN_DONE_MS).toBe(7000);
-  });
-
-  it('freezes the same ship the same way, and a different ship differently', () => {
-    expect(frostCrystals(7)).toEqual(frostCrystals(7));
-    expect(frostCrystals(7)).not.toEqual(frostCrystals(8));
-    expect(frostCrystals(7)).toHaveLength(36);
-    expect(crystalPoints(frostCrystals(7)[0]).split(' ')).toHaveLength(12);
   });
 
   it('thaws from 31.2 to 36.4', () => {

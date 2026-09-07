@@ -149,9 +149,6 @@ export function playMachineryCue(cue: import('../ui/machinery').MachineryCue): v
       tone(110, 850, 'triangle', .018, .3); break;
     case 'isolate': contactNoise(110, 600, .1); tone(120, 240, 'triangle', .035, .07); break;
     case 'quarantine': contactNoise(50, 1800, .04); tone(440, 170, 'sine', .02); break;
-    case 'contained': tone(110, 900, 'sine', .03); tone(220, 1100, 'sine', .015, .25); break;
-    case 'wave': contactNoise(650, 180, .075); tone(48, 950, 'triangle', .025); break;
-    case 'recover': contactNoise(85, 950, .045); tone(165, 550, 'sine', .018, .15); break;
   }
 }
 
@@ -161,8 +158,8 @@ export function playBlip(): void {
 
 export function playDirectedCue(cue: import('../presentation/director').DirectorCue): void {
   if (cue === 'warning') playKlaxon();
-  else if (cue === 'impact') playMachineryCue('wave');
-  else if (cue === 'release') playMachineryCue('recover');
+  else if (cue === 'impact') { contactNoise(650, 180, .075); tone(48, 950, 'triangle', .025); } // the wave lands
+  else if (cue === 'release') { contactNoise(85, 950, .045); tone(165, 550, 'sine', .018, .15); } // the wave lifts, or the switch is contained
   else if (cue === 'ritual') playAlarm();
   else { contactNoise(110, 700, .035); tone(220, 750, 'sine', .018, .1); }
 }

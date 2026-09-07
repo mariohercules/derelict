@@ -7,6 +7,7 @@ import { variantFor } from '../game/variants';
 import { reducedMotion } from '../ui/motion';
 import type { BreakerId } from '../game/types';
 import photoStill from '../assets/family-photo.jpg';
+import photoStamp from '../assets/family-photo-stamp.jpg'; // 128 px derivative for the 38 px print on arrival
 import photoLoop from '../assets/family-photo.mp4';
 import cabinet from '../assets/cryo-cabinet.webp';
 import { usePrefs } from '../ui/usePrefs';
@@ -26,7 +27,7 @@ function FamilyPhoto() {
   return (
     <>
       <button ref={trigger} className="cryo-object cryo-memory" onClick={() => setZoomed(true)} aria-label={t.cryo.lookCloser} aria-haspopup="dialog">
-        <span className="cryo-memory-print" aria-hidden="true"><img src={photoStill} alt="" /></span>
+        <span className="cryo-memory-print" aria-hidden="true"><img src={photoStamp} alt="" /></span>
         <span className="cryo-object-copy">
           <span className="cryo-object-code">01 / OKAFOR</span>
           <strong>{t.cryo.memoryObject}</strong>

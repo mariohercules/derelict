@@ -189,17 +189,12 @@ button:focus-visible {
 .coldopen .pod-plate { position: relative; z-index: 2; width: min(560px, 92vw); border: 3px solid var(--steel); border-radius: 8px; background: var(--face); box-shadow: inset 0 0 0 1px var(--line), 0 20px 60px rgba(0, 0, 0, 0.6); padding: 16px 18px; display: grid; gap: 10px; }
 .coldopen .row { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 12px; }
 .coldopen .bulletin { min-height: 4.6em; font-size: 12px; letter-spacing: 0.08em; color: var(--text); }
-.coldopen .frost { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
 .ecg-draw { stroke-dasharray: 900; stroke-dashoffset: 900; animation: ecg 1.6s linear forwards; }
 @keyframes ecg { to { stroke-dashoffset: 0; } }
 .typewriter { overflow: hidden; white-space: nowrap; width: 0; animation: type 0.5s steps(30, end) forwards; }
 @keyframes type { to { width: 100%; } }
-.frost-clearing .frost-hole { animation: frost-clear 1.4s ease-out forwards; }
-@keyframes frost-clear { to { r: 80px; } }
-.frost-clearing { animation: frost-fade 1.6s ease-out forwards; }
-@keyframes frost-fade { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .ecg-draw, .typewriter, .frost-clearing, .frost-clearing .frost-hole { animation: none; }
+  .ecg-draw, .typewriter { animation: none; }
   .typewriter { width: 100%; }
   .ecg-draw { stroke-dashoffset: 0; }
 }
@@ -371,12 +366,6 @@ summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .machine-state { color: var(--steel-hi); font-size: 10px; letter-spacing: .08em; text-align: right; }
 .machine-stage { position: relative; isolation: isolate; overflow: clip; display: grid; gap: 24px; padding: 52px 28px 30px; background: #101713; border: 1px solid var(--steel); border-radius: 8px; box-shadow: inset 0 0 80px #000a, 0 15px 30px #0005; }
 .machine-stage::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; box-shadow: inset 0 0 70px var(--room-alert); opacity: 0; transition: opacity 1.2s ease; }
-.machine-walls { position: absolute; inset: 0; z-index: -2; pointer-events: none; background: repeating-linear-gradient(90deg, transparent 0 21%, #40504533 21% 21.5%, #03080599 21.5% 22%, transparent 22% 43%); }
-.machine-ceiling { position: absolute; top: 16px; left: 8%; right: 8%; display: flex; justify-content: space-between; }
-.machine-ceiling i { display: block; width: 24%; height: 6px; background: var(--parchment); border: 2px solid var(--steel-mid); box-shadow: 0 6px 28px #d4c49433; opacity: .45; transition: opacity 1s, background 1s; }
-.machine-pipes { position: absolute; inset: 10% 12px 32px; border-left: 7px ridge var(--steel-mid); border-right: 7px ridge var(--steel-mid); border-radius: 18px; opacity: .55; }
-.machine-pipes i { display: block; height: 7px; margin-top: 130px; background: linear-gradient(var(--steel-hi), var(--face-deep)); box-shadow: 0 4px 6px #0008; }
-.machine-grating { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: repeating-linear-gradient(0deg, #40504455 0 1px, transparent 1px 10px), repeating-linear-gradient(110deg, #0009 0 7px, transparent 7px 25px); opacity: .5; }
 .machine-serial { display: flex; justify-content: space-between; gap: 8px; color: var(--steel-hi); font-size: 9px; letter-spacing: .12em; margin-bottom: 14px; }
 .machine-panel { position: relative; background: linear-gradient(120deg, #253129, #141d17 22%, #0d140f); border: 2px solid var(--steel-mid); border-radius: 5px; padding: 20px; box-shadow: inset 0 1px 0 #77857866, 4px 7px 10px #0007; }
 .machine-panel::before, .machine-panel::after { content: '+'; position: absolute; bottom: 4px; color: var(--steel); font-size: 11px; pointer-events: none; }
@@ -393,7 +382,6 @@ summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .power-cabinet { grid-column: 2; grid-row: 2; }
 .engines-running { --engine-glow: var(--green); }
 .engines-running .machine-state { color: var(--green); }
-.engines-running .machine-ceiling i { opacity: .85; }
 .power-circuits { display: grid; gap: 10px; margin-top: 22px; }
 .power-circuit { display: grid; grid-template-columns: 6px minmax(88px, 1fr) minmax(30px, 1.1fr) 30px; align-items: center; gap: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--line); font-size: 11px; }
 .circuit-lamp { width: 5px; height: 5px; border-radius: 50%; background: var(--steel); transition: background .6s, box-shadow .6s; }
@@ -431,9 +419,6 @@ summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .is-open .hatch-lid { transform: translateY(-94%); }
 .reactor-stage { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; }
 .reactor-observation { grid-column: 1; grid-row: 1; min-width: 0; }
-.reactor-vessel { display: block; width: 100%; max-height: 420px; }
-.reactor-aura, .reactor-column { animation: reactor-breathe var(--reactor-period) ease-in-out infinite; transition: fill 1s; }
-@keyframes reactor-breathe { 50% { opacity: .65; } }
 .reactor-station { display: grid; gap: 20px; grid-column: 2; grid-row: 1; min-width: 0; }
 .isolation-switches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 8px 0; }
 .isolation-module { min-width: 0; background: #050a0766; border: 1px solid var(--steel); border-radius: 4px; padding: 9px 4px 4px; transition: border-color 1s; }
@@ -460,9 +445,6 @@ summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .wave-contained { --reactor-light: #99d3aa; --reactor-period: 7s; }
 .wave-warning .machine-stage::after { opacity: .11; }
 .wave-active .machine-stage::after { opacity: .22; }
-.wave-warning .machine-ceiling i { background: var(--amber); }
-.wave-active .machine-ceiling i { background: var(--red); opacity: .3; }
-.wave-contained .machine-ceiling i { opacity: .8; }
 @media (max-width: 960px) {
   .machine-stage { padding-inline: 20px; gap: 18px; }
   .machine-panel { padding: 14px; }
@@ -485,7 +467,6 @@ summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
   .power-circuit { gap: 6px; grid-template-columns: 5px minmax(85px, 1fr) minmax(25px, 1fr) 28px; font-size: 10px; }
   .reactor-station { grid-column: 1; grid-row: 1; }
   .reactor-observation { grid-column: 1; grid-row: 2; }
-  .reactor-vessel { max-height: 300px; }
   .quarantine-console { grid-column: 1; grid-row: 3; }
   .klaxon-reading { flex-direction: row; gap: 10px; }
   .isolation-module .isolation-status { font-size: 9px; }

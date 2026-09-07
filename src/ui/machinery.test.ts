@@ -79,20 +79,16 @@ describe('material cues', () => {
     expect(machineryCue({ ...before, fuseInstalled: CORRECT_FUSE }, before)).toBeNull();
   });
 
-  it('marks wave onset and recovery once, not on every tick', () => {
+  it('leaves wave onset, recovery and containment to the director, in every room', () => {
     const before = engineering();
     before.killswitch = 'active';
     before.chapter3.wave = 'warning';
     const active = { ...before, chapter3: { ...before.chapter3, wave: 'active' as const } };
-    expect(machineryCue(active, before)).toBe('wave');
-    expect(machineryCue(structuredClone(active), active)).toBeNull();
-    expect(machineryCue({ ...active, chapter3: { ...active.chapter3, wave: 'calm' } }, active)).toBe('recover');
-  });
-
-  it('gives containment precedence over the final quarantine segment', () => {
-    const before = { ...engineering(), room: 'reactor_room' as const };
-    before.killswitch = 'active';
-    before.chapter3.quarantineStep = 3;
-    expect(machineryCue({ ...before, killswitch: 'contained', chapter3: { ...before.chapter3, quarantineStep: 4 } }, before)).toBe('contained');
+    expect(machineryCue(active, before)).toBeNull();
+    expect(machineryCue({ ...active, chapter3: { ...active.chapter3, wave: 'calm' } }, active)).toBeNull();
+    const reactor = { ...engineering(), room: 'reactor_room' as const, killswitch: 'active' as const };
+    reactor.chapter3.quarantineStep = 3;
+    // The final segment still sounds as a quarantine step; containment itself is the director's.
+    expect(machineryCue({ ...reactor, killswitch: 'contained', chapter3: { ...reactor.chapter3, quarantineStep: 4 } }, reactor)).toBe('quarantine');
   });
 });

@@ -14,8 +14,9 @@ export function busSignal(s: GameState, bus: BusId) {
   return threatPhase(s) === 'active' ? 'suppressed' : 'exposed';
 }
 
-export type MachineryCue = 'fuse' | 'gear' | 'valve' | 'dial' | 'route' | 'engine'
-  | 'isolate' | 'quarantine' | 'contained' | 'wave' | 'recover';
+// The physical accents of the two machinery decks. Wave onset, recovery and
+// containment are the presentation director's, across every room.
+export type MachineryCue = 'fuse' | 'gear' | 'valve' | 'dial' | 'route' | 'engine' | 'isolate' | 'quarantine';
 
 // A single material accent per transition. No partial-correctness feedback:
 // every cartridge, gear and dial position sounds alike, until enginesOnline
@@ -23,7 +24,6 @@ export type MachineryCue = 'fuse' | 'gear' | 'valve' | 'dial' | 'route' | 'engin
 export function machineryCue(s: GameState, before: GameState): MachineryCue | null {
   if (s.seed !== before.seed || s.room !== before.room || s.won || !s.auxPower || !before.auxPower) return null;
   if (s.room !== 'engineering' && s.room !== 'reactor_room') return null;
-  if (s.killswitch === 'contained' && before.killswitch !== 'contained') return 'contained';
   if (s.chapter3.shielded.length > before.chapter3.shielded.length) return 'isolate';
   if (s.chapter3.quarantineStep > before.chapter3.quarantineStep) return 'quarantine';
   if (s.room === 'engineering') {
@@ -37,7 +37,5 @@ export function machineryCue(s: GameState, before: GameState): MachineryCue | nu
     const id = key as keyof GameState['powerAllocation'];
     return s.powerAllocation[id] !== before.powerAllocation[id];
   })) return 'route';
-  if (threatPhase(s) === 'active' && threatPhase(before) !== 'active') return 'wave';
-  if (threatPhase(s) === 'calm' && threatPhase(before) === 'active') return 'recover';
   return null;
 }

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { liftCrate, moveCrane } from '../game/store';
@@ -149,11 +151,6 @@ export function CargoBay() {
   const analyzed = useGame((s) => s.chapter2.sampleAnalyzed);
   const craneAt = useGame((s) => s.chapter2.craneAt);
   const t = useStrings();
-  const inspect = (id: string) => {
-    const target = document.getElementById(id);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: 'start' });
-  };
   return (
     <div className="scene cargo-scene">
       <header className="cargo-heading">
@@ -161,10 +158,7 @@ export function CargoBay() {
         <span className="cargo-state" role="status">{analyzed ? t.cargo.analysisReady : lifted ? t.cargo.cargoRecovered : t.cargo.awaitingCargo}</span>
       </header>
       <div className="cargo-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${cargoRoomSmall} 960w, ${cargoRoom} 1672w`} sizes="100vw" />
-          <img src={cargoRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={cargoRoom} small={cargoRoomSmall} />
         <div className="cargo-dust" aria-hidden="true" />
         <span className="cargo-serial" aria-hidden="true">CMR / FREIGHT</span>
         <p className="cargo-caption">{t.cargo.intro}</p>

@@ -87,8 +87,7 @@ export default function App() {
     const unsubscribeSound = gameStore.subscribe((state, prevState) => {
       if (state.seed !== prevState.seed) return; // Loading a new hull is not a physical action.
       const materialCue = machineryCue(state, prevState);
-      // The director owns wave onset/recovery/containment across every room.
-      if (materialCue && !['wave', 'recover', 'contained'].includes(materialCue)) playMachineryCue(materialCue);
+      if (materialCue) playMachineryCue(materialCue);
       if (state.grateRemoved && !prevState.grateRemoved) playGratePull();
       if (state.grateRemoved && state.breakersFlipped !== prevState.breakersFlipped && !state.auxPower) {
         if (state.breakersFlipped.length === 0) playRelayTrip();
@@ -160,14 +159,16 @@ export default function App() {
     <>
       <HUD linked={mc !== null} />
       {!mc && <FallbackBanner />}
-      {won ? (
-        <SceneBoundary><Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Epilogue /></Suspense></SceneBoundary>
-      ) : (
-        <Atmosphere>
-          <DeckMap />
-          <Bulkhead room={room} />
-        </Atmosphere>
-      )}
+      <Atmosphere>
+        {won ? (
+          <SceneBoundary><Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Epilogue /></Suspense></SceneBoundary>
+        ) : (
+          <>
+            <DeckMap />
+            <Bulkhead room={room} />
+          </>
+        )}
+      </Atmosphere>
       {showColdOpen && <ColdOpen onDone={() => {
         setThawing(false);
         requestAnimationFrame(() => document.getElementById('room-view')?.focus({ preventScroll: true }));

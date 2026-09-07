@@ -1,4 +1,5 @@
 import { useGame } from '../ui/useGame';
+import { RoomPlate } from '../ui/RoomPlate';
 import { useMeta } from '../ui/useMeta';
 import { useStrings } from '../ui/useLocale';
 import { resetGame } from '../game/store';
@@ -46,10 +47,7 @@ export function Epilogue() {
     <div className={`scene cinematic-epilogue${staying ? ' stay-epilogue' : restored ? ' restore-epilogue' : broadcast ? ' broadcast-epilogue' : ''}`} style={{ marginTop: '6vh', textAlign: 'center' }}>
       <h1 style={{ letterSpacing: '0.4em', color: ending === 'broadcast' ? 'var(--amber)' : 'var(--green)' }}>{title}</h1>
       <div className="ending-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${endingImageSmall} 960w, ${endingImage} 1672w`} sizes="100vw" />
-          <img src={endingImage} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={endingImage} small={endingImageSmall} />
         <div className="ending-reflection" aria-hidden="true" />
         <span className="ending-serial" aria-hidden="true">{staying ? 'CMR / DOCKING' : broadcast ? 'CMR / OPEN BAND' : restored ? 'CMR / PRIME' : 'CMR / ESCAPE'}</span>
       </div>

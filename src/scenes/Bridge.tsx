@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
@@ -242,10 +244,7 @@ export function Bridge() {
         <span className="bridge-state" role="status">{status}</span>
       </header>
       <div className="bridge-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${bridgeRoomSmall} 960w, ${bridgeRoom} 1672w`} sizes="100vw" />
-          <img src={bridgeRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={bridgeRoom} small={bridgeRoomSmall} />
         <div className="bridge-window-light" aria-hidden="true" />
         <div className="bridge-alarm-light" aria-hidden="true" />
         <span className="bridge-serial" aria-hidden="true">CMR / NAV 03</span>
@@ -255,11 +254,7 @@ export function Bridge() {
         {[
           ['bridge-optics', t.bridge.inspectOptics],
           ['bridge-launch', t.bridge.consoleTitle],
-        ].map(([id, label], index) => <button key={id} onClick={() => {
-          const target = document.getElementById(id);
-          target?.focus({ preventScroll: true });
-          target?.scrollIntoView({ block: 'start' });
-        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+        ].map(([id, label], index) => <button key={id} onClick={() => inspect(id)}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
         <button onClick={() => enterRoom('engineering')}><span aria-hidden="true">03</span><strong>{t.bridge.climbDown}</strong></button>
       </nav>
       <div className="bridge-instruments">

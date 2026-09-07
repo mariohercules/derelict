@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { cutIsolation } from '../game/store';
@@ -132,21 +134,13 @@ function Quarantine() {
 export function ReactorRoom() {
   const t = useStrings();
   const wave = useGame(threatPhase);
-  const inspect = (id: string) => {
-    const target = document.getElementById(id);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: 'start' });
-  };
   return (
     <div className={`scene machine-scene reactor-scene wave-${wave}`}>
       <header className="machine-heading"><div><span className="scene-eyebrow">{t.reactor.sector}</span><h1>{t.reactor.title}</h1></div>
         <span className="machine-state">{t.reactor.vesselLabel}</span>
       </header>
       <div className="reactor-panorama">
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${reactorRoomSmall} 960w, ${reactorRoom} 1672w`} sizes="100vw" />
-          <img src={reactorRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={reactorRoom} small={reactorRoomSmall} />
         <div className="reactor-heat" aria-hidden="true" />
         <span className="reactor-serial" aria-hidden="true">CMR / R-01</span>
         <p className="reactor-caption">{t.reactor.intro}</p>

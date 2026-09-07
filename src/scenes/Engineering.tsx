@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { RoomPlate } from '../ui/RoomPlate';
+import { inspect } from '../ui/inspect';
 import { useGame } from '../ui/useGame';
 import { useMeta } from '../ui/useMeta';
 import { useStrings } from '../ui/useLocale';
@@ -351,10 +353,7 @@ export function Engineering() {
         <span className="machine-state">{online ? t.eng.driveOnline : feed > 0 ? t.eng.driveFed : t.eng.driveOff}</span>
       </header>
       <div className="engineering-panorama" data-online={online}>
-        <picture aria-hidden="true">
-          <source media="(max-width: 900px)" srcSet={`${engineeringRoomSmall} 960w, ${engineeringRoom} 1672w`} sizes="100vw" />
-          <img src={engineeringRoom} width="1672" height="941" alt="" decoding="async" />
-        </picture>
+        <RoomPlate src={engineeringRoom} small={engineeringRoomSmall} />
         <div className="engineering-light" aria-hidden="true" />
         <div className="engineering-mist" aria-hidden="true" />
         <div className="engineering-panorama-serial" aria-hidden="true">CMR / DRIVE 01—02</div>
@@ -368,11 +367,7 @@ export function Engineering() {
           ['engineering-hardware', t.eng.inspectHardware],
           ['engineering-distribution', t.eng.powerBoard],
           ['engineering-passage', t.eng.ladderUp],
-        ].map(([id, label], index) => <button key={id} onClick={() => {
-          const target = document.getElementById(id);
-          target?.focus({ preventScroll: true });
-          target?.scrollIntoView({ block: 'start' });
-        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+        ].map(([id, label], index) => <button key={id} onClick={() => inspect(id)}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
       </nav>
       <div className="machine-stage engineering-stage">
         <div id="engineering-hardware" tabIndex={-1} role="group" aria-label={t.eng.inspectHardware} className="engine-controls">{coilDrive ? <GearAndCoils /> : <><FuseBox /><CoolantManifold /></>}</div>

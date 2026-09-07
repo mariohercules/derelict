@@ -49,7 +49,7 @@ export function PatchBay() {
         <div className="patch-leads">
           {t.cryo.pbColours.map((colour, i) => (
             <button key={colour} className="patch-lead" style={{ '--cable': CABLE_COLOURS[i] } as CSSProperties}
-              onClick={() => { setSelected(i as Cable); setError(null); }} disabled={auxPower}
+              onClick={() => { setSelected(selected === i ? null : (i as Cable)); setError(null); }} disabled={auxPower}
               aria-label={t.cryo.pbSelect(colour)} aria-pressed={selected === i}>
               <span className="patch-plug" aria-hidden="true" /><span>{colour}</span>
             </button>
@@ -75,8 +75,10 @@ export function PatchBay() {
       </div>
       <p className={'instrument-status ' + (auxPower ? 'status-ok' : error ? 'status-bad' : 'status-dim')} role="status">
         {auxPower ? t.cryo.auxOnline : error === 'wrong' ? t.cryo.pbWrong : error === 'incomplete' ? t.cryo.pbIncomplete
-          : selected === null ? t.cryo.pbColours.map((c, i) => c + ': ' + (sockets[i] ?? t.cryo.pbEmpty)).join(' · ')
-          : t.cryo.pbColours[selected] + ' → ' + t.cryo.pbBus + ' ' + (sockets[selected] ?? t.cryo.pbEmpty)}
+          // The whole wiring state stays readable while a lead is selected: the
+          // selection leads, the three assignments follow.
+          : (selected === null ? '' : t.cryo.pbColours[selected] + ' → ' + t.cryo.pbBus + ' ' + (sockets[selected] ?? t.cryo.pbEmpty) + ' · ')
+            + t.cryo.pbColours.map((c, i) => c + ': ' + (sockets[i] ?? t.cryo.pbEmpty)).join(' · ')}
       </p>
     </div>
   );
