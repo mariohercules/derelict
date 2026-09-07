@@ -73,6 +73,18 @@ describe('presentation director', () => {
     expect(direct(release.memory, calm, calm, 20_000).cue).toBeNull();
   });
 
+  it('still cues a discovery made seconds after arriving in a room', () => {
+    // Rooms are entered by a click and discoveries follow from tool calls
+    // seconds later: the arrival accent must not swallow the discovery.
+    const before = base(), arrived = { ...before, room: 'medbay' as const };
+    const arrival = direct(EMPTY_DIRECTOR, arrived, before, 1000);
+    expect(arrival.direction.beat).toBe('arrival');
+    const traced = { ...arrived, chapter2: { ...arrived.chapter2, commandTraced: true } };
+    const discovery = direct(arrival.memory, traced, arrived, 5000);
+    expect(discovery.cue).toBe('discovery');
+    expect(discovery.direction.beat).toBe('discovery');
+  });
+
   it('clears a previous room accent on arrival and stays still after victory', () => {
     const before = base(), s = { ...before, room: 'engineering' as const };
     const arrival = direct(EMPTY_DIRECTOR, s, before, 1000);

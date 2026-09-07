@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
+import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
 import { holdHandle, seatColumn, seatKernel } from '../game/store';
 import { rackCorrect } from '../game/derived';
@@ -178,7 +179,7 @@ export function CoreVault() {
   const seed = useGame((s) => s.seed);
   const sequenced = variantFor(seed, 'core_vault') === 1;
   const correct = useGame(rackCorrect);
-  const armed = useGame((s) => s.ritual.active === 'restore' && s.ritual.phase === 'armed');
+  const armed = useRitualLive('restore');
   const t = useStrings();
   const inspect = (id: string) => {
     const target = document.getElementById(id);

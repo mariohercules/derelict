@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
+import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
 import { holdHandle, openBand, setDish } from '../game/store';
 import { dishAligned } from '../game/derived';
@@ -194,7 +195,7 @@ export function CommsArray() {
   const t = useStrings();
   const aligned = useGame(dishAligned);
   const heard = useGame((s) => s.chapter3.beaconHeard);
-  const armed = useGame((s) => s.ritual.active === 'broadcast' && s.ritual.phase === 'armed');
+  const armed = useRitualLive('broadcast');
   const inspect = (id: string) => {
     const target = document.getElementById(id);
     target?.focus({ preventScroll: true });

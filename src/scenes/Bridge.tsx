@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../ui/useGame';
+import { useRitualLive } from '../ui/useRitualLive';
 import { useStrings } from '../ui/useLocale';
 import { takeStarFix, holdHandle, enterRoom, breakSeal, startInvestigation } from '../game/store';
 import { secretsFor } from '../game/secrets';
@@ -232,7 +233,7 @@ export function Bridge() {
   const seed = useGame((s) => s.seed);
   const trajectory = useGame((s) => s.trajectorySet);
   const fix = useGame((s) => s.starFixTaken);
-  const armed = useGame((s) => s.ritual.active === 'launch' && s.ritual.phase === 'armed');
+  const armed = useRitualLive('launch');
   const status = armed ? t.bridge.launchArmed : trajectory ? t.bridge.courseReady : fix ? t.bridge.fixReady : t.bridge.awaitingFix;
   return (
     <div className="scene bridge-scene" data-armed={armed}>

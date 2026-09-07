@@ -22,6 +22,7 @@ import { playMachineryCue } from './audio/sound';
 import { startDirector } from './presentation/runtime';
 import { Atmosphere } from './ui/Atmosphere';
 import { OpeningScreen } from './ui/OpeningScreen';
+import { SceneBoundary } from './ui/SceneBoundary';
 
 const Epilogue = lazy(() => import('./scenes/Epilogue').then(module => ({ default: module.Epilogue })));
 
@@ -101,6 +102,9 @@ export default function App() {
       if (state.chapter2.irrigationSolved && !prevState.chapter2.irrigationSolved) playBlip();
       if (state.chapter2.crateLifted && !prevState.chapter2.crateLifted) playBlip();
       if (state.chapter === 2 && prevState.chapter === 1) playBlip();
+      // The inciting escalation is an alarm, not a swell: the Kestrel is named and
+      // the kill-switch stirs in the same update, so one alarm covers both.
+      if ((state.killswitch === 'stirring' && prevState.killswitch !== 'stirring') || (state.chapter === 3 && prevState.chapter === 2)) playAlarm();
       if (state.chapter3.shielded.length > prevState.chapter3.shielded.length && !materialCue) playBlip();
       if (state.chapter3.beaconHeard && !prevState.chapter3.beaconHeard) playBeaconPing();
       if (state.ending === 'restore' && prevState.ending !== 'restore') playMergeTheme();
@@ -157,7 +161,7 @@ export default function App() {
       <HUD linked={mc !== null} />
       {!mc && <FallbackBanner />}
       {won ? (
-        <Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Epilogue /></Suspense>
+        <SceneBoundary><Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Epilogue /></Suspense></SceneBoundary>
       ) : (
         <Atmosphere>
           <DeckMap />

@@ -4,13 +4,14 @@ import { SCENES } from '../scenes/registry';
 import { useStrings } from './useLocale';
 import { reducedMotion } from './motion';
 import { playBulkhead } from '../audio/sound';
+import { SceneBoundary } from './SceneBoundary';
 
 const CLOSE_MS = 180;
 const OPEN_MS = 220;
 
 // Renders the scene of the room the crew is in, and cycles a bulkhead when
 // that room changes: leaves close over the old scene, the scene swaps, the
-// leaves open. Never on mount or resume; instant and silent under reduced motion.
+// leaves open. Never on mount or resume; instant under reduced motion (the door still sounds).
 export function Bulkhead({ room }: { room: RoomId }) {
   const [shown, setShown] = useState(room);
   const [phase, setPhase] = useState<'idle' | 'closing' | 'opening'>('idle');
@@ -30,12 +31,13 @@ export function Bulkhead({ room }: { room: RoomId }) {
       if (phase !== 'idle') setPhase('idle'); // a reversal landed us back where we started
       return;
     }
+    // The door sounds whenever a room changes; motion preferences govern motion only.
+    playBulkhead();
     if (reducedMotion()) {
       setShown(room);
       return;
     }
     setPhase('closing');
-    playBulkhead();
     timers.current.push(window.setTimeout(() => { setShown(room); setPhase('opening'); }, CLOSE_MS));
     timers.current.push(window.setTimeout(() => setPhase('idle'), CLOSE_MS + OPEN_MS));
     return () => {
@@ -50,7 +52,9 @@ export function Bulkhead({ room }: { room: RoomId }) {
   return (
     <>
       <main id="room-view" className="room-view" ref={roomView} tabIndex={-1}>
-        <Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Scene /></Suspense>
+        <SceneBoundary key={shown}>
+          <Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Scene /></Suspense>
+        </SceneBoundary>
       </main>
       <div className={`bulkhead ${phase}`} aria-hidden="true">
         <div className="leaf left" />

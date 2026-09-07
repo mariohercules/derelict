@@ -1,8 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual, isArmed, ritualExpired } from './ritual';
+import { IDLE_RITUAL, RITUALS, armRitual, confirmRitual, isArmed, ritualExpired, ritualLive } from './ritual';
 
 const T0 = 1_000_000;
 const W = RITUALS.launch.windowMs;
+
+describe('ritualLive — armed, this ritual, and the window still open', () => {
+  it('is true inside the window and false once it lapses, even though the phase stays armed', () => {
+    const { next } = armRitual(IDLE_RITUAL, 'launch', T0);
+    expect(ritualLive(next, 'launch', T0 + 1000)).toBe(true);
+    expect(ritualLive(next, 'launch', T0 + W)).toBe(true); // the deadline itself still counts
+    expect(ritualLive(next, 'launch', T0 + W + 1)).toBe(false);
+    expect(next.phase).toBe('armed'); // the store never rewrites the phase on expiry
+  });
+
+  it('is false for another ritual, for idle, and for done', () => {
+    const { next } = armRitual(IDLE_RITUAL, 'launch', T0);
+    expect(ritualLive(next, 'restore', T0 + 1000)).toBe(false);
+    expect(ritualLive(IDLE_RITUAL, 'launch', T0)).toBe(false);
+    expect(ritualLive({ ...next, phase: 'done' }, 'launch', T0 + 1000)).toBe(false);
+  });
+});
 
 describe('armRitual', () => {
   it('arms from idle with a window', () => {

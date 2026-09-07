@@ -69,7 +69,7 @@ export function noiseBuffer(c: AudioContext, seconds: number): AudioBuffer {
 
 function tone(freq: number, durationMs: number, type: OscillatorType, gainValue: number, delay = 0): void {
   const c = ensureCtx();
-  if (!c || !master) return;
+  if (!c || !master || !effects) return;
   const osc = c.createOscillator();
   const gain = c.createGain();
   osc.type = type;
@@ -77,7 +77,7 @@ function tone(freq: number, durationMs: number, type: OscillatorType, gainValue:
   const start = c.currentTime + delay;
   gain.gain.setValueAtTime(gainValue, start);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + durationMs / 1000);
-  osc.connect(gain).connect(effects!);
+  osc.connect(gain).connect(effects);
   osc.start(start);
   osc.stop(start + durationMs / 1000);
 }
@@ -86,7 +86,7 @@ function tone(freq: number, durationMs: number, type: OscillatorType, gainValue:
 // impact together even when the browser is busy rendering the new room state.
 function contactNoise(ms: number, hz: number, level: number, delay = 0): void {
   const c = ensureCtx();
-  if (!c || !master) return;
+  if (!c || !master || !effects) return;
   const source = c.createBufferSource();
   source.buffer = noiseBuffer(c, ms / 1000);
   const filter = c.createBiquadFilter();
@@ -97,7 +97,7 @@ function contactNoise(ms: number, hz: number, level: number, delay = 0): void {
   const start = c.currentTime + delay;
   envelope.gain.setValueAtTime(level, start);
   envelope.gain.exponentialRampToValueAtTime(0.0001, start + ms / 1000);
-  source.connect(filter).connect(envelope).connect(effects!);
+  source.connect(filter).connect(envelope).connect(effects);
   source.start(start);
   source.stop(start + ms / 1000);
 }
@@ -199,7 +199,7 @@ export function playRelayClick(): void {
 // A bulkhead cycling: servo hiss, then the thunk of the leaves meeting.
 export function playBulkhead(): void {
   const c = ensureCtx();
-  if (!c || !master) return;
+  if (!c || !master || !effects) return;
   const src = c.createBufferSource();
   src.buffer = noiseBuffer(c, 0.4);
   const lp = c.createBiquadFilter();
@@ -208,7 +208,7 @@ export function playBulkhead(): void {
   const g = c.createGain();
   g.gain.setValueAtTime(0.05, c.currentTime);
   g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.4);
-  src.connect(lp).connect(g).connect(effects!);
+  src.connect(lp).connect(g).connect(effects);
   src.start();
   src.stop(c.currentTime + 0.4);
   setTimeout(() => tone(70, 220, 'sine', 0.08), 180);

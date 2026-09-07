@@ -26,7 +26,10 @@ export function direct(memory: DirectorMemory, s: GameState, before: GameState, 
   listening = false, reduced = false): { memory: DirectorMemory; direction: Direction; cue: DirectorCue | null } {
   let next = memory.until > now ? memory : { ...memory, accent: 'idle' as const, until: 0 };
   const fresh = s.seed !== before.seed || s.chapter < before.chapter || (!s.auxPower && before.auxPower);
-  const accent = (kind: Accent, ms: number): DirectorMemory => ({ accent: kind, until: now + ms, quietUntil: now + 12_000 });
+  // How long an accent keeps later discoveries quiet. Arrival never does: rooms
+  // are entered by a click and discoveries follow from tool calls seconds later.
+  const QUIET_MS: Record<Accent, number> = { idle: 0, arrival: 0, impact: 5000, release: 5000, discovery: 12_000 };
+  const accent = (kind: Accent, ms: number): DirectorMemory => ({ accent: kind, until: now + ms, quietUntil: now + QUIET_MS[kind] });
   if (fresh || s.won) next = { ...EMPTY_DIRECTOR };
   else if (listening) next = { accent: 'idle', until: 0, quietUntil: now + 5000 };
   else if (s.room !== before.room) next = accent('arrival', 2400);

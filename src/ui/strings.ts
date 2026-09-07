@@ -21,6 +21,7 @@ export interface UIStrings {
     youSee: string; aiOperates: string; resume: string; reviewEnding: string; resumeAt: (room: string) => string;
     howToPlay: string; flightRecord: string; newJourney: string; newJourneyWarning: string; keepJourney: string; startNew: string;
     linkActive: string; linkMissing: string; twoCrew: string; mainMenu: string; close: string; connection: string; inviteTitle: string; accessing: string;
+    sceneLostTitle: string; sceneLostBody: string; sceneReload: string;
     tagline: string;
     wakeUp: string;
     abandonRun: string;
@@ -225,6 +226,9 @@ const en: UIStrings = {
     keepJourney: 'Keep this journey', startNew: 'Start new journey',
     linkActive: 'Auxiliary link active', linkMissing: 'AI link unavailable · connection help', twoCrew: 'Two crewmates. One way forward.',
     mainMenu: 'Main menu', close: 'Close', connection: 'Auxiliary connection', inviteTitle: 'Incoming ship invitation', accessing: 'Accessing…',
+    sceneLostTitle: 'COMPARTMENT UNREACHABLE',
+    sceneLostBody: 'The ship could not load this compartment — the link dropped mid-transfer. Reconnect to try again; your progress is saved.',
+    sceneReload: 'Reconnect',
     tagline: 'A two-crew escape. You see the ship. Your AI runs it. Neither of you leaves alone.',
     wakeUp: 'Wake up',
     abandonRun: 'Abandon previous run',
@@ -690,6 +694,9 @@ const ptBR: UIStrings = {
     keepJourney: 'Manter esta jornada', startNew: 'Iniciar nova jornada',
     linkActive: 'Link auxiliar ativo', linkMissing: 'Link com a IA indisponível · ver conexão', twoCrew: 'Dois tripulantes. Um caminho adiante.',
     mainMenu: 'Menu principal', close: 'Fechar', connection: 'Conexão auxiliar', inviteTitle: 'Convite de nave recebido', accessing: 'Acessando…',
+    sceneLostTitle: 'COMPARTIMENTO INACESSÍVEL',
+    sceneLostBody: 'A nave não conseguiu carregar este compartimento — o link caiu no meio da transferência. Reconecte para tentar de novo; seu progresso está salvo.',
+    sceneReload: 'Reconectar',
     tagline: 'Uma fuga para dois tripulantes. Você vê a nave. Sua IA a opera. Nenhum dos dois sai sozinho.',
     wakeUp: 'Acordar',
     abandonRun: 'Abandonar jornada anterior',

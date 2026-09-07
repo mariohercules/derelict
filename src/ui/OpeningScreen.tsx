@@ -12,6 +12,7 @@ import { AtmosphereToggle } from './Atmosphere';
 import type { OpeningPanelId } from './OpeningPanel';
 
 const OpeningPanel = lazy(() => import('./OpeningPanel'));
+import { SceneBoundary } from './SceneBoundary';
 
 interface OpeningProps {
   saved: GameState | null;
@@ -77,9 +78,9 @@ export function OpeningScreen({ saved, linked, invite, plusAllowed, onEngage, on
       </div>
       <span className="opening-crew">{t.app.twoCrew}</span>
     </footer>
-    {panel && <Suspense fallback={<span className="opening-loading" role="status">{t.app.accessing}</span>}>
+    {panel && <SceneBoundary><Suspense fallback={<span className="opening-loading" role="status">{t.app.accessing}</span>}>
       <OpeningPanel panel={panel} linked={linked} invite={invite} hasSave={saved !== null} plusAllowed={plusAllowed}
         onClose={() => setPanel(null)} onNew={() => begin(onNew)} onInvite={() => begin(onInvite)} />
-    </Suspense>}
+    </Suspense></SceneBoundary>}
   </main>;
 }

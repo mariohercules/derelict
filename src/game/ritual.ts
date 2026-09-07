@@ -27,6 +27,13 @@ export function ritualExpired(r: RitualState, now: number): boolean {
   return r.phase === 'armed' && r.endsAt !== null && now > r.endsAt;
 }
 
+// Armed, this ritual, and the window still open. The store never rewrites the
+// phase when a window lapses — every consumer of `phase === 'armed'` that
+// shows or sounds something must go through this clock check.
+export function ritualLive(r: RitualState, id: RitualId, now: number): boolean {
+  return isArmed(r, id) && !ritualExpired(r, now);
+}
+
 export function armRitual(r: RitualState, id: RitualId, now: number, windowMs: number = RITUALS[id].windowMs): { next: RitualState; result: ActionResult } {
   if (r.phase === 'done') {
     return { next: r, result: { ok: false, message: 'That sequence has already completed.' } };
