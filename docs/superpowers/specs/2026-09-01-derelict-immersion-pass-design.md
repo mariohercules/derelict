@@ -258,4 +258,4 @@ One plan, tasks in this order, each leaving the game playable and green:
 
 ---
 
-**Shipped 2026-09-01** — 316 tests; the Immersion Pass is live (AUX LINK console, diegetic mixer, cold open + bulkheads, ending vignettes + FLIGHT RECORD, ship codes).
+**Shipped 2026-09-07** — 357 tests; the Immersion Pass is live on main together with Mario's cinematic cut (e2213d6) and its pre-merge fixes (21077a0) (AUX LINK console, diegetic mixer, cold open + bulkheads, ending vignettes + FLIGHT RECORD, ship codes).
