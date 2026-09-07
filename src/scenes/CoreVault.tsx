@@ -6,6 +6,8 @@ import { rackCorrect } from '../game/derived';
 import type { ColumnId } from '../game/types';
 import { variantFor } from '../game/variants';
 import { SequencedRack } from './SequencedRack';
+import vaultRoom from '../assets/vault-room.webp';
+import vaultRoomSmall from '../assets/vault-room-small.webp';
 
 const CYCLE: (ColumnId | null)[] = [null, 'A', 'B', 'C', 'D'];
 const CRADLE_H = 34;
@@ -83,7 +85,7 @@ function Rack() {
           );
         })}
       </svg>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8, marginTop: 10, maxWidth: 440 }}>
+      <div className="vault-cradle-controls">
         {([0, 1, 2, 3] as const).map((slot) => (
           <button key={slot} onClick={() => cycle(slot)} disabled={kernel} aria-label={t.vault.cycleAria(slot + 1)}>
             {t.vault.cradle(slot + 1)}: {rack[slot] ?? t.vault.empty}
@@ -156,6 +158,7 @@ function KernelCradle() {
         </>
       )}
       <button
+        className="ritual-handle"
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); holdHandle(true); }}
         onPointerUp={() => holdHandle(false)}
         onPointerCancel={() => holdHandle(false)}
@@ -163,7 +166,7 @@ function KernelCradle() {
         onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') holdHandle(false); }}
         onBlur={() => holdHandle(false)}
         disabled={!armed || elapsed}
-        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch', marginTop: 10 }}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, marginTop: 10 }}
       >
         {ritual.held && armed && !elapsed ? t.vault.leverHolding : t.vault.leverHold}
       </button>
@@ -174,16 +177,36 @@ function KernelCradle() {
 export function CoreVault() {
   const seed = useGame((s) => s.seed);
   const sequenced = variantFor(seed, 'core_vault') === 1;
+  const correct = useGame(rackCorrect);
+  const armed = useGame((s) => s.ritual.active === 'restore' && s.ritual.phase === 'armed');
   const t = useStrings();
+  const inspect = (id: string) => {
+    const target = document.getElementById(id);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'start' });
+  };
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.vault.title}</h2>
-        <p>{t.vault.intro}</p>
+    <div className={`scene vault-scene${armed ? ' vault-armed' : correct ? ' vault-ready' : ''}`}>
+      <header className="vault-heading"><div><span className="scene-eyebrow">{t.vault.sector}</span><h1>{t.vault.title}</h1></div><span className="vault-state">PRIME / MEMORY</span></header>
+      <div className="vault-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${vaultRoomSmall} 960w, ${vaultRoom} 1672w`} sizes="100vw" />
+          <img src={vaultRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="vault-dust" aria-hidden="true" />
+        <span className="vault-serial" aria-hidden="true">CMR / PRIME</span>
+        <p className="vault-caption">{t.vault.intro}</p>
       </div>
-      {sequenced ? <SequencedRack /> : <Rack />}
-      <FragmentConsole />
-      <KernelCradle />
+      <nav className="vault-stations" aria-label={t.vault.title}>
+        <button onClick={() => inspect('vault-rack')}><span aria-hidden="true">01</span><strong>{t.vault.rackTitle}</strong><span aria-hidden="true">↘</span></button>
+        <button onClick={() => inspect('vault-fragments')}><span aria-hidden="true">02</span><strong>{t.vault.consoleTitle}</strong><span aria-hidden="true">↘</span></button>
+        {correct && <button onClick={() => inspect('vault-kernel')}><span aria-hidden="true">03</span><strong>{t.vault.kernelTitle}</strong><span aria-hidden="true">↘</span></button>}
+      </nav>
+      <div className="vault-instruments">
+        <section id="vault-rack" tabIndex={-1} aria-label={t.vault.rackTitle}>{sequenced ? <SequencedRack /> : <Rack />}</section>
+        <section id="vault-fragments" tabIndex={-1} aria-label={t.vault.consoleTitle}><FragmentConsole /></section>
+        {correct && <section id="vault-kernel" tabIndex={-1} aria-label={t.vault.kernelTitle}><KernelCradle /></section>}
+      </div>
       <p className="status-dim">{t.vault.next}</p>
     </div>
   );

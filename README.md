@@ -40,6 +40,45 @@ The interface and ship narrative are available in **English and Brazilian Portug
 game auto-detects your browser language, and an EN/PT-BR toggle sits in the corner. Tool
 names and machine codes stay in English in both; ships do not translate codes.
 
+The opening places you beside a photographic cryopod, with a live HTML menu over the
+scene. **WAKE UP**, **CONTINUE JOURNEY** or **VIEW ENDING** follows your saved state;
+instructions, the flight record and incoming hull invitations open in keyboard-accessible
+dialogs. Starting a new journey asks before replacing the current save. A fresh start
+approaches the glass and continues into the same compartment's thaw cycle, which can be
+skipped. Sound, language and **SUBTLE** effects are available before entering the ship.
+
+The cryo bay continues that photographic world with an empty pod, a maintenance cabinet
+and a bulkhead leading into a deep corridor. Three aligned room images follow auxiliary
+power and the actual door lock. Inspect the cabinet to remove its grille and operate the
+breaker or cable puzzle, or examine Okafor's original photograph. These remain native
+controls, usable with touch, mouse or keyboard; closing an inspection restores focus.
+On phones the full room appears above the object actions.
+
+The AUX LINK starts compact, with bus status and the latest event still visible; expand
+it for individual tools, or open the deck map when you need it. Reduced-motion settings
+keep the room's state changes visible without ambient movement.
+
+Engineering now opens on a photographic panorama of sealed turbines, pipework and a deep
+catwalk, with native shortcuts to its instrument stations. Ambient light follows engine
+state, and reduced motion disables the drifting haze.
+
+Engineering extends that physical interface to fuse cartridges, valve wheels, the coil-drive
+variant and the bridge hatch. Its ambient engine light activates only when the engine system is complete.
+The reactor deck shows individual isolation blades, bus protection and quarantine progress;
+lighting and material sounds follow wave onset, recovery and containment. Readings and
+immune systems remain available when vulnerable commands are restricted.
+
+The bridge continues the photographic presentation with empty pilot seats and a cracked
+forward viewport. Native station shortcuts lead to the existing navigation and launch
+instruments; the header follows fix, trajectory and launch state. Decorative window
+light honors reduced motion, and an amber wash appears while launch is armed.
+
+A presentation director now gives discoveries, wave warnings, impacts, recovery and joint
+rituals their own light and sound pacing. Okafor's tape lowers ambience and effects while
+the voice plays; **SOUND** also stops the recording or its synthetic fallback, and the tape
+has a separate stop button. Switch **EFFECTS** to **SUBTLE** to remove the edge lighting and
+ambient machinery movement. This preference is saved alongside sound and console settings.
+
 Chapter 2 opens from the bridge once the sealed log is read. Chapter 3 opens when the
 Kestrel is named; the lower deck is the reactor room, the core vault and the comms array,
 and the game ends at one of the joint rituals.
@@ -119,7 +158,7 @@ The implementation lives mostly in [`src/mcp/`](src/mcp/):
 ```bash
 npm install
 npm run dev    # start the dev server
-npm test       # run the test suite (Vitest, 316 tests)
+npm test       # run the test suite (Vitest, 354 tests)
 ```
 
 `npm run build` runs a type check (`tsc`) and produces a production build via Vite.

@@ -1,6 +1,8 @@
 import { useGame } from '../ui/useGame';
 import { useStrings } from '../ui/useLocale';
 import { examineMedband } from '../game/store';
+import medbayRoom from '../assets/medbay-room.webp';
+import medbayRoomSmall from '../assets/medbay-room-small.webp';
 
 // Deterministic ECG-like trace across a 300-wide strip: a flat baseline with
 // periodic QRS spikes whose amplitude decays toward the induction band.
@@ -89,13 +91,29 @@ function BurnedTerminal({ burnIn, aria }: { burnIn: string; aria: string }) {
 export function Medbay() {
   const t = useStrings();
   const examined = useGame((s) => s.chapter2.medbandExamined);
+  const inspect = (id: string) => {
+    const target = document.getElementById(id);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'start' });
+  };
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.medbay.title}</h2>
-        <p>{t.medbay.intro}</p>
+    <div className="scene medbay-scene">
+      <header className="medbay-heading"><div><span className="scene-eyebrow">{t.medbay.sector}</span><h1>{t.medbay.title}</h1></div><span className="medbay-state">CMR / MED-07</span></header>
+      <div className="medbay-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${medbayRoomSmall} 960w, ${medbayRoom} 1672w`} sizes="100vw" />
+          <img src={medbayRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="medbay-haze" aria-hidden="true" />
+        <span className="medbay-serial" aria-hidden="true">CMR / MEDICAL</span>
+        <p className="medbay-caption">{t.medbay.intro}</p>
       </div>
-      <div className="panel">
+      <nav className="medbay-stations" aria-label={t.medbay.title}>
+        <button onClick={() => inspect('medbay-band')}><span aria-hidden="true">01</span><strong>{t.medbay.bandTitle}</strong><span aria-hidden="true">↘</span></button>
+        <button onClick={() => inspect('medbay-terminal')}><span aria-hidden="true">02</span><strong>{t.medbay.terminalTitle}</strong><span aria-hidden="true">↘</span></button>
+      </nav>
+      <div className="medbay-instruments">
+      <section id="medbay-band" tabIndex={-1} aria-label={t.medbay.bandTitle} className="panel">
         <h2>{t.medbay.bandTitle}</h2>
         <p className="status-dim">{t.medbay.bandDesc}</p>
         <StripChart examined={examined} aria={t.medbay.bandAria} />
@@ -104,12 +122,13 @@ export function Medbay() {
         ) : (
           <button style={{ marginTop: 10 }} onClick={() => examineMedband()}>{t.medbay.examine}</button>
         )}
-      </div>
-      <div className="panel">
+      </section>
+      <section id="medbay-terminal" tabIndex={-1} aria-label={t.medbay.terminalTitle} className="panel">
         <h2>{t.medbay.terminalTitle}</h2>
         <p className="status-dim">{t.medbay.terminalDesc}</p>
         <BurnedTerminal burnIn={t.medbay.burnIn} aria={`${t.medbay.terminalTitle}: ${t.medbay.burnIn}`} />
         <p className="status-dim" style={{ marginTop: 10 }}>{t.medbay.next}</p>
+      </section>
       </div>
     </div>
   );

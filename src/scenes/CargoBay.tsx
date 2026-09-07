@@ -5,6 +5,8 @@ import { liftCrate, moveCrane } from '../game/store';
 import { secretsFor, slotLabel } from '../game/secrets';
 import { variantFor } from '../game/variants';
 import { StackedDeck } from './StackedDeck';
+import cargoRoom from '../assets/cargo-room.webp';
+import cargoRoomSmall from '../assets/cargo-room-small.webp';
 
 const CELL = 74;
 const X0 = 46;
@@ -79,7 +81,7 @@ function CraneDeck() {
           <path d={`M ${X0 + CELL / 2 - 6} ${Y0 + CELL / 2 + 26} q 6 10 12 0`} fill="none" stroke="var(--brass)" strokeWidth="2.5" />
         </g>
       </svg>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 6, justifyContent: 'start', marginTop: 10 }}>
+      <div className="cargo-direction-pad">
         <span />
         <button onClick={() => moveCrane('up')} disabled={lifted} aria-label={t.cargo.up}>{t.cargo.up}</button>
         <span />
@@ -143,15 +145,39 @@ function HullFragment() {
 export function CargoBay() {
   const seed = useGame((s) => s.seed);
   const stacked = variantFor(seed, 'cargo_bay') === 1;
+  const lifted = useGame((s) => s.chapter2.crateLifted);
+  const analyzed = useGame((s) => s.chapter2.sampleAnalyzed);
+  const craneAt = useGame((s) => s.chapter2.craneAt);
   const t = useStrings();
+  const inspect = (id: string) => {
+    const target = document.getElementById(id);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'start' });
+  };
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.cargo.title}</h2>
-        <p>{t.cargo.intro}</p>
+    <div className="scene cargo-scene">
+      <header className="cargo-heading">
+        <div><span className="scene-eyebrow">{t.cargo.sector}</span><h1>{t.cargo.title}</h1></div>
+        <span className="cargo-state" role="status">{analyzed ? t.cargo.analysisReady : lifted ? t.cargo.cargoRecovered : t.cargo.awaitingCargo}</span>
+      </header>
+      <div className="cargo-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${cargoRoomSmall} 960w, ${cargoRoom} 1672w`} sizes="100vw" />
+          <img src={cargoRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="cargo-dust" aria-hidden="true" />
+        <span className="cargo-serial" aria-hidden="true">CMR / FREIGHT</span>
+        <p className="cargo-caption">{t.cargo.intro}</p>
       </div>
-      {stacked ? <StackedDeck /> : <CraneDeck />}
-      <HullFragment />
+      <nav className="cargo-stations" aria-label={t.cargo.stationNav}>
+        <button onClick={() => inspect('cargo-crane')}><span aria-hidden="true">01</span><strong>{t.cargo.craneTitle}</strong><span aria-hidden="true">↘</span></button>
+        {lifted ? <button onClick={() => inspect('cargo-fragment')}><span aria-hidden="true">02</span><strong>{t.cargo.fragmentTitle}</strong><span aria-hidden="true">↘</span></button>
+          : <div className="cargo-position" role="status"><span>{t.cargo.cranePosition}</span><strong>{slotLabel(craneAt)}</strong></div>}
+      </nav>
+      <div className="cargo-instruments">
+        <section id="cargo-crane" tabIndex={-1} aria-label={t.cargo.craneTitle}>{stacked ? <StackedDeck /> : <CraneDeck />}</section>
+        {lifted && <section id="cargo-fragment" tabIndex={-1} aria-label={t.cargo.fragmentTitle}><HullFragment /></section>}
+      </div>
     </div>
   );
 }

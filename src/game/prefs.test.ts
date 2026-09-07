@@ -31,10 +31,25 @@ describe('prefs', () => {
 
   it('setPref updates the store and persists; hydratePrefs reads it back', () => {
     setPref('muted', true);
-    expect(prefsStore.getState()).toEqual({ version: 1, muted: true, linkCollapsed: false });
-    expect(JSON.parse(storage.get(PREFS_KEY)!)).toEqual({ version: 1, muted: true, linkCollapsed: false });
+    expect(prefsStore.getState()).toEqual({ version: 1, muted: true, linkCollapsed: true, effectsReduced: false });
+    expect(JSON.parse(storage.get(PREFS_KEY)!)).toEqual({ version: 1, muted: true, linkCollapsed: true, effectsReduced: false });
     prefsStore.setState(EMPTY_PREFS, true);
     hydratePrefs();
     expect(prefsStore.getState().muted).toBe(true);
+  });
+
+  it('starts compact but preserves an existing expanded-console preference', () => {
+    expect(loadPrefs().linkCollapsed).toBe(true);
+    storage.set(PREFS_KEY, JSON.stringify({ version: 1, muted: false, linkCollapsed: false }));
+    hydratePrefs();
+    expect(prefsStore.getState().linkCollapsed).toBe(false);
+    expect(prefsStore.getState().effectsReduced).toBe(false);
+  });
+
+  it('persists subtle effects and rejects malformed values', () => {
+    setPref('effectsReduced', true);
+    hydratePrefs();
+    expect(prefsStore.getState().effectsReduced).toBe(true);
+    expect(validPrefs({ ...EMPTY_PREFS, effectsReduced: 'yes' })).toBe(false);
   });
 });

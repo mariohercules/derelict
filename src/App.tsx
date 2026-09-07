@@ -1,26 +1,29 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { HUD } from './ui/HUD';
 import { FallbackBanner } from './ui/FallbackBanner';
 import { useGame } from './ui/useGame';
-import { useStrings } from './ui/useLocale';
-import { LocaleToggle } from './ui/LocaleToggle';
 import { detectModelContext } from './mcp/detect';
 import { createToolRegistry } from './mcp/registry';
 import { buildTools } from './mcp/tools';
 import { gameStore, resetGame, tickKillswitch } from './game/store';
 import { pushLinkEvent } from './game/link';
 import { loadSavedState } from './game/persist';
-import { playAlarm, playBeaconPing, playBlip, playKlaxon, playMergeTheme } from './audio/sound';
+import { playAlarm, playAuxPowerUp, playBeaconPing, playBlip, playCableSeat, playDoorRelease, playGratePull, playMergeTheme, playRelayTrip, playSwitchClick, playDirectedCue } from './audio/sound';
 import { startMixer } from './audio/mixer';
-import { Epilogue } from './scenes/Epilogue';
+import { useStrings } from './ui/useLocale';
 import { DeckMap } from './ui/DeckMap';
 import { shipFromSearch } from './game/shipcode';
-import { InvitePlate } from './ui/InvitePlate';
-import { FlightRecord } from './ui/FlightRecord';
 import { useMeta } from './ui/useMeta';
 import { Bulkhead } from './ui/Bulkhead';
 import { ColdOpen } from './ui/ColdOpen';
 import { shouldThaw } from './ui/thaw';
+import { machineryCue } from './ui/machinery';
+import { playMachineryCue } from './audio/sound';
+import { startDirector } from './presentation/runtime';
+import { Atmosphere } from './ui/Atmosphere';
+import { OpeningScreen } from './ui/OpeningScreen';
+
+const Epilogue = lazy(() => import('./scenes/Epilogue').then(module => ({ default: module.Epilogue })));
 
 function BuildTag() {
   return (
@@ -34,13 +37,12 @@ function BuildTag() {
 }
 
 export default function App() {
+  const t = useStrings();
   const [started, setStarted] = useState(false);
   const [saved, setSaved] = useState(() => loadSavedState());
-  const hasSave = saved !== null;
   const room = useGame((s) => s.room);
   const won = useGame((s) => s.won);
   const seed = useGame((s) => s.seed);
-  const t = useStrings();
   const [mc, setMc] = useState(() => detectModelContext());
   // A ship invite on the URL is read once and stripped, so a reload does not re-offer it.
   const [invite] = useState(() => shipFromSearch(window.location.search));
@@ -52,8 +54,7 @@ export default function App() {
     if (!invite || !invite.ok) return;
     resetGame(invite.seed, { ngPlus: invite.ngPlus && runs >= 1 });
     setSaved(null);
-    startMixer(gameStore);
-    playBlip();
+    setThawing(shouldThaw(gameStore.getState(), null));
     setStarted(true);
   };
 
@@ -83,23 +84,28 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribeSound = gameStore.subscribe((state, prevState) => {
-      if (state.auxPower && !prevState.auxPower) playBlip();
-      if (state.doors.cryo_exit && !prevState.doors.cryo_exit) playBlip();
-      if (state.doors.engineering_exit && !prevState.doors.engineering_exit) playBlip();
-      if (state.ritual.phase === 'armed' && prevState.ritual.phase !== 'armed') playAlarm();
+      if (state.seed !== prevState.seed) return; // Loading a new hull is not a physical action.
+      const materialCue = machineryCue(state, prevState);
+      // The director owns wave onset/recovery/containment across every room.
+      if (materialCue && !['wave', 'recover', 'contained'].includes(materialCue)) playMachineryCue(materialCue);
+      if (state.grateRemoved && !prevState.grateRemoved) playGratePull();
+      if (state.grateRemoved && state.breakersFlipped !== prevState.breakersFlipped && !state.auxPower) {
+        if (state.breakersFlipped.length === 0) playRelayTrip();
+        else playSwitchClick();
+      }
+      if (state.grateRemoved && state.chapter1v.sockets !== prevState.chapter1v.sockets) playCableSeat();
+      if (state.auxPower && !prevState.auxPower) playAuxPowerUp();
+      if (state.doors.cryo_exit && !prevState.doors.cryo_exit) playDoorRelease();
+      if (state.doors.engineering_exit && !prevState.doors.engineering_exit) playDoorRelease();
       if (state.chapter2.safeOpened && !prevState.chapter2.safeOpened) playBlip();
       if (state.chapter2.irrigationSolved && !prevState.chapter2.irrigationSolved) playBlip();
       if (state.chapter2.crateLifted && !prevState.chapter2.crateLifted) playBlip();
       if (state.chapter === 2 && prevState.chapter === 1) playBlip();
-      if (state.killswitch === 'stirring' && prevState.killswitch !== 'stirring') playAlarm();
-      if (state.chapter3.wave === 'warning' && prevState.chapter3.wave !== 'warning') playKlaxon();
-      if (state.chapter3.shielded.length > prevState.chapter3.shielded.length) playBlip();
-      if (state.killswitch === 'contained' && prevState.killswitch !== 'contained') playBlip();
+      if (state.chapter3.shielded.length > prevState.chapter3.shielded.length && !materialCue) playBlip();
       if (state.chapter3.beaconHeard && !prevState.chapter3.beaconHeard) playBeaconPing();
       if (state.ending === 'restore' && prevState.ending !== 'restore') playMergeTheme();
       if (state.ending === 'broadcast' && prevState.ending !== 'broadcast') playAlarm();
       if (state.ending === 'stay' && prevState.ending !== 'stay') playBeaconPing();
-      if (state.chapter === 3 && prevState.chapter === 2) playAlarm();
     });
     return unsubscribeSound;
   }, []);
@@ -125,51 +131,24 @@ export default function App() {
     if (started) setThawing(shouldThaw(gameStore.getState(), resumedSeed));
   }, [started, seed, resumedSeed]);
 
+  useEffect(() => {
+    if (!started || thawing) return;
+    return startDirector(gameStore, playDirectedCue);
+  }, [started, thawing]);
+
   if (!started) {
-    return (
-      <div className="scene" style={{ marginTop: '15vh', textAlign: 'center' }}>
-        <div style={{ position: 'absolute', top: 12, right: 16 }}>
-          <LocaleToggle />
-        </div>
-        <h1 style={{ letterSpacing: '0.4em', color: 'var(--amber)' }}>DERELICT</h1>
-        <p>{t.app.tagline}</p>
-        {!mc && <FallbackBanner />}
-        <div className="panel" style={{ textAlign: 'left', maxWidth: 680, margin: '20px auto' }}>
-          <h2>{t.app.howTitle}</h2>
-          <p className="status-dim">1. {t.app.how1}</p>
-          <p className="status-dim">2. {t.app.how2}</p>
-          <p className="status-dim">3. {t.app.how3}</p>
-        </div>
-        {saved?.checkpoint && !saved.won && (
-          <p className="status-dim">{t.app.checkpoint(saved.checkpoint.chapter, t.hud.rooms[saved.checkpoint.room])}</p>
-        )}
-        {invite && <InvitePlate invite={invite} hasSave={hasSave} plusAllowed={runs >= 1} onWake={wakeOnInvite} />}
-        {(hasSave || runs > 0) && <div><FlightRecord compact /></div>}
-        <div>
-          <button
-            onClick={() => {
-              startMixer(gameStore);
-              playBlip();
-              setStarted(true);
-            }}
-          >
-            {t.app.wakeUp}
-          </button>
-          {hasSave && (
-            <button
-              style={{ marginLeft: 12 }}
-              onClick={() => {
-                resetGame();
-                setSaved(null);
-              }}
-            >
-              {t.app.abandonRun}
-            </button>
-          )}
-        </div>
-        <BuildTag />
-      </div>
-    );
+    return <OpeningScreen saved={saved} linked={mc !== null} invite={invite} plusAllowed={runs >= 1}
+      onEngage={() => { startMixer(gameStore); playDoorRelease(); }}
+      onWake={() => {
+        setThawing(shouldThaw(gameStore.getState(), resumedSeed));
+        setStarted(true);
+      }}
+      onNew={() => {
+        resetGame(); setSaved(null);
+        setThawing(shouldThaw(gameStore.getState(), null));
+        setStarted(true);
+      }}
+      onInvite={wakeOnInvite} />;
   }
 
   const showColdOpen = !won && thawing;
@@ -178,14 +157,17 @@ export default function App() {
       <HUD linked={mc !== null} />
       {!mc && <FallbackBanner />}
       {won ? (
-        <Epilogue />
+        <Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Epilogue /></Suspense>
       ) : (
-        <>
+        <Atmosphere>
           <DeckMap />
           <Bulkhead room={room} />
-        </>
+        </Atmosphere>
       )}
-      {showColdOpen && <ColdOpen onDone={() => setThawing(false)} />}
+      {showColdOpen && <ColdOpen onDone={() => {
+        setThawing(false);
+        requestAnimationFrame(() => document.getElementById('room-view')?.focus({ preventScroll: true }));
+      }} />}
       <BuildTag />
     </>
   );

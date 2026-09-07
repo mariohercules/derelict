@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import type { RoomId } from '../game/types';
 import { SCENES } from '../scenes/registry';
 import { useStrings } from './useLocale';
@@ -15,7 +15,15 @@ export function Bulkhead({ room }: { room: RoomId }) {
   const [shown, setShown] = useState(room);
   const [phase, setPhase] = useState<'idle' | 'closing' | 'opening'>('idle');
   const timers = useRef<number[]>([]);
+  const roomView = useRef<HTMLElement>(null);
   const t = useStrings();
+
+  useEffect(() => {
+    // A door can be far down the previous room, especially on a phone.
+    // Arrive at the new room's beginning instead of inheriting that scroll.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    roomView.current?.focus({ preventScroll: true });
+  }, [shown]);
 
   useEffect(() => {
     if (room === shown) {
@@ -41,7 +49,9 @@ export function Bulkhead({ room }: { room: RoomId }) {
   const Scene = SCENES[shown];
   return (
     <>
-      <Scene />
+      <main id="room-view" className="room-view" ref={roomView} tabIndex={-1}>
+        <Suspense fallback={<p className="scene" role="status">{t.app.accessing}</p>}><Scene /></Suspense>
+      </main>
       <div className={`bulkhead ${phase}`} aria-hidden="true">
         <div className="leaf left" />
         <div className="leaf right" />

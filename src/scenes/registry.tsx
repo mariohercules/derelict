@@ -1,25 +1,17 @@
-import type { JSX } from 'react';
+import { lazy, type ComponentType } from 'react';
 import type { RoomId } from '../game/types';
-import { CryoBay } from './CryoBay';
-import { Engineering } from './Engineering';
-import { Bridge } from './Bridge';
-import { Medbay } from './Medbay';
-import { CrewQuarters } from './CrewQuarters';
-import { Hydroponics } from './Hydroponics';
-import { CargoBay } from './CargoBay';
-import { ReactorRoom } from './ReactorRoom';
-import { CoreVault } from './CoreVault';
-import { CommsArray } from './CommsArray';
 
-export const SCENES: Record<RoomId, () => JSX.Element> = {
-  cryo_bay: CryoBay,
-  engineering: Engineering,
-  bridge: Bridge,
-  medbay: Medbay,
-  crew_quarters: CrewQuarters,
-  hydroponics: Hydroponics,
-  cargo_bay: CargoBay,
-  reactor_room: ReactorRoom,
-  core_vault: CoreVault,
-  comms_array: CommsArray,
+// Keep room code and its assets out of the opening bundle. React caches each
+// resolved component, so revisiting a room does not fetch its module again.
+export const SCENES: Record<RoomId, ComponentType> = {
+  cryo_bay: lazy(() => import('./CryoBay').then((m) => ({ default: m.CryoBay }))),
+  engineering: lazy(() => import('./Engineering').then((m) => ({ default: m.Engineering }))),
+  bridge: lazy(() => import('./Bridge').then((m) => ({ default: m.Bridge }))),
+  medbay: lazy(() => import('./Medbay').then((m) => ({ default: m.Medbay }))),
+  crew_quarters: lazy(() => import('./CrewQuarters').then((m) => ({ default: m.CrewQuarters }))),
+  hydroponics: lazy(() => import('./Hydroponics').then((m) => ({ default: m.Hydroponics }))),
+  cargo_bay: lazy(() => import('./CargoBay').then((m) => ({ default: m.CargoBay }))),
+  reactor_room: lazy(() => import('./ReactorRoom').then((m) => ({ default: m.ReactorRoom }))),
+  core_vault: lazy(() => import('./CoreVault').then((m) => ({ default: m.CoreVault }))),
+  comms_array: lazy(() => import('./CommsArray').then((m) => ({ default: m.CommsArray }))),
 };

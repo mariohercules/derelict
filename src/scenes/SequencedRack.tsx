@@ -136,7 +136,7 @@ export function SequencedRack() {
         <circle cx="290" cy="26" r="6" fill={tripped ? 'var(--red)' : 'var(--panel-solid)'} stroke="var(--steel)" strokeWidth="1.5" style={{ transition: 'fill 0.2s' }} />
         <text x="290" y="42" textAnchor="middle" fontSize="6" fill="var(--dim)" letterSpacing="1.5">{t.vault.tripLamp}</text>
       </svg>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8, marginTop: 10, maxWidth: 480 }}>
+      <div className="vault-sequence-controls">
         {COLUMNS.map((c) => (
           <button key={c} onClick={() => load(c)} disabled={kernel || seated.includes(c)} aria-label={t.vault.loadAria(c)}>{t.vault.load(c)}</button>
         ))}

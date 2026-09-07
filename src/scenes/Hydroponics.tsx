@@ -5,6 +5,8 @@ import { irrigationReportFor } from '../game/derived';
 import { secretsFor } from '../game/secrets';
 import { SPIKE_BED, WATER_BUDGET } from '../game/content';
 import { variantFor } from '../game/variants';
+import hydroRoom from '../assets/hydro-room.webp';
+import hydroRoomSmall from '../assets/hydro-room-small.webp';
 
 function Vine({ x, y, size }: { x: number; y: number; size: number }) {
   // deterministic vine: three bezier stems with leaf ellipses; `size` 0..1 scales it
@@ -105,10 +107,10 @@ function Beds() {
           </g>
         )}
       </svg>
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 8 }}>
+      <div className="hydro-valves">
         {[0, 1, 2].map((i) => (
           <div key={i} style={{ textAlign: 'center' }}>
-            <input type="range" min={0} max={9} value={irrigation[i]} style={{ width: 116 }}
+            <input type="range" min={0} max={9} value={irrigation[i]}
               onChange={(e) => setIrrigation(i as 0 | 1 | 2, Number(e.target.value))} aria-label={t.hydro.valveAria(i + 1)} />
             <div>{t.hydro.bed(i + 1)}: <strong style={{ color: 'var(--amber)' }}>{irrigation[i]}u</strong></div>
           </div>
@@ -151,14 +153,37 @@ function SpikeBed() {
 
 export function Hydroponics() {
   const t = useStrings();
+  const solved = useGame((s) => s.chapter2.irrigationSolved);
+  const cycled = useGame((s) => s.chapter2.lastCycle !== null);
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.hydro.title}</h2>
-        <p>{t.hydro.intro}</p>
+    <div className="scene hydro-scene">
+      <header className="hydro-heading">
+        <div><span className="scene-eyebrow">{t.hydro.sector}</span><h1>{t.hydro.title}</h1></div>
+        <span className={solved ? 'hydro-state status-ok' : 'hydro-state'} role="status">{solved ? t.hydro.flowBalanced : cycled ? t.hydro.cycleRecorded : t.hydro.awaitingCycle}</span>
+      </header>
+      <div className="hydro-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${hydroRoomSmall} 960w, ${hydroRoom} 1672w`} sizes="100vw" />
+          <img src={hydroRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="hydro-haze" aria-hidden="true" />
+        <span className="hydro-serial" aria-hidden="true">CMR / CULTIVATION</span>
+        <p className="hydro-caption">{t.hydro.intro}</p>
       </div>
-      <Beds />
-      <SpikeBed />
+      <nav className="hydro-stations" aria-label={t.hydro.stationNav}>
+        {[
+          ['hydro-irrigation', t.hydro.bedsTitle],
+          ['hydro-middle', t.hydro.spikeTitle],
+        ].map(([id, label], index) => <button key={id} onClick={() => {
+          const target = document.getElementById(id);
+          target?.focus({ preventScroll: true });
+          target?.scrollIntoView({ block: 'start' });
+        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+      </nav>
+      <div className="hydro-instruments">
+        <section id="hydro-irrigation" tabIndex={-1} aria-label={t.hydro.bedsTitle}><Beds /></section>
+        <section id="hydro-middle" tabIndex={-1} aria-label={t.hydro.spikeTitle}><SpikeBed /></section>
+      </div>
     </div>
   );
 }

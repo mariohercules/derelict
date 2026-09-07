@@ -176,8 +176,8 @@ export function DrawingWall() {
     <div className="panel">
       <h2>{t.quarters.wallTitle}</h2>
       <p className="status-dim">{t.quarters.wallKeyedDesc}</p>
-      <div role="group" aria-label={t.quarters.wallAria}
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 100px)', gap: 14, padding: 12, background: 'var(--steel-lo)', borderRadius: 6, border: '1px solid var(--line)', width: 'fit-content' }}>
+      <div role="group" className="drawing-wall-grid" aria-label={t.quarters.wallAria}
+        style={{ display: 'grid', gap: 14, padding: 12, background: 'var(--steel-lo)', borderRadius: 6, border: '1px solid var(--line)', width: 'fit-content' }}>
         {DRAWINGS.map((subject, i) => {
           const isKey = keyAt === i;
           const rot = isKey ? -9 : tilted === i ? -6 : 0;

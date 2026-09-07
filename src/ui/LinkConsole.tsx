@@ -72,17 +72,33 @@ export function LinkConsole({ linked }: { linked: boolean }) {
             <Lamp fill={linked ? 'var(--green)' : 'var(--red)'} lit /> {linked ? t.link.linked : t.link.severed}
           </span>
           <span className="status-dim">{t.link.online(onlineCount, lamps.length)}</span>
-          {collapsed && last && lastStatus && (
-            <span className="status-dim tool">
-              {t.link.last} {last.kind === 'call' ? last.tool : t.link.linkWord}
-              {' '}
-              <span className="word" style={{ color: lastStatus.fill }}><Lamp fill={lastStatus.fill} lit /> {lastStatus.word}</span>
-            </span>
-          )}
           <button className="fold" onClick={() => setPref('linkCollapsed', !collapsed)} aria-label={collapsed ? t.link.expand : t.link.collapse} aria-expanded={!collapsed}>
             {collapsed ? '▸' : '▾'}
           </button>
         </div>
+        {collapsed && (
+          <div className="link-summary">
+            <div className="bus-summary">
+              {BUSES.map((bus) => {
+                const bank = lamps.filter((l) => l.bus === bus);
+                const silenced = bank.some((l) => l.silenced);
+                const lit = bank.some((l) => l.online);
+                const protectedBus = state.chapter3.shielded.includes(bus);
+                const fill = silenced ? 'var(--red)' : lit ? 'var(--green)' : 'var(--steel-lo)';
+                return (
+                  <span key={bus} className={`bus-indicator ${silenced ? 'status-bad' : 'status-dim'}`}
+                    aria-label={`${t.reactor.bus[bus]}: ${t.link.online(bank.filter((l) => l.online).length, bank.length)}${protectedBus ? ` · ${t.link.shielded}` : ''}`}>
+                    <Lamp fill={fill} lit={lit || silenced} blink={silenced} />
+                    {t.reactor.bus[bus]}{protectedBus && <span className="shield-mark" title={t.link.shielded}>◇</span>}
+                  </span>
+                );
+              })}
+            </div>
+            <div className="link-latest" aria-live="polite">
+              {last && lastStatus ? <TickerLine e={last} /> : <span className="status-dim">{t.link.empty}</span>}
+            </div>
+          </div>
+        )}
         {!collapsed && (
           <>
             {BUSES.map((bus) => (

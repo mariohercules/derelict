@@ -4,6 +4,7 @@ import { enginesOnline } from '../game/derived';
 import { useStrings } from './useLocale';
 import { LocaleToggle } from './LocaleToggle';
 import { SoundToggle } from './SoundToggle';
+import { AtmosphereToggle } from './Atmosphere';
 import { LinkConsole } from './LinkConsole';
 import { secondsToNextPhase } from '../game/killswitch';
 import { rulesFor } from '../game/rules';
@@ -53,6 +54,7 @@ export function HUD({ linked }: { linked: boolean }) {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <SoundToggle />
+          <AtmosphereToggle />
           <LocaleToggle />
         </div>
       </header>

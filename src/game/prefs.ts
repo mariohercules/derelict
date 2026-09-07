@@ -8,14 +8,16 @@ export interface Prefs {
   version: 1;
   muted: boolean;
   linkCollapsed: boolean;
+  effectsReduced?: boolean; // Optional in older version-1 records.
 }
 
-export const EMPTY_PREFS: Prefs = { version: 1, muted: false, linkCollapsed: false };
+export const EMPTY_PREFS: Prefs = { version: 1, muted: false, linkCollapsed: true, effectsReduced: false };
 
 export function validPrefs(v: unknown): v is Prefs {
   if (!v || typeof v !== 'object') return false;
   const p = v as Record<string, unknown>;
-  return p.version === 1 && typeof p.muted === 'boolean' && typeof p.linkCollapsed === 'boolean';
+  return p.version === 1 && typeof p.muted === 'boolean' && typeof p.linkCollapsed === 'boolean'
+    && (p.effectsReduced === undefined || typeof p.effectsReduced === 'boolean');
 }
 
 export function loadPrefs(): Prefs {
@@ -23,7 +25,7 @@ export function loadPrefs(): Prefs {
     const raw = localStorage.getItem(PREFS_KEY);
     if (!raw) return EMPTY_PREFS;
     const parsed: unknown = JSON.parse(raw);
-    return validPrefs(parsed) ? parsed : EMPTY_PREFS;
+    return validPrefs(parsed) ? { ...EMPTY_PREFS, ...parsed } : EMPTY_PREFS;
   } catch {
     return EMPTY_PREFS;
   }

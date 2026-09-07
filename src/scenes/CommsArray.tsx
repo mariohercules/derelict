@@ -4,6 +4,8 @@ import { useStrings } from '../ui/useLocale';
 import { holdHandle, openBand, setDish } from '../game/store';
 import { dishAligned } from '../game/derived';
 import { variantFor } from '../game/variants';
+import commsRoom from '../assets/comms-room.webp';
+import commsRoomSmall from '../assets/comms-room-small.webp';
 
 const CX = 90;
 const CY = 90;
@@ -172,6 +174,7 @@ function OpenBand() {
         </>
       )}
       <button
+        className="ritual-handle"
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); holdHandle(true); }}
         onPointerUp={() => holdHandle(false)}
         onPointerCancel={() => holdHandle(false)}
@@ -179,7 +182,7 @@ function OpenBand() {
         onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') holdHandle(false); }}
         onBlur={() => holdHandle(false)}
         disabled={!armed || elapsed}
-        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch', marginTop: 10 }}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, marginTop: 10 }}
       >
         {ritual.held && armed && !elapsed ? t.comms.lockHolding : t.comms.lockHold}
       </button>
@@ -189,15 +192,36 @@ function OpenBand() {
 
 export function CommsArray() {
   const t = useStrings();
+  const aligned = useGame(dishAligned);
+  const heard = useGame((s) => s.chapter3.beaconHeard);
+  const armed = useGame((s) => s.ritual.active === 'broadcast' && s.ritual.phase === 'armed');
+  const inspect = (id: string) => {
+    const target = document.getElementById(id);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'start' });
+  };
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.comms.title}</h2>
-        <p>{t.comms.intro}</p>
+    <div className={`scene comms-scene${armed ? ' comms-armed' : aligned ? ' comms-locked' : ''}`}>
+      <header className="comms-heading"><div><span className="scene-eyebrow">{t.comms.sector}</span><h1>{t.comms.title}</h1></div><span className="comms-state">CMR / COMMS</span></header>
+      <div className="comms-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${commsRoomSmall} 960w, ${commsRoom} 1672w`} sizes="100vw" />
+          <img src={commsRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="comms-reflection" aria-hidden="true" />
+        <span className="comms-serial" aria-hidden="true">CMR / UPLINK</span>
+        <p className="comms-caption">{t.comms.intro}</p>
       </div>
-      <Dish />
-      <Beacon />
-      <OpenBand />
+      <nav className="comms-stations" aria-label={t.comms.title}>
+        <button onClick={() => inspect('comms-dish')}><span aria-hidden="true">01</span><strong>{t.comms.dishTitle}</strong><span aria-hidden="true">↘</span></button>
+        <button onClick={() => inspect('comms-band')}><span aria-hidden="true">02</span><strong>{t.comms.bandTitle}</strong><span aria-hidden="true">↘</span></button>
+        {(aligned || heard) && <button onClick={() => inspect('comms-beacon')}><span aria-hidden="true">03</span><strong>{t.comms.beaconTitle}</strong><span aria-hidden="true">↘</span></button>}
+      </nav>
+      <div className="comms-instruments">
+        <section id="comms-dish" tabIndex={-1} aria-label={t.comms.dishTitle}><Dish /></section>
+        <section id="comms-band" tabIndex={-1} aria-label={t.comms.bandTitle}><OpenBand /></section>
+        {(aligned || heard) && <section id="comms-beacon" tabIndex={-1} aria-label={t.comms.beaconTitle}><Beacon /></section>}
+      </div>
       <p className="status-dim">{t.comms.next}</p>
     </div>
   );

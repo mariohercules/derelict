@@ -27,7 +27,7 @@ function GearGlyph({ cx, cy, r, teeth, seated }: { cx: number; cy: number; r: nu
 function PhaseDial({ label, value, onChange, aria }: { label: string; value: number; onChange: (v: number) => void; aria: string }) {
   const a = (value / 12) * 2 * Math.PI - Math.PI / 2;
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div className="phase-instrument">
       <svg viewBox="0 0 80 92" width="88" role="img" aria-label={`${aria}: ${value}`}>
         <circle cx="40" cy="40" r="34" fill="var(--face)" stroke="var(--steel)" strokeWidth="3" />
         <circle cx="40" cy="40" r="29" fill="var(--face-deep)" stroke="var(--line)" />
@@ -66,7 +66,7 @@ export function GearAndCoils() {
   const plates = [tray[1], tray[2], tray[0]];
   return (
     <>
-      <div className="panel">
+      <div className="panel machine-panel">
         <h2>{t.eng.gcTitle}</h2>
         <p className="status-dim">{t.eng.gcDesc}</p>
         <svg viewBox="0 0 320 110" width="100%" style={{ maxWidth: 520, display: 'block' }} role="img" aria-label={t.eng.gcTrayAria}>
@@ -100,10 +100,10 @@ export function GearAndCoils() {
           ))}
         </div>
       </div>
-      <div className="panel">
+      <div className="panel machine-panel">
         <h2>{t.eng.gcCoilsTitle}</h2>
         <p className="status-dim">{t.eng.gcCoilsDesc}</p>
-        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+        <div className="phase-instruments">
           {(['A', 'B', 'C'] as const).map((label, i) => (
             <PhaseDial key={label} label={t.eng.gcCoil(label)} value={phases[i]} aria={t.eng.gcPhaseAria(label)}
               onChange={(val) => setPhase(i as 0 | 1 | 2, val)} />

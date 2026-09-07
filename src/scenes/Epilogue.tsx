@@ -4,6 +4,14 @@ import { useStrings } from '../ui/useLocale';
 import { resetGame } from '../game/store';
 import { EndingVignette } from './EndingVignette';
 import { FlightRecord } from '../ui/FlightRecord';
+import escapeImage from '../assets/ending-escape.webp';
+import escapeImageSmall from '../assets/ending-escape-small.webp';
+import restoreImage from '../assets/ending-restore.webp';
+import restoreImageSmall from '../assets/ending-restore-small.webp';
+import broadcastImage from '../assets/ending-broadcast.webp';
+import broadcastImageSmall from '../assets/ending-broadcast-small.webp';
+import stayImage from '../assets/ending-stay.webp';
+import stayImageSmall from '../assets/ending-stay-small.webp';
 
 export function Epilogue() {
   const toolCalls = useGame((s) => s.toolCalls);
@@ -17,6 +25,11 @@ export function Epilogue() {
   const runs = useMeta((m) => m.runsCompleted);
   const t = useStrings();
   const leaving = ending === 'leave_unknowing' || ending === 'leave_knowing' || ending === null;
+  const restored = ending === 'restore';
+  const broadcast = ending === 'broadcast';
+  const staying = ending === 'stay';
+  const endingImage = staying ? stayImage : broadcast ? broadcastImage : restored ? restoreImage : escapeImage;
+  const endingImageSmall = staying ? stayImageSmall : broadcast ? broadcastImageSmall : restored ? restoreImageSmall : escapeImageSmall;
   const title =
     ending === 'restore' ? t.epilogue.restored
     : ending === 'broadcast' ? t.epilogue.transmitted
@@ -30,10 +43,17 @@ export function Epilogue() {
     : t.epilogue.outroUnknowing;
   const stats = ending === 'restore' ? t.epilogue.statsRestore(toolCalls) : ending === 'stay' ? t.epilogue.statsStay(toolCalls) : t.epilogue.stats(toolCalls);
   return (
-    <div className="scene" style={{ marginTop: '6vh', textAlign: 'center' }}>
+    <div className={`scene cinematic-epilogue${staying ? ' stay-epilogue' : restored ? ' restore-epilogue' : broadcast ? ' broadcast-epilogue' : ''}`} style={{ marginTop: '6vh', textAlign: 'center' }}>
       <h1 style={{ letterSpacing: '0.4em', color: ending === 'broadcast' ? 'var(--amber)' : 'var(--green)' }}>{title}</h1>
-      <EndingVignette ending={ending} seed={seed} beaconHeard={beacon} />
-      <div className="panel" style={{ textAlign: 'left' }}>
+      <div className="ending-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${endingImageSmall} 960w, ${endingImage} 1672w`} sizes="100vw" />
+          <img src={endingImage} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="ending-reflection" aria-hidden="true" />
+        <span className="ending-serial" aria-hidden="true">{staying ? 'CMR / DOCKING' : broadcast ? 'CMR / OPEN BAND' : restored ? 'CMR / PRIME' : 'CMR / ESCAPE'}</span>
+      </div>
+      <div className="panel epilogue-outro" style={{ textAlign: 'left' }}>
         <p>{outro}</p>
         {leaving && proof && <p className="status-dim">{t.epilogue.withProof}</p>}
         {leaving && beacon && <p className="status-dim">{t.epilogue.withBeacon}</p>}
@@ -42,6 +62,10 @@ export function Epilogue() {
         <p className="status-dim">{stats}</p>
         {ngPlus && <p className="status-dim">{t.epilogue.runNumber(runs)}</p>}
       </div>
+      {!leaving && <figure className="ending-sequence">
+        <figcaption>{staying ? t.record.ariaStay : broadcast ? t.record.ariaBroadcast : t.record.ariaRestore}</figcaption>
+        <EndingVignette ending={ending} seed={seed} beaconHeard={beacon} />
+      </figure>}
       <FlightRecord />
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => resetGame()}>{t.epilogue.wakeAgain}</button>

@@ -5,8 +5,12 @@ import { dialSafe, playRecorder } from '../game/store';
 import { getRecorderTranscript } from '../game/narrative';
 import { variantFor } from '../game/variants';
 import { DrawingWall, KeyedSafe } from './KeyedSafe';
+import { startRecorderPlayback, type PlaybackStatus } from '../audio/recorder';
+import { usePrefs } from '../ui/usePrefs';
 import okaforEn from '../assets/okafor-en.mp3';
 import okaforPt from '../assets/okafor-pt.mp3';
+import quartersRoom from '../assets/quarters-room.webp';
+import quartersRoomSmall from '../assets/quarters-room-small.webp';
 
 function Wheel({ value, onUp, onDown, aria, disabled, index }: { value: number; onUp: () => void; onDown: () => void; aria: string; disabled: boolean; index: number }) {
   const prev = (value + 9) % 10;
@@ -14,7 +18,7 @@ function Wheel({ value, onUp, onDown, aria, disabled, index }: { value: number; 
   const gradientId = `q-drum-${index}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <button onClick={onUp} disabled={disabled} aria-label={`${aria} +`} style={{ padding: '2px 10px' }}>▲</button>
+      <button onClick={onUp} disabled={disabled} aria-label={`${aria} +`} style={{ padding: '2px 10px', minWidth: 44, minHeight: 44 }}>▲</button>
       <svg viewBox="0 0 40 60" width="40" role="img" aria-label={`${aria}: ${value}`}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -29,7 +33,7 @@ function Wheel({ value, onUp, onDown, aria, disabled, index }: { value: number; 
         <text x="20" y="34" textAnchor="middle" fontSize="12" fill="var(--amber)" fontWeight="bold">{value}</text>
         <text x="20" y="52" textAnchor="middle" fontSize="9" fill="#a8905a" opacity="0.5">{next}</text>
       </svg>
-      <button onClick={onDown} disabled={disabled} aria-label={`${aria} −`} style={{ padding: '2px 10px' }}>▼</button>
+      <button onClick={onDown} disabled={disabled} aria-label={`${aria} −`} style={{ padding: '2px 10px', minWidth: 44, minHeight: 44 }}>▼</button>
     </div>
   );
 }
@@ -97,116 +101,33 @@ function Recorder() {
   const played = useGame((s) => s.chapter2.recorderPlayed);
   const locale = useLocale();
   const t = useStrings();
-  const [playing, setPlaying] = useState(false);
-  const [noSpeech, setNoSpeech] = useState(false);
+  const [status, setStatus] = useState<PlaybackStatus>('idle');
+  const muted = usePrefs(p => p.muted);
+  const playing = status === 'playing';
+  const busy = playing || status === 'loading';
   const transcript = getRecorderTranscript();
   const bars = Array.from({ length: 24 }, (_, i) => 4 + ((transcript.charCodeAt(i * 7 % transcript.length) * 7) % 18));
-  // Two independent failsafes, because a stock voice's actual read time varies
-  // with rate and browser and can run well past a length-based guess:
-  // - idle timer: re-armed on every word boundary (and on start), so it only
-  //   fires when speech has genuinely gone silent — dropped `end` event,
-  //   tab backgrounding, Chrome's GC-mid-utterance bug — not when it's just a
-  //   long line.
-  // - hard cap: armed once at play() start as a backstop in case boundary
-  //   events never arrive at all.
-  const IDLE_MS = 10_000;
-  const hardCapMs = Math.min(120_000, 3_000 + transcript.length * 150);
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hardCapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Held for the duration of playback: Chrome can garbage-collect an utterance
-  // mid-speech if nothing keeps a reference to it, silently killing the audio
-  // and dropping `end` along with it.
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  // The recorded performance (Okafor's tape). Held so stop()/unmount can pause it;
-  // speechSynthesis remains the fallback when the file is missing or refuses to play.
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const clearIdleTimer = () => {
-    if (idleTimerRef.current !== null) {
-      clearTimeout(idleTimerRef.current);
-      idleTimerRef.current = null;
-    }
-  };
-  const clearHardCapTimer = () => {
-    if (hardCapTimerRef.current !== null) {
-      clearTimeout(hardCapTimerRef.current);
-      hardCapTimerRef.current = null;
-    }
-  };
-
-  const stop = () => {
-    clearIdleTimer();
-    clearHardCapTimer();
-    utteranceRef.current = null;
-    if (audioRef.current) {
-      try { audioRef.current.pause(); } catch { /* already stopped */ }
-      audioRef.current = null;
-    }
-    setPlaying(false);
-  };
-
-  useEffect(() => () => {
-    stop();
-    try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
-  }, []);
-
-  const armIdleTimer = () => {
-    clearIdleTimer();
-    idleTimerRef.current = setTimeout(() => {
-      try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
-      stop();
-    }, IDLE_MS);
-  };
-
-  // Fallback: the browser's voice reads the transcript when the tape cannot play.
-  const speak = () => {
-    audioRef.current = null;
-    try {
-      const synth = window.speechSynthesis;
-      if (!synth) throw new Error('no speech');
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance(transcript);
-      u.lang = locale === 'pt-BR' ? 'pt-BR' : 'en-US';
-      u.rate = 0.92;
-      u.onstart = () => armIdleTimer();
-      u.onboundary = () => armIdleTimer();
-      u.onend = () => stop();
-      u.onerror = () => stop();
-      utteranceRef.current = u;
-      synth.speak(u);
-    } catch {
-      setNoSpeech(true);
-      // playing stays true; the idle timer armed in play() stops it deterministically.
-    }
-  };
-
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const playButton = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const session = useRef<ReturnType<typeof startRecorderPlayback> | null>(null);
+  useEffect(() => {
+    if (!busy && restoreFocus.current) { restoreFocus.current = false; playButton.current?.focus(); }
+  }, [busy]);
+  useEffect(() => {
+    setStatus('idle');
+    return () => { session.current?.dispose(); session.current = null; };
+  }, [locale]);
   const play = () => {
+    session.current?.dispose();
     playRecorder();
-    setPlaying(true);
-    armIdleTimer();
-    clearHardCapTimer();
-    hardCapTimerRef.current = setTimeout(() => {
-      try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
-      stop();
-    }, hardCapMs);
-    // The recorded tape first; the synthetic voice only when it cannot play.
-    // `timeupdate` fires a few times a second during playback, so the idle
-    // failsafe stays armed by real progress, exactly like word boundaries do
-    // for the synthetic path.
-    try {
-      const audio = new Audio(locale === 'pt-BR' ? okaforPt : okaforEn);
-      audioRef.current = audio;
-      audio.onended = () => stop();
-      audio.onerror = () => speak();
-      audio.ontimeupdate = () => armIdleTimer();
-      audio.play().then(() => armIdleTimer()).catch(() => speak());
-    } catch {
-      speak();
-    }
+    if (audioRef.current) session.current = startRecorderPlayback(audioRef.current, transcript,
+      locale === 'pt-BR' ? 'pt-BR' : 'en-US', setStatus);
   };
 
   return (
-    <div className="panel">
+    <div className="panel recorder-panel" data-playback={status}>
+      <audio ref={audioRef} src={locale === 'pt-BR' ? okaforPt : okaforEn} preload="none" />
       <h2>{t.quarters.recorderTitle}</h2>
       <p className="status-dim">{t.quarters.recorderDesc}</p>
       <svg viewBox="0 0 320 120" width="100%" style={{ maxWidth: 480, display: 'block' }} aria-hidden="true">
@@ -228,10 +149,14 @@ function Recorder() {
         <circle cx="300" cy="18" r="4" fill={playing ? 'var(--red)' : '#2a1414'} stroke="#3a2020" />
         <text x="292" y="30" fontSize="6" fill="var(--dim)" textAnchor="middle">PLAY</text>
       </svg>
-      <div style={{ marginTop: 10 }}>
-        <button onClick={play} disabled={playing}>{playing ? t.quarters.playing : t.quarters.play}</button>
+      <div className="recorder-controls">
+        <button ref={playButton} onClick={play} disabled={busy}>{playing ? t.quarters.playing : status === 'loading' ? t.quarters.loading : t.quarters.play}</button>
+        {busy && <button onClick={() => { restoreFocus.current = true; session.current?.stop(); }}>{t.quarters.stop}</button>}
       </div>
-      {noSpeech && <p className="status-dim">{t.quarters.noSpeech}</p>}
+      <div role="status">
+        {played && muted && <p className="status-dim">{t.quarters.muted}</p>}
+        {status === 'unavailable' && !muted && <p className="status-dim">{t.quarters.playbackFailed}</p>}
+      </div>
       {played && (
         <div style={{ marginTop: 10 }}>
           <p className="status-dim">{t.quarters.transcriptLabel}</p>
@@ -247,21 +172,38 @@ export function CrewQuarters() {
   const keyed = variantFor(seed, 'crew_quarters') === 1;
   const t = useStrings();
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.quarters.title}</h2>
-        <p>{t.quarters.intro}</p>
+    <div className="scene quarters-scene">
+      <header className="quarters-heading">
+        <div><span className="scene-eyebrow">{t.quarters.sector}</span><h1>{t.quarters.title}</h1></div>
+        <span className="quarters-residents">VASQUEZ / OKAFOR</span>
+      </header>
+      <div className="quarters-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${quartersRoomSmall} 960w, ${quartersRoom} 1672w`} sizes="100vw" />
+          <img src={quartersRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="quarters-lamplight" aria-hidden="true" />
+        <span className="quarters-serial" aria-hidden="true">CMR / HABITAT</span>
+        <p className="quarters-caption">{t.quarters.intro}</p>
       </div>
-      {keyed ? <KeyedSafe /> : <Safe />}
-      <Recorder />
-      {keyed ? (
-        <DrawingWall />
-      ) : (
-        <div className="panel">
-          <h2>{t.quarters.wallTitle}</h2>
-          <p className="status-dim">{t.quarters.wallDesc}</p>
-        </div>
-      )}
+      <nav className="quarters-stations" aria-label={t.quarters.stationNav}>
+        {[
+          ['quarters-safe', t.quarters.safeTitle],
+          ['quarters-recorder', t.quarters.recorderTitle],
+          ['quarters-drawings', t.quarters.wallTitle],
+        ].map(([id, label], index) => <button key={id} onClick={() => {
+          const target = document.getElementById(id);
+          target?.focus({ preventScroll: true });
+          target?.scrollIntoView({ block: 'start' });
+        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+      </nav>
+      <div className="quarters-objects">
+        <section id="quarters-safe" tabIndex={-1} aria-label={t.quarters.safeTitle}>{keyed ? <KeyedSafe /> : <Safe />}</section>
+        <section id="quarters-recorder" tabIndex={-1} aria-label={t.quarters.recorderTitle}><Recorder /></section>
+        <section id="quarters-drawings" tabIndex={-1} aria-label={t.quarters.wallTitle}>
+          {keyed ? <DrawingWall /> : <div className="panel"><h2>{t.quarters.wallTitle}</h2><p className="status-dim">{t.quarters.wallDesc}</p></div>}
+        </section>
+      </div>
     </div>
   );
 }

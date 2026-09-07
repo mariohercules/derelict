@@ -125,7 +125,7 @@ export function StackedDeck() {
           )}
         </g>
       </svg>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 6, justifyContent: 'start', marginTop: 10 }}>
+      <div className="cargo-direction-pad">
         <span />
         <button onClick={() => move('up')} disabled={lifted} aria-label={t.cargo.up}>{t.cargo.up}</button>
         <span />

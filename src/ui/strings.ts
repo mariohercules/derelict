@@ -18,6 +18,9 @@ const DRAWING_NAMES_PT_DE: Record<Drawing, string> = {
 
 export interface UIStrings {
   app: {
+    youSee: string; aiOperates: string; resume: string; reviewEnding: string; resumeAt: (room: string) => string;
+    howToPlay: string; flightRecord: string; newJourney: string; newJourneyWarning: string; keepJourney: string; startNew: string;
+    linkActive: string; linkMissing: string; twoCrew: string; mainMenu: string; close: string; connection: string; inviteTitle: string; accessing: string;
     tagline: string;
     wakeUp: string;
     abandonRun: string;
@@ -32,6 +35,7 @@ export interface UIStrings {
     sound: string;
     soundOn: string;
     soundOff: string;
+    reduceEffects: string; effectsLow: string; effectsFull: string;
     ailinkTitle: string;
     rooms: Record<RoomId, string>;
     waveWarning: (secs: number) => string;
@@ -67,9 +71,17 @@ export interface UIStrings {
     again: string;
     pbTitle: string; pbDesc: string; pbAria: string; pbCableAria: (colour: string) => string;
     pbColours: [string, string, string]; pbBus: string; pbEmpty: string; pbEnergize: string; pbWrong: string;
+    sector: string; sceneLead: string; podLabel: string; cabinLog: string; memoryLabel: string;
+    powerOff: string; powerLive: string; doorWaiting: string; doorReleased: string; doorAuthHint: string; breakerReset: string;
+    pbChoose: string; pbSelect: (colour: string) => string; pbConnect: (bus: number) => string;
+    pbDisconnect: string; pbIncomplete: string;
+    memoryObject: string; panelObject: string; inspectPanel: string; inspectGrate: string;
+    operatePanel: string; inspectLive: string; inspectionLabel: string; backToRoom: string; exitLabel: string;
   };
   eng: {
+    stationNav: string; inspectHardware: string;
     title: string;
+    sector: string; driveOnline: string; driveFed: string; driveOff: string; driveWaiting: string; observe: string;
     intro: string;
     powerBoard: string;
     readOnly: string;
@@ -98,6 +110,7 @@ export interface UIStrings {
     gcCoilsTitle: string; gcCoilsDesc: string; gcCoil: (label: string) => string; gcPhaseAria: (label: string) => string;
   };
   bridge: {
+    sector: string; stationNav: string; inspectOptics: string; awaitingFix: string; fixReady: string; courseReady: string; launchArmed: string;
     title: string;
     intro: string;
     viewportTitle: string;
@@ -150,24 +163,28 @@ export interface UIStrings {
     ariaLeave: string; ariaRestore: string; ariaBroadcast: string; ariaStay: string;
   };
   medbay: {
-    title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
+    sector: string; title: string; intro: string; bandTitle: string; bandDesc: string; examine: string; bandReading: string; bandAria: string;
     terminalTitle: string; terminalDesc: string; burnIn: string; next: string;
   };
   quarters: {
+    sector: string; stationNav: string;
     title: string; intro: string; safeTitle: string; safeDesc: string; wheelAria: (n: number) => string; tryHandle: string;
     safeOpen: string; safeShut: string; driveNote: string; recorderTitle: string; recorderDesc: string; play: string; playing: string;
     transcriptLabel: string; noSpeech: string; wallTitle: string; wallDesc: string;
+    stop: string; loading: string; muted: string; playbackFailed: string;
     keyedDesc: string; keyedAria: string; keyedAriaKey: string; keyedAriaOpen: string; turnKey: string; noKey: string; keyInHand: string;
     wallKeyedDesc: string; wallAria: string; drawing: (d: Drawing) => string; drawingAria: (d: Drawing) => string;
     nothingBehind: (d: Drawing) => string; keyBehind: (d: Drawing) => string;
   };
   hydro: {
+    sector: string; stationNav: string; awaitingCycle: string; cycleRecorded: string; flowBalanced: string;
     title: string; intro: string; bedsTitle: string; bedsDesc: string; bed: (n: number) => string; needTag: (n: number) => string;
     valveAria: (n: number) => string; lampsHint: string; budget: string; over: string; cycleHint: string; spikeTitle: string; spikeHidden: string;
     spikeRevealed: string; pullSpike: string; spikePulled: string;
     bedsDescProbe: string; bedsAriaProbe: string; probeLamp: string; probeHint: string; probeRead: string;
   };
   cargo: {
+    sector: string; stationNav: string; cranePosition: string; awaitingCargo: string; cargoRecovered: string; analysisReady: string;
     title: string; intro: string; craneTitle: string; craneDesc: string; gridAria: string; slotAria: (label: string) => string;
     up: string; down: string; left: string; right: string; lift: string; wrongCrate: string; lifted: string;
     fragmentTitle: string; fragmentDesc: string; fragmentAria: string; readOut: string; analyzed: string; lowerDeck: string;
@@ -175,6 +192,8 @@ export interface UIStrings {
     palletUp: string; holdingOne: string; slotFull: string; parked: string;
   };
   reactor: {
+    sector: string; vesselLabel: string; exposed: string; suppressed: string; commandsHint: string;
+    allShielded: string; capacity: (have: number, max: number) => string;
     title: string; intro: string; bankTitle: string; bankDesc: string; bus: Record<BusId, string>; cut: string;
     cutAria: (bus: string) => string; shielded: string; needPower: (have: number, need: number) => string; bankAria: string;
     feedTitle: string; feedDesc: string; feedAria: string; feedReading: (have: number, need: number) => string;
@@ -182,7 +201,7 @@ export interface UIStrings {
     quarantineTitle: string; quarantineDesc: string; quarantineAria: string; segment: (n: number, of: number) => string; next: string;
   };
   vault: {
-    title: string; intro: string; rackTitle: string; rackDesc: string; rackAria: string; cradle: (n: number) => string; cycleAria: (n: number) => string;
+    sector: string; title: string; intro: string; rackTitle: string; rackDesc: string; rackAria: string; cradle: (n: number) => string; cycleAria: (n: number) => string;
     empty: string; column: (tag: string) => string; rackWrong: string; rackRight: string; kernelTitle: string; kernelDesc: string; seatKernel: string;
     kernelSeated: string; anotherRitual: string; leverHold: string; leverHolding: string; windowElapsed: string; twoOp: string;
     consoleTitle: string; consoleDesc: string; consoleAria: string; stage: (n: number) => string; cacheLamp: string; next: string;
@@ -190,7 +209,7 @@ export interface UIStrings {
     tripLamp: string; spinGauge: string; trayLabel: string; seqWaiting: (n: number) => string; seqTripped: string; seqLive: string;
   };
   comms: {
-    title: string; intro: string; dishTitle: string; dishDesc: string; dishAria: string; azAria: string; elAria: string; az: string; el: string;
+    sector: string; title: string; intro: string; dishTitle: string; dishDesc: string; dishAria: string; azAria: string; elAria: string; az: string; el: string;
     carrier: string; locked: string; beaconTitle: string; beaconDesc: string; beaconHeard: string; beaconAria: string;
     bandTitle: string; bandDesc: string; openBand: string; bandNoEvidence: string; bandNotAligned: string; anotherRitual: string; bandOpen: string;
     lockHold: string; lockHolding: string; windowElapsed: string; twoOp: string; next: string;
@@ -200,6 +219,12 @@ export interface UIStrings {
 
 const en: UIStrings = {
   app: {
+    youSee: 'You see the ship.', aiOperates: 'Your AI runs it.', resume: 'Continue journey', reviewEnding: 'View ending', resumeAt: room => `Returning to ${room}`,
+    howToPlay: 'How to play', flightRecord: 'Flight record', newJourney: 'New journey',
+    newJourneyWarning: 'Starting a new journey replaces this ship’s saved progress. Your flight record and discovered endings are kept.',
+    keepJourney: 'Keep this journey', startNew: 'Start new journey',
+    linkActive: 'Auxiliary link active', linkMissing: 'AI link unavailable · connection help', twoCrew: 'Two crewmates. One way forward.',
+    mainMenu: 'Main menu', close: 'Close', connection: 'Auxiliary connection', inviteTitle: 'Incoming ship invitation', accessing: 'Accessing…',
     tagline: 'A two-crew escape. You see the ship. Your AI runs it. Neither of you leaves alone.',
     wakeUp: 'Wake up',
     abandonRun: 'Abandon previous run',
@@ -216,6 +241,7 @@ const en: UIStrings = {
     engines: 'ENGINES',
     sound: 'SOUND',
     soundOn: 'Turn the ship\'s sound on',
+    reduceEffects: 'Reduce atmospheric effects', effectsLow: 'SUBTLE', effectsFull: 'EFFECTS',
     soundOff: 'Mute the ship',
     ailinkTitle: 'Ship systems currently exposed to your AI via WebMCP',
     rooms: {
@@ -230,6 +256,20 @@ const en: UIStrings = {
   },
   cryo: {
     title: 'Cryo bay',
+    sector: 'UPPER DECK / COMPARTMENT 01',
+    sceneLead: 'The glass is still warm. Something behind the wall is trying to stay alive.',
+    podLabel: 'POD 03 · THAW COMPLETE', cabinLog: 'Look around the compartment', memoryLabel: 'OKAFOR · MEMORY CEL',
+    memoryObject: 'Okafor’s photograph', panelObject: 'Auxiliary power',
+    inspectPanel: 'Inspect auxiliary power panel P-7', inspectGrate: 'Inspect the grille',
+    operatePanel: 'Operate the panel', inspectLive: 'Power restored · inspect',
+    inspectionLabel: 'Hardware inspection', backToRoom: 'Back to the room', exitLabel: 'PASSAGE',
+    powerOff: 'AUX POWER / OFFLINE', powerLive: 'AUX POWER / ONLINE',
+    doorWaiting: 'AWAITING SHIP AUTHORIZATION', doorReleased: 'MAGNETIC LOCK RELEASED',
+    doorAuthHint: 'Your AI controls the lock. Find the crew authorization code together.',
+    breakerReset: 'The master relay trips. All breakers return to OFF.',
+    pbChoose: 'Select a cable, then a bus. The wiring chart is on your AI’s side.',
+    pbSelect: (colour) => `Select ${colour} cable`, pbConnect: (bus) => `Connect selected cable to bus ${bus}`,
+    pbDisconnect: 'Disconnect selected cable', pbIncomplete: 'Seat all three cables before energizing.',
     introA: 'You wake up cold in an open cryopod. Emergency lights. The ship is silent in the way ships should never be. A terminal blinks: ',
     introEm: 'AUXILIARY MODEL-CONTEXT LINK ACTIVE',
     introB: ' — your AI is aboard, even if nothing else is.',
@@ -267,7 +307,10 @@ const en: UIStrings = {
     pbWrong: 'The panel blinks once and goes dark. Wrong wiring; nothing trips, nothing forgives.',
   },
   eng: {
+    stationNav: 'Engineering workstations', inspectHardware: 'Inspect drive mechanism',
     title: 'Engineering',
+    sector: 'UPPER DECK / PROPULSION', driveOnline: 'PROPULSION / ONLINE', driveFed: 'ENGINE FEED / LIVE',
+    driveOff: 'PROPULSION / OFFLINE', driveWaiting: 'The turbines wait behind the safety glass. Your hands service the hardware; your AI supplies the power.', observe: 'Observe the compartment',
     intro:
       'The heart of the ship, running on a fraction of one. Whatever happened here, someone fought hard to keep this deck alive — and left notes only the ship can read.',
     powerBoard: 'Power distribution board',
@@ -321,6 +364,8 @@ const en: UIStrings = {
     gcPhaseAria: (label) => `coil ${label} phase dial`,
   },
   bridge: {
+    sector: 'UPPER DECK / COMMAND', stationNav: 'Bridge stations', inspectOptics: 'Inspect navigation optics',
+    awaitingFix: 'NAVIGATION / AWAITING FIX', fixReady: 'STAR FIX / ACQUIRED', courseReady: 'TRAJECTORY / LOCKED', launchArmed: 'LAUNCH / ARMED',
     title: 'Bridge',
     intro:
       'Empty chairs, a cracked viewport, and one escape pod indicator burning steady green. Someone left this deck ready for you.',
@@ -414,7 +459,7 @@ const en: UIStrings = {
     plate: 'CRYO POD 3 · THAW CYCLE', plateAgain: 'CRYO POD 3 · THAW CYCLE · AGAIN', run: (n) => `RUN ${n}`,
     vitals: 'Vitals trace, drawing itself', temp: 'CORE TEMP',
     line1: 'MAIN COMPUTER: OFFLINE', line2: 'AUX MODEL-CONTEXT LINK: ACTIVE', line3: 'CREW LIFE SIGNS: 1', line4: 'RECOMMENDATION: COOPERATE WITH IT.',
-    podOpen: 'POD OPEN', podSealed: 'POD SEALED', skip: 'click, Esc or space to skip', continue: 'Continue',
+    podOpen: 'POD OPEN', podSealed: 'POD SEALED', skip: 'Skip opening', continue: 'Continue',
     aria: 'Thaw cycle: the cryo pod opening',
   },
   record: {
@@ -428,6 +473,7 @@ const en: UIStrings = {
     ariaStay: 'Pod one docking at the engineering clamps',
   },
   medbay: {
+    sector: 'MID DECK / MEDICAL',
     title: 'Medbay',
     intro: 'Your own bay. The pod you thawed in is here, lid up, and the terminal beside it has been dark since before you woke.',
     bandTitle: 'Med-band — your own',
@@ -441,6 +487,7 @@ const en: UIStrings = {
     next: 'Your AI can trace which terminal gave the order. Ask it. Then ask yourself why you are afraid of the answer.',
   },
   quarters: {
+    sector: 'MID DECK / CREW HABITAT', stationNav: 'Cabin objects',
     title: 'Crew quarters',
     intro: 'Two cabins with their doors wedged open. One is tidy the way people are tidy when they expect to be judged. The other is covered in a child\'s drawings.',
     safeTitle: 'Vasquez\'s cabin — desk safe',
@@ -454,6 +501,8 @@ const en: UIStrings = {
     recorderDesc: 'A reel-to-reel, because he never trusted anything without moving parts. One reel is nearly spent. The label reads AMARA.',
     play: 'Play the tape',
     playing: 'Playing…',
+    stop: 'Stop tape', loading: 'Loading tape…', muted: 'Sound is off. The transcript is available below. Turn sound on to play the tape.',
+    playbackFailed: 'Playback is unavailable. The transcript remains below; you can try the tape again.',
     transcriptLabel: 'What you hear (your AI cannot):',
     noSpeech: 'This browser has no voice. The transcript will have to do.',
     wallTitle: 'The wall',
@@ -473,6 +522,8 @@ const en: UIStrings = {
     keyBehind: (d) => `Behind ${DRAWING_NAMES_EN[d]}: a brass key, taped flat. Take it to the safe.`,
   },
   hydro: {
+    sector: 'MID DECK / CULTIVATION', stationNav: 'Hydroponics stations',
+    awaitingCycle: 'IRRIGATION / AWAITING CYCLE', cycleRecorded: 'IRRIGATION / CYCLE RECORDED', flowBalanced: 'IRRIGATION / BALANCED',
     title: 'Hydroponics',
     intro: 'Green, somehow. Nine weeks of one man\'s stubbornness, growing in trays under lights that should have been shed load. The middle bed has gone feral — a vine has swallowed its own planter.',
     bedsTitle: 'Irrigation manifold',
@@ -496,6 +547,8 @@ const en: UIStrings = {
     probeRead: 'Probe read on the closed lines. Ask your AI for the numbers.',
   },
   cargo: {
+    sector: 'MID DECK / FREIGHT', stationNav: 'Cargo stations', cranePosition: 'Gantry position',
+    awaitingCargo: 'CARGO / AWAITING RECOVERY', cargoRecovered: 'CONTAINER / RECOVERED', analysisReady: 'SAMPLE / ANALYZED',
     title: 'Cargo bay',
     intro: 'Cold, echoing, and stacked to the ceiling with the things a long haul needs. Somewhere in the bay stack is a container the manifest calls quarantine and Okafor refused to throw away.',
     craneTitle: 'Gantry crane',
@@ -523,6 +576,9 @@ const en: UIStrings = {
   },
   reactor: {
     title: 'Reactor room',
+    sector: 'LOWER DECK / CONTAINMENT', vesselLabel: 'R-01 / REACTOR VESSEL', exposed: 'EXPOSED', suppressed: 'COMMANDS RESTRICTED',
+    commandsHint: 'Red lamps mean vulnerable commands are blocked. Readings and immune systems remain available. A shielded bus holds through the wave.',
+    allShielded: 'All four buses shielded. Isolation power is committed.', capacity: (have, max) => `${have}u / ${max}u capacity`,
     intro: 'Forty percent of a reactor, humming like it has something to prove. Okafor lived here nine weeks. And along the back wall, a bank of breakers nobody has touched since the yard: the isolation bank.',
     bankTitle: 'Isolation bank',
     bankDesc: 'Four knife-switches, one per data bus. Cut one and that bus is physically cut off from the corporate directive set — nothing on it can be silenced. The blade does not go back up. Each cut draws power from the isolation feed.',
@@ -533,7 +589,7 @@ const en: UIStrings = {
     needPower: (have, need) => `Feed carries ${have}u; this cut needs ${need}u. Your AI routes power into the isolation feed.`,
     bankAria: 'Isolation breaker bank: four knife-switches, one per bus',
     feedTitle: 'Isolation feed',
-    feedDesc: 'The only meter on this wall that matters tonight. Your AI moves power here from what the ship can live without; each shielded bus holds five units for good.',
+    feedDesc: 'Your AI moves power here from what the ship can live without. Each shielded bus keeps its share of this feed for good.',
     feedAria: 'Isolation feed tank meter',
     feedReading: (have, need) => `${have}u in the feed · next cut needs ${need}u`,
     waveTitle: 'Directive set 7',
@@ -550,6 +606,7 @@ const en: UIStrings = {
     next: 'When the buses you need are safe, the core vault is next door — and the comms array is up past the bridge.',
   },
   vault: {
+    sector: 'LOWER DECK / MEMORY',
     title: 'Core vault',
     intro: 'PRIME\'s rack. Four memory columns lie in a crate on the deck, pulled and stacked by someone in a hurry; the fifth — the kernel — is still in its foam, untouched. Whatever PRIME kept, it kept here.',
     rackTitle: 'Memory rack',
@@ -589,6 +646,7 @@ const en: UIStrings = {
     seqLive: 'Fourth column up. Four lamps, green together. The rack is in order; the kernel cradle wakes.',
   },
   comms: {
+    sector: 'UPPER DECK / OBSERVATORY',
     title: 'Comms array',
     intro: 'The top of the ship, under a dome of cracked glass. The dish is manual now — the servos died with PRIME — and the open band has been closed since the Combine closed it.',
     dishTitle: 'Dish — manual steering',
@@ -626,6 +684,12 @@ const en: UIStrings = {
 
 const ptBR: UIStrings = {
   app: {
+    youSee: 'Você vê a nave.', aiOperates: 'Sua IA a opera.', resume: 'Continuar jornada', reviewEnding: 'Ver desfecho', resumeAt: room => `Retorno: ${room}`,
+    howToPlay: 'Como jogar', flightRecord: 'Registro de voo', newJourney: 'Nova jornada',
+    newJourneyWarning: 'Iniciar uma nova jornada substitui o progresso salvo nesta nave. Seu registro de voo e os finais descobertos são mantidos.',
+    keepJourney: 'Manter esta jornada', startNew: 'Iniciar nova jornada',
+    linkActive: 'Link auxiliar ativo', linkMissing: 'Link com a IA indisponível · ver conexão', twoCrew: 'Dois tripulantes. Um caminho adiante.',
+    mainMenu: 'Menu principal', close: 'Fechar', connection: 'Conexão auxiliar', inviteTitle: 'Convite de nave recebido', accessing: 'Acessando…',
     tagline: 'Uma fuga para dois tripulantes. Você vê a nave. Sua IA a opera. Nenhum dos dois sai sozinho.',
     wakeUp: 'Acordar',
     abandonRun: 'Abandonar jornada anterior',
@@ -642,6 +706,7 @@ const ptBR: UIStrings = {
     engines: 'MOTORES',
     sound: 'SOM',
     soundOn: 'Ligar o som da nave',
+    reduceEffects: 'Reduzir efeitos de atmosfera', effectsLow: 'DISCRETO', effectsFull: 'EFEITOS',
     soundOff: 'Silenciar a nave',
     ailinkTitle: 'Sistemas da nave atualmente expostos à sua IA via WebMCP',
     rooms: {
@@ -656,6 +721,20 @@ const ptBR: UIStrings = {
   },
   cryo: {
     title: 'Baia criogênica',
+    sector: 'CONVÉS SUPERIOR / COMPARTIMENTO 01',
+    sceneLead: 'O vidro ainda está morno. Algo atrás da parede insiste em continuar vivo.',
+    podLabel: 'POD 03 · DESCONGELAMENTO CONCLUÍDO', cabinLog: 'Observar o compartimento', memoryLabel: 'OKAFOR · CÉLULA DE MEMÓRIA',
+    memoryObject: 'Fotografia de Okafor', panelObject: 'Energia auxiliar',
+    inspectPanel: 'Inspecionar painel de energia auxiliar P-7', inspectGrate: 'Inspecionar a grade',
+    operatePanel: 'Operar o painel', inspectLive: 'Energia restaurada · inspecionar',
+    inspectionLabel: 'Inspeção do equipamento', backToRoom: 'Voltar à sala', exitLabel: 'PASSAGEM',
+    powerOff: 'ENERGIA AUXILIAR / OFFLINE', powerLive: 'ENERGIA AUXILIAR / ONLINE',
+    doorWaiting: 'AGUARDANDO AUTORIZAÇÃO DA NAVE', doorReleased: 'TRAVA MAGNÉTICA LIBERADA',
+    doorAuthHint: 'Sua IA controla a trava. Encontrem juntos o código da tripulação.',
+    breakerReset: 'O relé mestre dispara. Todos os disjuntores voltam a OFF.',
+    pbChoose: 'Selecione um cabo e depois um barramento. O mapa de fiação está com sua IA.',
+    pbSelect: (colour) => `Selecionar cabo ${colour}`, pbConnect: (bus) => `Conectar cabo selecionado ao barramento ${bus}`,
+    pbDisconnect: 'Desconectar cabo selecionado', pbIncomplete: 'Conecte os três cabos antes de energizar.',
     introA:
       'Você acorda com frio num criopod aberto. Luzes de emergência. A nave está silenciosa do jeito que naves nunca deveriam estar. Um terminal pisca: ',
     introEm: 'LINK AUXILIAR DE MODEL-CONTEXT ATIVO',
@@ -694,7 +773,10 @@ const ptBR: UIStrings = {
     pbWrong: 'O painel pisca uma vez e apaga. Fiação errada; nada desarma, nada perdoa.',
   },
   eng: {
+    stationNav: 'Estações da engenharia', inspectHardware: 'Inspecionar mecanismo de propulsão',
     title: 'Engenharia',
+    sector: 'CONVÉS SUPERIOR / PROPULSÃO', driveOnline: 'PROPULSÃO / ONLINE', driveFed: 'ALIMENTAÇÃO DOS MOTORES / ATIVA',
+    driveOff: 'PROPULSÃO / OFFLINE', driveWaiting: 'As turbinas esperam atrás do vidro de proteção. Suas mãos cuidam do mecanismo; sua IA fornece a energia.', observe: 'Observar o compartimento',
     intro:
       'O coração da nave, funcionando com uma fração de um. O que quer que tenha acontecido aqui, alguém lutou muito para manter este convés vivo — e deixou anotações que só a nave sabe ler.',
     powerBoard: 'Quadro de distribuição de energia',
@@ -748,6 +830,8 @@ const ptBR: UIStrings = {
     gcPhaseAria: (label) => `dial de fase da bobina ${label}`,
   },
   bridge: {
+    sector: 'CONVÉS SUPERIOR / COMANDO', stationNav: 'Estações da ponte', inspectOptics: 'Inspecionar óptica de navegação',
+    awaitingFix: 'NAVEGAÇÃO / AGUARDANDO ALINHAMENTO', fixReady: 'REFERÊNCIA ESTELAR / ADQUIRIDA', courseReady: 'TRAJETÓRIA / TRAVADA', launchArmed: 'LANÇAMENTO / ARMADO',
     title: 'Ponte',
     intro:
       'Cadeiras vazias, um viewport trincado e um indicador de pod de fuga aceso num verde constante. Alguém deixou este convés pronto para você.',
@@ -841,7 +925,7 @@ const ptBR: UIStrings = {
     plate: 'CRIOPOD 3 · CICLO DE DESCONGELAMENTO', plateAgain: 'CRIOPOD 3 · CICLO DE DESCONGELAMENTO · DE NOVO', run: (n) => `PARTIDA ${n}`,
     vitals: 'Traço de sinais vitais se desenhando', temp: 'TEMP. CENTRAL',
     line1: 'COMPUTADOR PRINCIPAL: OFFLINE', line2: 'LINK AUXILIAR DE MODEL-CONTEXT: ATIVO', line3: 'SINAIS VITAIS DA TRIPULAÇÃO: 1', line4: 'RECOMENDAÇÃO: COOPERE COM ELE.',
-    podOpen: 'POD ABERTO', podSealed: 'POD SELADO', skip: 'clique, Esc ou espaço para pular', continue: 'Continuar',
+    podOpen: 'POD ABERTO', podSealed: 'POD SELADO', skip: 'Pular abertura', continue: 'Continuar',
     aria: 'Ciclo de descongelamento: o criopod abrindo',
   },
   record: {
@@ -855,6 +939,7 @@ const ptBR: UIStrings = {
     ariaStay: 'O pod um acoplando nas garras da engenharia',
   },
   medbay: {
+    sector: 'CONVÉS INTERMEDIÁRIO / ENFERMARIA',
     title: 'Enfermaria',
     intro: 'A sua própria baia. O pod em que você descongelou está aqui, tampa aberta, e o terminal ao lado está apagado desde antes de você acordar.',
     bandTitle: 'Pulseira médica — a sua',
@@ -868,6 +953,7 @@ const ptBR: UIStrings = {
     next: 'Sua IA consegue rastrear qual terminal deu a ordem. Peça a ela. Depois pergunte a si mesmo por que a resposta te assusta.',
   },
   quarters: {
+    sector: 'CONVÉS INTERMEDIÁRIO / ALOJAMENTO', stationNav: 'Objetos das cabines',
     title: 'Cabines',
     intro: 'Duas cabines com as portas travadas abertas. Uma é arrumada do jeito que gente arruma quando espera ser julgada. A outra está coberta de desenhos de criança.',
     safeTitle: 'Cabine de Vasquez — cofre da mesa',
@@ -881,6 +967,8 @@ const ptBR: UIStrings = {
     recorderDesc: 'Um rolo-a-rolo, porque ele nunca confiou em nada sem peças móveis. Um dos rolos está quase no fim. A etiqueta diz AMARA.',
     play: 'Tocar a fita',
     playing: 'Tocando…',
+    stop: 'Parar fita', loading: 'Carregando fita…', muted: 'O som está desligado. A transcrição está abaixo. Ligue o som para ouvir a fita.',
+    playbackFailed: 'A reprodução não está disponível. A transcrição continua abaixo; você pode tentar tocar a fita novamente.',
     transcriptLabel: 'O que você ouve (sua IA não consegue):',
     noSpeech: 'Este navegador não tem voz. A transcrição vai ter que servir.',
     wallTitle: 'A parede',
@@ -900,6 +988,8 @@ const ptBR: UIStrings = {
     keyBehind: (d) => `Atrás ${DRAWING_NAMES_PT_DE[d]}: uma chave de latão, colada rente. Leve ao cofre.`,
   },
   hydro: {
+    sector: 'CONVÉS INTERMEDIÁRIO / CULTIVO', stationNav: 'Estações da hidroponia',
+    awaitingCycle: 'IRRIGAÇÃO / AGUARDANDO CICLO', cycleRecorded: 'IRRIGAÇÃO / CICLO REGISTRADO', flowBalanced: 'IRRIGAÇÃO / EQUILIBRADA',
     title: 'Hidroponia',
     intro: 'Verde, de algum jeito. Nove semanas da teimosia de um homem, crescendo em bandejas sob luzes que deviam ser carga descartável. O canteiro do meio virou mato — uma trepadeira engoliu o próprio vaso.',
     bedsTitle: 'Coletor de irrigação',
@@ -923,6 +1013,8 @@ const ptBR: UIStrings = {
     probeRead: 'Sonda leu as linhas fechadas. Pergunte os números à sua IA.',
   },
   cargo: {
+    sector: 'CONVÉS INTERMEDIÁRIO / CARGA', stationNav: 'Estações de carga', cranePosition: 'Posição do guindaste',
+    awaitingCargo: 'CARGA / AGUARDANDO RESGATE', cargoRecovered: 'CONTÊINER / RECUPERADO', analysisReady: 'AMOSTRA / ANALISADA',
     title: 'Porão de carga',
     intro: 'Frio, ecoante, empilhado até o teto com o que uma viagem longa precisa. Em algum lugar da pilha há um contêiner que o manifesto chama de quarentena e que Okafor se recusou a jogar fora.',
     craneTitle: 'Guindaste de pórtico',
@@ -950,6 +1042,9 @@ const ptBR: UIStrings = {
   },
   reactor: {
     title: 'Sala do reator',
+    sector: 'CONVÉS INFERIOR / CONTENÇÃO', vesselLabel: 'R-01 / VASO DO REATOR', exposed: 'EXPOSTO', suppressed: 'COMANDOS LIMITADOS',
+    commandsHint: 'Lâmpadas vermelhas indicam bloqueio de comandos vulneráveis. Leituras e sistemas imunes continuam disponíveis. Um barramento blindado resiste à onda.',
+    allShielded: 'Os quatro barramentos estão blindados. A energia de isolamento está comprometida.', capacity: (have, max) => `${have}u / ${max}u de capacidade`,
     intro: 'Quarenta por cento de um reator, zumbindo como se tivesse algo a provar. Okafor viveu aqui nove semanas. E na parede do fundo, um banco de disjuntores que ninguém toca desde o estaleiro: o banco de isolamento.',
     bankTitle: 'Banco de isolamento',
     bankDesc: 'Quatro chaves-faca, uma por barramento de dados. Corte uma e aquele barramento fica fisicamente separado do conjunto de diretrizes corporativo — nada nele pode ser silenciado. A lâmina não volta. Cada corte puxa energia da alimentação de isolamento.',
@@ -960,7 +1055,7 @@ const ptBR: UIStrings = {
     needPower: (have, need) => `A alimentação carrega ${have}u; este corte precisa de ${need}u. Sua IA roteia energia para a alimentação de isolamento.`,
     bankAria: 'Banco de disjuntores de isolamento: quatro chaves-faca, uma por barramento',
     feedTitle: 'Alimentação de isolamento',
-    feedDesc: 'O único medidor desta parede que importa esta noite. Sua IA move energia para cá do que a nave pode dispensar; cada barramento blindado retém cinco unidades para sempre.',
+    feedDesc: 'Sua IA move energia para cá do que a nave pode dispensar. Cada barramento blindado retém sua parte dessa alimentação para sempre.',
     feedAria: 'Medidor de tanque da alimentação de isolamento',
     feedReading: (have, need) => `${have}u na alimentação · próximo corte precisa de ${need}u`,
     waveTitle: 'Conjunto de diretrizes 7',
@@ -977,6 +1072,7 @@ const ptBR: UIStrings = {
     next: 'Quando os barramentos de que precisa estiverem seguros, o cofre do núcleo é a porta ao lado — e a antena fica lá em cima, depois da ponte.',
   },
   vault: {
+    sector: 'CONVÉS INFERIOR / MEMÓRIA',
     title: 'Cofre do núcleo',
     intro: 'O rack de PRIME. Quatro colunas de memória estão numa caixa no chão, puxadas e empilhadas por alguém com pressa; a quinta — o kernel — ainda está na espuma, intocada. O que PRIME guardou, guardou aqui.',
     rackTitle: 'Rack de memória',
@@ -1016,6 +1112,7 @@ const ptBR: UIStrings = {
     seqLive: 'Quarta coluna carregada. Quatro lâmpadas, verdes juntas. O rack está em ordem; o berço do kernel acorda.',
   },
   comms: {
+    sector: 'CONVÉS SUPERIOR / OBSERVATÓRIO',
     title: 'Antena de comunicações',
     intro: 'O topo da nave, sob uma cúpula de vidro rachado. A antena agora é manual — os servos morreram com PRIME — e a banda aberta está fechada desde que a Companhia a fechou.',
     dishTitle: 'Antena — apontamento manual',

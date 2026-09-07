@@ -33,7 +33,13 @@ export function DeckMap() {
   const t = useStrings();
   const statusLabel = { open: t.deck.legendOpen, locked: t.deck.legendLocked, sealed: t.deck.legendSealed } as const;
   return (
-    <div className="deckmap" aria-label={t.deck.title}>
+    <details className="deckmap">
+      <summary>
+        <span>{t.deck.title}</span>
+        <span className="deckmap-current">{t.hud.rooms[state.room]}</span>
+        <span className="deckmap-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div className="deckmap-content" aria-label={t.deck.title}>
       <svg viewBox="0 0 400 140" width="100%" role="group">
         {/* hull silhouette */}
         <path d={HULL_PATH} fill="var(--hull)" stroke="var(--line)" strokeWidth="2" />
@@ -104,6 +110,7 @@ export function DeckMap() {
         <span style={{ color: 'var(--dim)' }}>■</span> {t.deck.legendLocked}{' '}
         <span style={{ color: 'var(--line)' }}>■</span> {t.deck.legendSealed}
       </div>
-    </div>
+      </div>
+    </details>
   );
 }

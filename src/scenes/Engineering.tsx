@@ -8,6 +8,9 @@ import { LIFE_SUPPORT_MIN, REACTOR_OUTPUT } from '../game/content';
 import { secretsFor } from '../game/secrets';
 import { variantFor } from '../game/variants';
 import { GearAndCoils } from './GearAndCoils';
+import engineeringRoom from '../assets/engineering-room.webp';
+import engineeringRoomSmall from '../assets/engineering-room-small.webp';
+import { threatPhase } from '../ui/machinery';
 import type { FuseRating, SubsystemId } from '../game/types';
 
 // Gauge geometry: 0–120 PSI sweeps -120°..+120°, measured clockwise from 12 o'clock.
@@ -117,10 +120,11 @@ function FuseBox() {
   const installed = useGame((s) => s.fuseInstalled);
   const t = useStrings();
   return (
-    <div className="panel">
+    <div className="panel machine-panel fuse-cabinet">
       <h2>{t.eng.fuseTitle}</h2>
       <p className="status-dim">{t.eng.fuseDesc}</p>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+      <div className={'fuse-cradle' + (installed ? ' occupied' : '')} aria-hidden="true"><i />{installed && <FuseCartridge bands={FUSES.find(f => f.rating === installed)!.bands} />}<i /></div>
+      <div className="fuse-tray">
         {FUSES.map((f) => {
           const seated = installed === f.rating;
           return (
@@ -129,14 +133,8 @@ function FuseBox() {
               onClick={() => installFuse(f.rating)}
               disabled={seated}
               aria-label={t.eng.fuseAria(f.bands.length)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                ...(seated
-                  ? { borderColor: 'var(--amber)', boxShadow: '0 0 12px rgba(255, 180, 84, 0.25)' }
-                  : {}),
-              }}
+              className={'fuse-choice' + (seated ? ' is-seated' : '')}
+              aria-pressed={seated}
             >
               <FuseCartridge bands={f.bands} />
               {seated ? <span className="status-ok">{t.eng.seated}</span> : t.eng.seatIt}
@@ -154,13 +152,14 @@ function CoolantManifold() {
   const pressures = secretsFor(useGame((s) => s.seed)).gaugePressures;
   const t = useStrings();
   return (
-    <div className="panel">
+    <div className="panel machine-panel coolant-cabinet">
       <h2>{t.eng.coolant}</h2>
       <p className="status-dim">{t.eng.coolantDesc}</p>
-      <div style={{ display: 'flex', gap: 24 }}>
+      <div className="coolant-instruments">
         {pressures.map((p, i) => (
-          <div key={i} style={{ textAlign: 'center' }}>
+          <div key={i} className="coolant-instrument">
             <Gauge label={t.eng.line(i + 1)} pressure={p} ariaLabel={t.eng.gaugeAria(t.eng.line(i + 1))} />
+            <div className="valve-wheel" aria-hidden="true" style={{ transform: `rotate(${valves[i] * 30}deg)` }}><i /><i /><i /><b /></div>
             <input
               type="range" min={0} max={9} value={valves[i]}
               onChange={(e) => setValve(i as 0 | 1 | 2, Number(e.target.value))}
@@ -183,66 +182,23 @@ function PowerBoard() {
   const t = useStrings();
   const order: SubsystemId[] = ['life_support', 'doors', 'medbay', 'engines', 'comms', 'isolation'];
   return (
-    <div className="panel">
+    <div id="engineering-distribution" tabIndex={-1} className="panel machine-panel power-cabinet">
+      <div className="machine-serial"><span>DISTRIBUTION / P-02</span><span>{REACTOR_OUTPUT}u</span></div>
       <h2>{t.eng.powerBoard}</h2>
       <p className="status-dim">{t.eng.readOnly}</p>
-      {order.map((id) => (
-        <div key={id} style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '7px 0' }}>
-          <span style={{ width: 128, flexShrink: 0, fontSize: 13, lineHeight: 1.15 }}>
-            {t.eng.subsystems[id]}
-          </span>
-          {/* capacity track: full width = the reactor's 40u, one cell per unit */}
-          <div
-            style={{
-              position: 'relative',
-              flex: 1,
-              maxWidth: 340,
-              height: 14,
-              background: 'var(--face)',
-              border: '1px solid var(--line)',
-              borderRadius: 3,
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                top: 1,
-                bottom: 1,
-                left: 1,
-                width: `${(alloc[id] / REACTOR_OUTPUT) * 100}%`,
-                background: 'linear-gradient(180deg, #ffc878, var(--amber) 55%, #d99a3f)',
-                borderRadius: 2,
-                transition: 'width 0.35s ease',
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage:
-                  'repeating-linear-gradient(to right, transparent 0, transparent calc(2.5% - 1px), rgba(10, 14, 12, 0.9) calc(2.5% - 1px), rgba(10, 14, 12, 0.9) 2.5%)',
-              }}
-            />
-            {id === 'life_support' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: `${(LIFE_SUPPORT_MIN / REACTOR_OUTPUT) * 100}%`,
-                  width: 2,
-                  background: 'var(--red)',
-                  opacity: 0.85,
-                }}
-              />
-            )}
+      <div className="power-circuits">
+        {order.map((id) => (
+          <div key={id} className={'power-circuit' + (alloc[id] > 0 ? ' is-fed' : '')}>
+            <span className="circuit-lamp" aria-hidden="true" />
+            <span className="circuit-name">{t.eng.subsystems[id]}</span>
+            <div className="circuit-track" aria-hidden="true">
+              <i style={{ transform: `scaleX(${alloc[id] / REACTOR_OUTPUT})` }} />
+              {id === 'life_support' && <b style={{ left: `${LIFE_SUPPORT_MIN / REACTOR_OUTPUT * 100}%` }} />}
+            </div>
+            <span className="circuit-units">{alloc[id]}u</span>
           </div>
-          <span className="status-dim" style={{ width: 34, flexShrink: 0 }}>
-            {alloc[id]}u
-          </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -344,6 +300,7 @@ function DockingClamps() {
         <p className="status-dim">{t.eng.dockWaiting}</p>
       )}
       <button
+        className="ritual-handle"
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); holdHandle(true); }}
         onPointerUp={() => holdHandle(false)}
         onPointerCancel={() => holdHandle(false)}
@@ -351,7 +308,7 @@ function DockingClamps() {
         onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') holdHandle(false); }}
         onBlur={() => holdHandle(false)}
         disabled={!armed || elapsed || docked}
-        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch', marginTop: 10 }}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, marginTop: 10 }}
       >
         {open ? t.eng.clampsHolding : t.eng.clampsHold}
       </button>
@@ -365,19 +322,18 @@ function BridgeDoor() {
   const engines = useGame(enginesOnline);
   const t = useStrings();
   return (
-    <div className="panel">
-      <h2>{t.eng.ladderUp}</h2>
-      {engines && <p className="status-ok">{t.eng.enginesHum}</p>}
-      {unlocked ? (
-        <>
-          <p className="status-ok blink">{t.eng.hatchOpen}</p>
-          <button onClick={() => enterRoom('bridge')}>{t.eng.climbUp}</button>
-        </>
-      ) : (
-        <p className={powered ? 'status-bad' : 'status-dim'}>
-          {powered ? t.eng.servosPowered : t.eng.servosUnpowered}
+    <div id="engineering-passage" tabIndex={-1} className={'panel machine-panel bridge-access' + (unlocked ? ' is-open' : '')}>
+      <button className="bridge-hatch" onClick={() => enterRoom('bridge')} disabled={!unlocked} aria-label={t.eng.climbUp}>
+        <span className="hatch-aperture" aria-hidden="true"><i /><i /><i /><i /></span>
+        <span className="hatch-lid" aria-hidden="true">03</span>
+        <span>{t.eng.climbUp}</span>
+      </button>
+      <div><h2>{t.eng.ladderUp}</h2>
+        {engines && <p className="status-ok">{t.eng.enginesHum}</p>}
+        <p className={unlocked ? 'status-ok' : powered ? 'status-bad' : 'status-dim'} role="status">
+          {unlocked ? t.eng.hatchOpen : powered ? t.eng.servosPowered : t.eng.servosUnpowered}
         </p>
-      )}
+      </div>
     </div>
   );
 }
@@ -385,17 +341,46 @@ function BridgeDoor() {
 export function Engineering() {
   const t = useStrings();
   const seed = useGame((s) => s.seed);
+  const online = useGame(enginesOnline);
+  const feed = useGame((s) => s.powerAllocation.engines);
+  const wave = useGame(threatPhase);
   const coilDrive = variantFor(seed, 'engineering') === 1;
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.eng.title}</h2>
-        <p>{t.eng.intro}</p>
+    <div className={`scene machine-scene engineering-scene cinematic-engineering wave-${wave}${online ? ' engines-running' : ''}`}>
+      <header className="machine-heading"><div><span className="scene-eyebrow">{t.eng.sector}</span><h1>{t.eng.title}</h1></div>
+        <span className="machine-state">{online ? t.eng.driveOnline : feed > 0 ? t.eng.driveFed : t.eng.driveOff}</span>
+      </header>
+      <div className="engineering-panorama" data-online={online}>
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${engineeringRoomSmall} 960w, ${engineeringRoom} 1672w`} sizes="100vw" />
+          <img src={engineeringRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="engineering-light" aria-hidden="true" />
+        <div className="engineering-mist" aria-hidden="true" />
+        <div className="engineering-panorama-serial" aria-hidden="true">CMR / DRIVE 01—02</div>
+        <div className="engineering-panorama-caption">
+          <span className="engineering-feed">{feed}u / {t.eng.subsystems.engines}</span>
+          <p role="status">{online ? t.eng.enginesHum : t.eng.driveWaiting}</p>
+        </div>
       </div>
-      <PowerBoard />
-      {coilDrive ? <GearAndCoils /> : <><FuseBox /><CoolantManifold /></>}
+      <nav className="engineering-stations" aria-label={t.eng.stationNav}>
+        {[
+          ['engineering-hardware', t.eng.inspectHardware],
+          ['engineering-distribution', t.eng.powerBoard],
+          ['engineering-passage', t.eng.ladderUp],
+        ].map(([id, label], index) => <button key={id} onClick={() => {
+          const target = document.getElementById(id);
+          target?.focus({ preventScroll: true });
+          target?.scrollIntoView({ block: 'start' });
+        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+      </nav>
+      <div className="machine-stage engineering-stage">
+        <div id="engineering-hardware" tabIndex={-1} role="group" aria-label={t.eng.inspectHardware} className="engine-controls">{coilDrive ? <GearAndCoils /> : <><FuseBox /><CoolantManifold /></>}</div>
+        <PowerBoard />
+        <BridgeDoor />
+      </div>
       <DockingClamps />
-      <BridgeDoor />
+      <details className="machine-log"><summary>{t.eng.observe}</summary><p>{t.eng.intro}</p></details>
     </div>
   );
 }

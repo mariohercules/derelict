@@ -2,22 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import { useGame } from './useGame';
 import { useMeta } from './useMeta';
 import { useStrings } from './useLocale';
-import { COLD_OPEN_DONE_MS, coldOpenSchedule, crystalPoints, frostCrystals, thawTemp } from './thaw';
+import { COLD_OPEN_DONE_MS, coldOpenSchedule, thawTemp } from './thaw';
 import { reducedMotion } from './motion';
 import { playBulkhead } from '../audio/sound';
+import { OpeningBackdrop } from './OpeningBackdrop';
 
 // The thaw. Four steps on a schedule; skippable; under reduced motion it is
 // the final frame and a CONTINUE button. Steps: 0 vitals, 1 frost clearing,
 // 2 bulletin printing, 3 pod open.
 export function ColdOpen({ onDone }: { onDone: () => void }) {
-  const seed = useGame((s) => s.seed);
   const ngPlus = useGame((s) => s.ngPlus);
   const runs = useMeta((m) => m.runsCompleted);
   const t = useStrings();
   const [reduced] = useState(reducedMotion);
   const [step, setStep] = useState(reduced ? 3 : 0);
   const [progress, setProgress] = useState(reduced ? 1 : 0);
-  const dialog = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
   const done = useRef(false);
   const finish = () => {
     if (done.current) return;
@@ -26,7 +26,9 @@ export function ColdOpen({ onDone }: { onDone: () => void }) {
   };
 
   useEffect(() => {
-    dialog.current?.focus();
+    const element = dialog.current!;
+    element.showModal();
+    return () => element.close();
   }, []);
 
   useEffect(() => {
@@ -59,10 +61,11 @@ export function ColdOpen({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const crystals = frostCrystals(seed);
   const lines = [t.open.line1, t.open.line2, t.open.line3, t.open.line4];
   return (
-    <div className="coldopen" role="dialog" aria-modal="true" aria-label={t.open.aria} tabIndex={-1} ref={dialog} onClick={reduced ? undefined : finish}>
+    <dialog className="coldopen cinematic-thaw" data-reduced={reduced} data-step={step}
+      aria-label={t.open.aria} ref={dialog} onCancel={e => { e.preventDefault(); finish(); }}>
+      <OpeningBackdrop />
       <div className="pod-plate">
         <div className="plate-engraved">
           {ngPlus ? t.open.plateAgain : t.open.plate}
@@ -87,22 +90,10 @@ export function ColdOpen({ onDone }: { onDone: () => void }) {
         </div>
         <div className="row">
           <span className={step >= 3 ? 'status-ok' : 'status-dim'}>{step >= 3 ? '●' : '○'} {step >= 3 ? t.open.podOpen : t.open.podSealed}</span>
-          {reduced ? <button onClick={finish}>{t.open.continue}</button> : <span className="status-dim">{t.open.skip}</span>}
+          <button onClick={finish}>{reduced ? t.open.continue : t.open.skip}</button>
         </div>
       </div>
-      {!reduced && (
-        <svg className={`frost ${step >= 1 ? 'frost-clearing' : ''}`} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <mask id="co-hole">
-              <rect width="100" height="100" fill="white" />
-              <circle className="frost-hole" cx="50" cy="50" r="0" fill="black" />
-            </mask>
-          </defs>
-          <g mask="url(#co-hole)" fill="var(--parchment)" opacity="0.28">
-            {crystals.map((c, i) => <polygon key={i} points={crystalPoints(c)} />)}
-          </g>
-        </svg>
-      )}
-    </div>
+      {!reduced && <div className={`thaw-condensation ${step >= 1 ? 'is-clearing' : ''}`} aria-hidden="true" />}
+    </dialog>
   );
 }

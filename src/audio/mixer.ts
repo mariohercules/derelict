@@ -7,7 +7,8 @@ import { ENGINES_REQUIRED } from '../game/content';
 import { enginesOnline } from '../game/derived';
 import { linkStore } from '../game/link';
 import { prefsStore } from '../game/prefs';
-import { getAudioContext, getMaster, noiseBuffer, playRelayClick, setMuted } from './sound';
+import { getAudioContext, getMaster, noiseBuffer, playRelayClick, setEffectsLevel, setMuted } from './sound';
+import { directionStore } from '../presentation/runtime';
 
 export interface MixTargets {
   room: RoomId;
@@ -357,12 +358,14 @@ export function startMixer(store: StoreApi<GameState>): () => void {
 
   function apply(t: MixTargets): void {
     const now = c!.currentTime;
-    bed.gain.setTargetAtTime(t.bed, now, 0.8);
+    const direction = directionStore.getState();
+    bed.gain.setTargetAtTime(t.bed * direction.ambience, now, direction.beat === 'listening' ? .12 : .8);
+    setEffectsLevel(direction.effects);
     lp.frequency.setTargetAtTime(t.lowpassHz, now, 0.6);
     tremLfo.frequency.setTargetAtTime(t.tremoloHz, now, 0.1);
     tremDepth.gain.setTargetAtTime(t.tremoloHz > 0 ? 0.5 : 0, now, 0.1);
     hum.frequency.setTargetAtTime(t.hum.freq, now, 0.5);
-    humGain.gain.setTargetAtTime(t.hum.gain, now, 0.5);
+    humGain.gain.setTargetAtTime(t.hum.gain * t.bed * direction.ambience, now, direction.beat === 'listening' ? .12 : .5);
     if (!current || current.room !== t.room) current = swapLayer(current, t.room);
     current.layer.update(t);
     // The interval re-evaluates its own reason to exist: a window closing is a
@@ -385,6 +388,7 @@ export function startMixer(store: StoreApi<GameState>): () => void {
 
   apply(mixFor(store.getState()));
   const unsubGame = store.subscribe((s) => apply(mixFor(s)));
+  const unsubDirection = directionStore.subscribe(() => apply(mixFor(store.getState())));
   const unsubLink = linkStore.subscribe((s, prev) => {
     const last = s.events[s.events.length - 1];
     if (last && last !== prev.events[prev.events.length - 1] && last.kind === 'call') playRelayClick();
@@ -394,12 +398,14 @@ export function startMixer(store: StoreApi<GameState>): () => void {
 
   running = () => {
     unsubGame();
+    unsubDirection();
     unsubLink();
     unsubPrefs();
     if (tickTimer !== 0) window.clearInterval(tickTimer);
     current?.layer.stop();
     hum.stop();
     tremLfo.stop();
+    setEffectsLevel(1);
     running = null;
   };
   return running;

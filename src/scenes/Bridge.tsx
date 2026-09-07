@@ -5,6 +5,8 @@ import { takeStarFix, holdHandle, enterRoom, breakSeal, startInvestigation } fro
 import { secretsFor } from '../game/secrets';
 import { variantFor } from '../game/variants';
 import { DriftViewport } from './DriftViewport';
+import bridgeRoom from '../assets/bridge-room.webp';
+import bridgeRoomSmall from '../assets/bridge-room-small.webp';
 
 // Deterministic star field (no per-render randomness — the sky must hold still).
 // x spans -30..430 so the parallax shift never exposes an empty edge.
@@ -186,6 +188,7 @@ function LaunchConsole() {
         </>
       )}
       <button
+        className="ritual-handle"
         onPointerDown={(e) => {
           // Capture the pointer: the hold survives drift off the button
           // (its own label swap resizes it mid-press) and release still
@@ -206,7 +209,7 @@ function LaunchConsole() {
         }}
         onBlur={() => holdHandle(false)}
         disabled={!armed || elapsed}
-        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2, minWidth: '32ch' }}
+        style={{ fontSize: 18, padding: '16px 28px', borderWidth: 2 }}
       >
         {ritual.held && armed && !elapsed ? t.bridge.holding : t.bridge.confirmHold}
       </button>
@@ -227,16 +230,44 @@ function EngineeringLadder() {
 export function Bridge() {
   const t = useStrings();
   const seed = useGame((s) => s.seed);
+  const trajectory = useGame((s) => s.trajectorySet);
+  const fix = useGame((s) => s.starFixTaken);
+  const armed = useGame((s) => s.ritual.active === 'launch' && s.ritual.phase === 'armed');
+  const status = armed ? t.bridge.launchArmed : trajectory ? t.bridge.courseReady : fix ? t.bridge.fixReady : t.bridge.awaitingFix;
   return (
-    <div className="scene">
-      <div className="panel">
-        <h2>{t.bridge.title}</h2>
-        <p>{t.bridge.intro}</p>
+    <div className="scene bridge-scene" data-armed={armed}>
+      <header className="bridge-heading">
+        <div><span className="scene-eyebrow">{t.bridge.sector}</span><h1>{t.bridge.title}</h1></div>
+        <span className="bridge-state" role="status">{status}</span>
+      </header>
+      <div className="bridge-panorama">
+        <picture aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={`${bridgeRoomSmall} 960w, ${bridgeRoom} 1672w`} sizes="100vw" />
+          <img src={bridgeRoom} width="1672" height="941" alt="" decoding="async" />
+        </picture>
+        <div className="bridge-window-light" aria-hidden="true" />
+        <div className="bridge-alarm-light" aria-hidden="true" />
+        <span className="bridge-serial" aria-hidden="true">CMR / NAV 03</span>
+        <p className="bridge-caption">{t.bridge.intro}</p>
       </div>
-      {variantFor(seed, 'bridge') === 1 ? <DriftViewport /> : <Viewport />}
-      <SealedLog />
-      <Investigate />
-      <LaunchConsole />
+      <nav className="bridge-stations" aria-label={t.bridge.stationNav}>
+        {[
+          ['bridge-optics', t.bridge.inspectOptics],
+          ['bridge-launch', t.bridge.consoleTitle],
+        ].map(([id, label], index) => <button key={id} onClick={() => {
+          const target = document.getElementById(id);
+          target?.focus({ preventScroll: true });
+          target?.scrollIntoView({ block: 'start' });
+        }}><span aria-hidden="true">0{index + 1}</span><strong>{label}</strong><span aria-hidden="true">↘</span></button>)}
+        <button onClick={() => enterRoom('engineering')}><span aria-hidden="true">03</span><strong>{t.bridge.climbDown}</strong></button>
+      </nav>
+      <div className="bridge-instruments">
+        <section id="bridge-optics" tabIndex={-1} aria-label={t.bridge.inspectOptics}>
+          {variantFor(seed, 'bridge') === 1 ? <DriftViewport /> : <Viewport />}
+        </section>
+        <section id="bridge-launch" tabIndex={-1} aria-label={t.bridge.consoleTitle}><LaunchConsole /></section>
+      </div>
+      <div className="bridge-records"><SealedLog /><Investigate /></div>
       <EngineeringLadder />
     </div>
   );
